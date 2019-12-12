@@ -1,8 +1,8 @@
 import Express from 'express';
 import SocketIo from 'socket.io';
 import Mqtt from 'mqtt';
-import Http from 'http';
-import Debug from 'debug';
+import http from 'http';
+import debug from 'debug';
 import nano from 'nano';
 
 import {
@@ -17,10 +17,10 @@ import {
     COUCHDB_PORT,
 } from './constants.js';
 
-const debug = Debug('mhz19');
+const log = debug('mhz19');
 
 const express = Express();
-const httpServer = Http.Server(express);
+const httpServer = http.Server(express);
 
 const socketIo = SocketIo(httpServer, { origins: `http://${APP_HOST}:${APP_PORT}` });
 
@@ -33,9 +33,6 @@ const couchClient = nano(`http://${COUCHDB_HOST}:${COUCHDB_PORT}`);
 const mqttDb = couchClient.db.use('mqtt');
 const configsDb = couchClient.db.use('configs');
 
-// console.log(couchClient);
-// console.log(mqttDb);
-
 mqttClient.on('connect', async function () {
     mqttClient.subscribe([
         'zigbee2mqtt/#',
@@ -47,14 +44,15 @@ mqttClient.on('connect', async function () {
 });
 
 mqttClient.on('message', async function (topic, message) {
-    console.log('\ntopic:', topic);
+    log('\ntopic:', topic);
     const raw = message.toString();
     let parsed = null;
+    const timestamp = (new Date).valueOf();
     try {
         parsed = JSON.parse(raw);
-        console.log('json:', parsed);
+        log('json:', parsed);
     } catch(e) {
-        console.log('string:', raw);
+        log('string:', raw);
     }
     if (parsed && (topic.startsWith('homeassistant/sensor') || topic.startsWith('homeassistant/binary_sensor'))) {
         try {
@@ -65,7 +63,6 @@ mqttClient.on('message', async function (topic, message) {
     }
     if (topic === '/ESP/MH/CO2') {
         const co2 = parseInt(message, 10);
-        const timestamp = (new Date).valueOf();
         try {
             await mqttDb.insert({
                 co2,
@@ -75,35 +72,31 @@ mqttClient.on('message', async function (topic, message) {
             console.error(e);
         }
     }
-    socketIo.sockets.emit('mqtt-message', { topic, parsed, raw: !parsed ? raw : null });
+    socketIo.sockets.emit('mqtt-message', { topic, parsed, raw: !parsed ? raw : null, timestamp });
 });
 
 express.use(Express.static(PUBLIC_PATH));
 
 httpServer.listen(APP_PORT, (err) => {
     if (err) {
-        debug(`failed to launch server: ${err}`);
+        log(`failed to launch server: ${err}`);
     } else {
-        debug(`listening on ${APP_HOST}:${APP_PORT}`)
+        log(`listening on ${APP_HOST}:${APP_PORT}`)
         const browserLink = `http://${APP_HOST}:${APP_PORT}/`;
-        debug(`open browser at ${browserLink}`)
+        log(`open browser at ${browserLink}`)
     }
 });
 
-socketIo.on('connection', async function(socket) {
-
-    debug(`new ws connection id=${socket.id}`);
-
+async function mqttFind(socket, historyOption) {
     const query = {
         selector: {
             timestamp: {
-                "$gt": (new Date()).valueOf() - parseInt(socket.handshake.query.historyOption, 10)
+                "$gt": (new Date()).valueOf() - historyOption
             }
         },
         fields: ["co2", "timestamp"],
         limit: 10000
     };
-
     try {
         const response = await mqttDb.find(query);
         socket.emit('bootstrap', {
@@ -113,15 +106,23 @@ socketIo.on('connection', async function(socket) {
         socket.emit('bootstrap', {
             error: e.message
         });
-        debug(`mqtt.find failed: ${e.message}`);
+        log(`mqtt.find failed: ${e.message}`);
     }
+}
+
+socketIo.on('connection', async function(socket) {
+
+    log(`new ws connection id=${socket.id}`);
+
+    mqttFind(socket, parseInt(socket.handshake.query.historyOption, 10));
 
     socket.on('disconnect', () => {
-        debug(`ws id=${socket.id} disconnected`);
+        log(`ws id=${socket.id} disconnected`);
     });
 
-    socket.on('setHistoryOption', (...args) => {
-        debug(`setHistoryOption received`, ...args);
+    socket.on('setHistoryOption', (historyOption) => {
+        log(`setHistoryOption received`, historyOption);
+        mqttFind(socket, parseInt(historyOption, 10));
     });
 
 });

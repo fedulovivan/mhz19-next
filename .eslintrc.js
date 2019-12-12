@@ -4,12 +4,16 @@ module.exports = {
         sourceType: "module"
     },
     env: {
-        node: true
+        node: true,
+        browser: true
     },
     extends: [
         "eslint:recommended",
         "plugin:react/recommended"
     ],
+    rules: {
+        "no-unused-vars": "warn"
+    },
     plugins: [
         "react"
     ],

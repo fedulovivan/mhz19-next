@@ -11,6 +11,7 @@ import ReactDOM from 'react-dom';
 
 import SocketIoClient from 'socket.io-client';
 import classNames from 'classnames';
+import moment from 'moment';
 
 import {
     XYPlot,
@@ -44,7 +45,7 @@ const useStyles = makeStyles({
     },
     card: {
         display: 'grid',
-        gridAutoFlow: 'column',
+        // gridAutoFlow: 'column',
     },
     unit: {
         alignSelf: 'start',
@@ -54,7 +55,7 @@ const useStyles = makeStyles({
         // TBD
     },
     options: {
-        minWidth: '120px'
+        minWidth: '150px'
     }
 });
 
@@ -73,7 +74,7 @@ function Root() {
     const [CO2, setCO2] = useState(0);
     const [temperature, setTemperature] = useState(0);
     const [socket, setSocket] = useState(null);
-    const [error, setError] = useState(null);
+    const [error, setError] = useState('n/a');
 
     useEffect(() => {
         const io = SocketIoClient(`ws://${APP_HOST}:${APP_PORT}`, {
@@ -86,9 +87,10 @@ function Root() {
         });
         io.on('mqtt-message', (message) => {
             console.log(message);
-            const { topic, parsed, raw } = message;
+            const { topic, parsed, raw, timestamp } = message;
             if (topic === '/ESP/MH/CO2') {
                 setCO2(parsed);
+                if (docs.length) setDocs([...docs, { timestamp, co2: parsed }])
             }
             if (topic === '/ESP/MH/TEMP') {
                 setTemperature(parsed);
@@ -97,19 +99,6 @@ function Root() {
     }, []);
 
     const classes = useStyles(/* props */);
-
-    const data = [
-        {x: 0, y: 1},
-        {x: 1, y: 2},
-        {x: 2, y: 4},
-        {x: 3, y: 16},
-        {x: 4, y: 15},
-        {x: 5, y: 10},
-        {x: 6, y: 9},
-        {x: 7, y: 8},
-        {x: 8, y: 3},
-        {x: 9, y: 1}
-    ];
 
     return (
         <div className={classes.root}>
@@ -139,12 +128,12 @@ function Root() {
                     </CardContent>
                 </Card>
                 <Card>
-                    <XYPlot width={300} height={200}>
-                        <XAxis />
-                        <YAxis />
+                    <XYPlot width={300} height={200} /* xDomain={[0, 2500]} */>
+                        <YAxis /* ticks={[500, 1000, 1500, 2000, 2500]} */ />
+                        <XAxis tickTotal={3} tickFormat={v => moment(v).format("HH:mm")} />
                         <VerticalGridLines />
                         <HorizontalGridLines />
-                        <LineSeries data={data} />
+                        <LineSeries animation data={docs ? docs.map(({ co2, timestamp }) => ({ x: timestamp, y: co2 })) : []} />
                     </XYPlot>
                 </Card>
                 <Card>
@@ -163,12 +152,12 @@ function Root() {
                             {temperature}
                         </Typography>
                         <Typography className={classes.unit} variant="h5">
-                            C
+                            °C
                         </Typography>
                     </CardContent>
                 </Card>
             </div>
-            error: {error}
+            {error}
         </div>
     );
 
