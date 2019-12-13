@@ -6,11 +6,19 @@
   "scripts": {
     "parcel:dev": "parcel watch index.html",
     "parcel:build": "parcel build index.html",
-    "server": "node --experimental-modules server.js"
+    "server": "node server-entrypoint.js"
   },
   "type": "module",
   "dependencies": {
+    "@babel/preset-env": "^7.7.6",
+    "@babel/preset-typescript": "^7.7.4",
+    "@babel/register": "^7.7.4",
     "@material-ui/core": "^4.7.2",
+    "@types/debug": "^4.1.5",
+    "@types/express": "^4.17.2",
+    "@types/socket.io": "^2.1.4",
+    "@typescript-eslint/eslint-plugin": "^2.11.0",
+    "@typescript-eslint/parser": "^2.11.0",
     "classnames": "^2.2.6",
     "d3": "^5.14.2",
     "debug": "^4.1.1",
@@ -23,7 +31,8 @@
     "react-dom": "^16.12.0",
     "react-vis": "^1.11.7",
     "socket.io": "^2.3.0",
-    "socket.io-client": "^2.3.0"
+    "socket.io-client": "^2.3.0",
+    "typescript": "^3.7.3"
   },
   "devDependencies": {
     "eslint": "^6.7.2",
