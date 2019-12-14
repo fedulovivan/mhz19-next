@@ -75,3 +75,58 @@ json: {
   water_leak: false,
   last_seen: '2019-12-09T20:06:14.965Z'
 }
+
+
+
+
+
+
+
+
+
+
+
+mhz19 topic: zigbee2mqtt/bridge/log +51ms
+mhz19 json: {
+type: 'devices',
+message: [
+  {
+    ieeeAddr: '0x00124b00039d69ed',
+    type: 'Coordinator',
+    networkAddress: 0,
+    friendly_name: 'Coordinator',
+    softwareBuildID: 'zStack12',
+    dateCode: '20190608',
+    lastSeen: 1576349189671
+  },
+  {
+    ieeeAddr: '0x00158d000405811b',
+    type: 'EndDevice',
+    networkAddress: 14348,
+    model: 'SJCGQ11LM',
+    friendly_name: '0x00158d000405811b',
+    manufacturerID: 4151,
+    manufacturerName: 'LUMI',
+    powerSource: 'Battery',
+    modelID: 'lumi.sensor_wleak.aq1',
+    hardwareVersion: 2,
+    softwareBuildID: '3000-0001',
+    dateCode: '20170721',
+    lastSeen: 1576348780591
+  },
+  {
+    ieeeAddr: '0x00158d00040356af',
+    type: 'EndDevice',
+    networkAddress: 5763,
+    model: 'SJCGQ11LM',
+    friendly_name: '0x00158d00040356af',
+    manufacturerID: 4151,
+    manufacturerName: 'LUMI',
+    powerSource: 'Battery',
+    modelID: 'lumi.sensor_wleak.aq1',
+    lastSeen: 1576348896049
+  }
+]
+}
+
+

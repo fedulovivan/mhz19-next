@@ -2,6 +2,7 @@ import Express from 'express';
 
 import {
     queryMhzDocs,
+    queryConfigDocs,
 } from './db';
 
 import {
@@ -10,9 +11,18 @@ import {
 
 const router = Express.Router();
 
-router.get('/mhz', async (req, res) => {
+router.get('/mhz-docs', async (req, res) => {
     try {
         const result = await queryMhzDocs(parseInt(req.query.historyOption, 10));
+        res.json(result);
+    } catch (e) {
+        sendError(res, e);
+    }
+})
+
+router.get('/configs-docs', async (req, res) => {
+    try {
+        const result = await queryConfigDocs();
         res.json(result);
     } catch (e) {
         sendError(res, e);

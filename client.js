@@ -1,3 +1,6 @@
+
+/* eslint-disable react/prop-types */
+
 import {
     APP_HOST,
     APP_PORT,
@@ -6,12 +9,15 @@ import {
     DAY
 } from './constants';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useReducer } from 'react';
 import ReactDOM from 'react-dom';
 
 import SocketIoClient from 'socket.io-client';
 import classNames from 'classnames';
 import moment from 'moment';
+
+import last from 'lodash/last';
+// import get from 'lodash/get';
 
 import {
     XYPlot,
@@ -31,6 +37,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import grey from '@material-ui/core/colors/grey';
+import red from '@material-ui/core/colors/red';
 
 import 'react-vis/dist/style.css';
 
@@ -45,7 +52,7 @@ const useStyles = makeStyles({
     },
     card: {
         display: 'grid',
-        // gridAutoFlow: 'column',
+        // justifyContent: 'center',
     },
     unit: {
         alignSelf: 'start',
@@ -55,50 +62,155 @@ const useStyles = makeStyles({
         // TBD
     },
     options: {
-        minWidth: '150px'
+        minWidth: '150px',
+    },
+    sensorImage: {
+        width: '100px',
+        height: '100px',
+    },
+    water_leak: {
+        backgroundColor: red[300],
     }
 });
 
+const HISTORY_OPTIONS = [
+    { name: "1 minute", value: MINUTE },
+    { name: "15 minutes", value: MINUTE * 15 },
+    { name: "30 minutes", value: MINUTE * 30 },
+    { name: "1 hour", value: HOUR },
+    { name: "4 hours", value: HOUR * 4 },
+    { name: "12 hours", value: HOUR * 12 },
+    { name: "1 day", value: DAY },
+];
+
+const intialState = {
+    mhzDocs: [],
+    zigbeeDevices: [],
+    historyOption: MINUTE * 30,
+    deviceStates: {},
+    error: null,
+};
+
+const reducer = (state, action) => {
+    const { type, payload } = action;
+    switch (type) {
+        case 'SET_MHZ_DOCS':
+            return {
+                ...state,
+                mhzDocs: payload.mhzDocs,
+            }
+        case 'SET_ZIGBEE_DEVICES':
+            return {
+                ...state,
+                zigbeeDevices: payload.zigbeeDevices,
+            }
+        case 'ADD_MHZ_DOC':
+            return {
+                ...state,
+                mhzDocs: [...state.mhzDocs.slice(1), payload],
+            }
+        case 'SET_HISTORY_OPTION':
+            return {
+                ...state,
+                historyOption: payload.historyOption,
+            }
+        case 'SAVE_DEVICE_STATE':
+            return {
+                ...state,
+                deviceStates: {
+                    ...state.deviceStates,
+                    [payload.friendly_name]: payload,
+                }
+            };
+        case 'SET_ERROR':
+            return {
+                ...state,
+                error: payload.error,
+            }
+        default:
+            return state;
+    }
+}
+
+let io = null;
+
+function LeakageSensorCard({ type, model, friendly_name, deviceStates, lastSeen }) {
+
+    if (model !== 'SJCGQ11LM') return null;
+
+    const deviceState = deviceStates[friendly_name] || {};
+
+    const {
+        battery,
+        last_seen,
+        water_leak,
+    } = deviceState;
+
+    const classes = useStyles(/* props */);
+
+    const [random, setRandom] = useState(0);
+
+    useEffect(()=> {
+        setInterval(() => {
+            setRandom(Math.random());
+        }, 10000);
+    }, []);
+
+    return (
+        <Card key={friendly_name}>
+            <CardContent className={classNames(classes.card, { [classes.water_leak]: water_leak })}>
+                <img className={classes.sensorImage} src="/73a62bd23ab22ddf1d9bbfa77c48246a.jpg" />
+                <div>{friendly_name}</div>
+                <div data-rnd={random}>last seen {moment(last_seen || lastSeen).fromNow()}</div>
+                <div>{battery ? `battery ${battery}%` : 'battery info is not yet available'}</div>
+            </CardContent>
+        </Card>
+    );
+}
+
 function Root() {
 
-    const historyOptions = [
-        { name: "1 minute", value: MINUTE },
-        { name: "30 minutes", value: MINUTE * 30 },
-        { name: "1 hour", value: HOUR },
-        { name: "4 hours", value: HOUR * 4 },
-        { name: "1 day", value: DAY },
-    ];
+    const [state, dispatch] = useReducer(reducer, intialState);
 
-    const [docs, setDocs] = useState([])
-    const [historyOption, setHistoryOption] = useState(HOUR);
-    const [CO2, setCO2] = useState(0);
-    const [temperature, setTemperature] = useState(0);
-    const [socket, setSocket] = useState(null);
-    const [error, setError] = useState('n/a');
+    const {
+        mhzDocs,
+        zigbeeDevices,
+        historyOption,
+        deviceStates,
+        error,
+    } = state;
 
     useEffect(() => {
-        const io = SocketIoClient(`ws://${APP_HOST}:${APP_PORT}`, {
+        io = SocketIoClient(`ws://${APP_HOST}:${APP_PORT}`, {
             query: { historyOption },
         });
-        setSocket(io);
-        io.on('bootstrap', ({ docs, error }) => {
-            setDocs(docs);
-            setError(error);
+        io.on('bootstrap', (bootstrap) => {
+            console.log(bootstrap);
+            const { mhzDocs, zigbeeDevices, error } = bootstrap;
+            dispatch({ type: 'SET_MHZ_DOCS', payload: { mhzDocs } });
+            dispatch({ type: 'SET_ZIGBEE_DEVICES', payload: { zigbeeDevices } });
+            dispatch({ type: 'SET_ERROR', payload: { error } });
         });
-        io.on('mqtt-message', (message) => {
-            console.log(message);
-            const { topic, parsed, raw, timestamp } = message;
-            if (topic === '/ESP/MH/CO2') {
-                setCO2(parsed);
-                if (docs.length) setDocs([...docs, { timestamp, co2: parsed }])
-            }
-            if (topic === '/ESP/MH/TEMP') {
-                setTemperature(parsed);
-            }
+        io.on('mhzDoc', (doc) => {
+            dispatch({ type: 'ADD_MHZ_DOC', payload: doc });
+        });
+        io.on('deviceState', (message) => {
+            console.log('deviceState', message);
+            dispatch({ type: 'SAVE_DEVICE_STATE', payload: message });
         });
     }, []);
 
+    const handleHistoryOptionChange = (event) => {
+        const value = parseInt(event.target.value, 10);
+        dispatch({ type: 'SET_HISTORY_OPTION', payload: { historyOption: value } })
+        io.emit("queryMhzDocs", value);
+    };
+
     const classes = useStyles(/* props */);
+
+    const lastMhzDoc = last(mhzDocs);
+
+    const seriesData = mhzDocs ? mhzDocs.map(({ co2, timestamp }) => ({ x: timestamp, y: co2 })) : [];
 
     return (
         <div className={classes.root}>
@@ -109,18 +221,16 @@ function Root() {
                             <InputLabel>History Window</InputLabel>
                             <Select
                                 value={historyOption}
-                                onChange={(event) => {
-                                    const value = parseInt(event.target.value, 10);
-                                    setHistoryOption(value);
-                                    socket.emit("setHistoryOption", value);
-                                }}
+                                onChange={handleHistoryOptionChange}
                             >
-                                {historyOptions.map(item => {
+                                {HISTORY_OPTIONS.map(item => {
                                     return (
                                         <MenuItem
                                             value={item.value}
                                             key={item.value}
-                                        >{item.name}</MenuItem>
+                                        >
+                                            {item.name}
+                                        </MenuItem>
                                     );
                                 })}
                             </Select>
@@ -128,18 +238,18 @@ function Root() {
                     </CardContent>
                 </Card>
                 <Card>
-                    <XYPlot width={300} height={200} /* xDomain={[0, 2500]} */>
-                        <YAxis /* ticks={[500, 1000, 1500, 2000, 2500]} */ />
-                        <XAxis tickTotal={3} tickFormat={v => moment(v).format("HH:mm")} />
+                    <XYPlot width={300} height={200}>
+                        <YAxis />
+                        <XAxis tickTotal={5} tickFormat={v => moment(v).format("HH:mm")} />
                         <VerticalGridLines />
                         <HorizontalGridLines />
-                        <LineSeries animation data={docs ? docs.map(({ co2, timestamp }) => ({ x: timestamp, y: co2 })) : []} />
+                        <LineSeries data={seriesData} />
                     </XYPlot>
                 </Card>
                 <Card>
                     <CardContent className={classes.card}>
                         <Typography className={classes.value} variant="h2">
-                            {CO2}
+                            {lastMhzDoc && lastMhzDoc.co2}
                         </Typography>
                         <Typography className={classes.unit} variant="h5">
                             CO2
@@ -149,13 +259,25 @@ function Root() {
                 <Card>
                     <CardContent className={classes.card}>
                         <Typography className={classes.value} variant="h2">
-                            {temperature}
+                            {lastMhzDoc && lastMhzDoc.temp}
                         </Typography>
                         <Typography className={classes.unit} variant="h5">
                             °C
                         </Typography>
                     </CardContent>
                 </Card>
+                {zigbeeDevices && zigbeeDevices.map(({ type, model, friendly_name, lastSeen }) => {
+                    return (
+                        <LeakageSensorCard
+                            key={friendly_name}
+                            type={type}
+                            model={model}
+                            friendly_name={friendly_name}
+                            deviceStates={deviceStates}
+                            lastSeen={lastSeen}
+                        />
+                    );
+                })}
             </div>
             {error}
         </div>
