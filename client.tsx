@@ -1,6 +1,10 @@
 
 /* eslint-disable react/prop-types */
 
+/**
+ * choosing css in js - https://github.com/streamich/freestyler/blob/master/docs/en/generations.md
+ */
+
 import {
     APP_HOST,
     APP_PORT,
@@ -9,15 +13,16 @@ import {
     DAY
 } from './constants';
 
-import React, { useState, useEffect, useReducer } from 'react';
+import * as React from 'react'; // workaround from https://github.com/parcel-bundler/parcel/issues/1199#issuecomment-381817548
 import ReactDOM from 'react-dom';
+
+const { useState, useEffect, useReducer } = React;
 
 import SocketIoClient from 'socket.io-client';
 import classNames from 'classnames';
 import moment from 'moment';
 
 import last from 'lodash/last';
-// import get from 'lodash/get';
 
 import {
     XYPlot,
@@ -83,15 +88,23 @@ const HISTORY_OPTIONS = [
     { name: "1 day", value: DAY },
 ];
 
-const intialState = {
+interface IInitialState {
+    mhzDocs: object[];
+    zigbeeDevices: object[];
+    historyOption: number;
+    deviceStates: object;
+    error?: string;
+}
+
+const intialState: IInitialState = {
     mhzDocs: [],
     zigbeeDevices: [],
     historyOption: MINUTE * 30,
     deviceStates: {},
-    error: null,
+    error: undefined,
 };
 
-const reducer = (state, action) => {
+const reducer = (state: IInitialState, action: { type: string; payload: object }) => {
     const { type, payload } = action;
     switch (type) {
         case 'SET_MHZ_DOCS':

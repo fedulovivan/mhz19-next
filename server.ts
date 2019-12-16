@@ -51,7 +51,7 @@ mqttClient.on('connect', async function () {
         // '/ESP/MH/CO2',
         // '/ESP/MH/DEBUG',
     ]);
-    // query coordinator for the list of connected devices
+    // ask zigbee2mqtt coordinator for the list of known connected devices
     mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
 });
 
@@ -122,22 +122,15 @@ httpServer.listen(APP_PORT, () => {
 
 async function mhzDocsQueryAndEmit(socket: SocketIo.Socket, historyOption: number) {
     try {
-
-        // console.time('mqttFind');
-        // console.timeEnd('mqttFind');
-
         const response = await queryMhzDocs(historyOption);
-
         const response2 = await find(
             DB_ZIGBEE_DEVICES,
             { selector: { timestamp: { "$gt": START_TIME } } }
         );
-
         socket.emit('bootstrap', {
             mhzDocs: response.docs,
             zigbeeDevices: last(response2.docs).message,
         });
-
     } catch (e) {
         socket.emit('bootstrap', {
             error: e.message
