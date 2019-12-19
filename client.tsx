@@ -1,9 +1,13 @@
 
+/** @jsx jsx */
+
 /* eslint-disable react/prop-types */
 
 /**
  * choosing css in js - https://github.com/streamich/freestyler/blob/master/docs/en/generations.md
  */
+
+import { jsx } from '@emotion/core';
 
 import {
     APP_HOST,
@@ -71,10 +75,10 @@ const useStyles = makeStyles({
     options: {
         minWidth: '150px',
     },
-    sensorImage: {
-        width: '100px',
-        height: '100px',
-    },
+    // sensorImage: {
+    //     width: '100px',
+    //     height: '100px',
+    // },
     water_leak: {
         backgroundColor: red[300],
     }
@@ -156,9 +160,9 @@ const reducer = (state: IInitialState, action: { type: string; payload: object }
 
 let io = null;
 
-function LeakageSensorCard({ type, model, friendly_name, mostRecentState, lastSeen, lastHistoricalState }) {
+function LeakageSensorCard({ mostRecentState, lastSeen, lastHistoricalState }) {
 
-    const classes = useStyles();
+    // const classes = /* useStyles() */{};
 
     const [random, setRandom] = useState(0);
 
@@ -169,10 +173,20 @@ function LeakageSensorCard({ type, model, friendly_name, mostRecentState, lastSe
     }, []);
 
     return (
-        <Card key={friendly_name}>
-            <CardContent className={classNames(classes.card, { [classes.water_leak]: mostRecentState.water_leak })}>
-                <img className={classes.sensorImage} src="/73a62bd23ab22ddf1d9bbfa77c48246a.jpg" />
-                <div>{friendly_name}</div>
+        <Card>
+            <CardContent /* className={classNames(classes.card, { [classes.water_leak]: mostRecentState.water_leak })} */>
+                {/* <div>{friendly_name}</div> */}
+                <img
+                    css={{
+                        width: '100px',
+                        height: '100px',
+                        '&:hover': {
+                            width: '105px',
+                            height: '105px',
+                        }
+                    }}
+                    src="/73a62bd23ab22ddf1d9bbfa77c48246a.jpg"
+                />
                 <div data-rnd={random}>last seen {moment(mostRecentState.last_seen || (lastHistoricalState && lastHistoricalState.last_seen) || lastSeen).fromNow()}</div>
                 <div>{mostRecentState.battery ? `battery ${mostRecentState.battery}%` : 'battery info is not yet available'}</div>
             </CardContent>
@@ -285,9 +299,6 @@ function Root() {
                     return (
                         <LeakageSensorCard
                             key={friendly_name}
-                            type={type}
-                            model={model}
-                            friendly_name={friendly_name}
                             mostRecentState={deviceStates[friendly_name]}
                             lastSeen={lastSeen}
                             lastHistoricalState={find(sortBy(waterSensorRecentMessages, 'timestamp'), ({ topic }) => topic === `zigbee2mqtt/${friendly_name}`)}
