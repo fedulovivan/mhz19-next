@@ -19,3 +19,23 @@ interface IHassDoc {
     timestamp: number;
     topic: string;
 }
+
+interface IZigbeeDeviceInfo {
+    ieeeAddr: string;
+    type: string;
+    networkAddress: number,
+    friendly_name: string;
+    softwareBuildID: string;
+    dateCode: string;
+    lastSeen: number;
+}
+
+interface IAqaraWaterSensorMessage {
+    topic: string,
+    timestamp: number,
+    battery: number,
+    voltage: number,
+    linkquality: number,
+    last_seen: string,
+    water_leak: boolean;
+}

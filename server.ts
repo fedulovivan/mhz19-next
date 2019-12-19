@@ -12,7 +12,7 @@ import {
 import {
     insertMhzDoc,
     insertHomeassistantDoc,
-    insertZigbeeDeviceDoc,
+    insertZigbeeDeviceDoc as insertZigbeeDeviceMessageDoc,
     queryMhzDocs,
     insert,
     find,
@@ -25,7 +25,8 @@ import {
     MQTT_PASSWORD,
     MQTT_HOST,
     MQTT_PORT,
-    DB_ZIGBEE_DEVICES,
+    DB_ZIGBEE_DEVICE_MESSAGES,
+    // DB_ZIGBEE_DEVICES,
 } from './constants';
 
 const debug = Debug('mhz19-root');
@@ -38,6 +39,8 @@ const mqttClient = mqtt.connect(`mqtt://${MQTT_HOST}:${MQTT_PORT}`, {
     username: MQTT_USERNAME,
     password: MQTT_PASSWORD,
 });
+
+let zigbeeDevices: Array<IZigbeeDeviceInfo> = [];
 
 mqttClient.on('connect', async function () {
     mqttClient.subscribe([
@@ -52,22 +55,26 @@ mqttClient.on('connect', async function () {
     mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
 });
 
-mqttMessageDispatcher(mqttClient, debug, {
+mqttMessageDispatcher(mqttClient, {
 
-    'zigbee2mqtt': function(topic, json, timestamp, raw) {
+    // zigbee2mqtt
+    'zigbee2mqtt': function(topic, json, timestamp) {
+
         if (!json) return;
-        if (topic === 'zigbee2mqtt/bridge/log' && json.type === 'devices') {
-            insert(DB_ZIGBEE_DEVICES, {
+
+        if (topic === 'zigbee2mqtt/bridge/log' && (json as any).type === 'devices') {
+            // list of registered zigbee devices in respond to zigbee2mqtt/bridge/config/devices/get
+            zigbeeDevices = (json as any).message;
+        } else {
+            // either message from device or message from zigbee2mqtt/bridge/config
+            insertZigbeeDeviceMessageDoc({
+                topic,
                 timestamp,
-                ...json
+                ...json,
             });
-            return;
         }
-        insertZigbeeDeviceDoc({
-            topic,
-            timestamp,
-            ...json,
-        });
+
+        // message from device
         const deviceState = topic.match(/^zigbee2mqtt\/(0x\w+)$/);
         if (deviceState) {
             const friendly_name = deviceState[1];
@@ -77,9 +84,9 @@ mqttMessageDispatcher(mqttClient, debug, {
                 ...json,
             });
         }
-        return;
     },
 
+    // homeassistant
     'homeassistant': function(topic, json, timestamp, raw) {
         insertHomeassistantDoc({
             topic,
@@ -89,6 +96,7 @@ mqttMessageDispatcher(mqttClient, debug, {
         return;
     },
 
+    // /ESP/MH/DATA
     '/ESP/MH/DATA': function(topic, json, timestamp, raw) {
         const doc: IMhzDoc = {
             timestamp,
@@ -104,15 +112,24 @@ mqttMessageDispatcher(mqttClient, debug, {
 async function mhzDocsQueryAndEmit(socket: SocketIo.Socket, historyOption: number) {
     try {
         const mhzDocsResponse = await queryMhzDocs(historyOption);
-        const zigbeeDocsResponse = await find<IZigbeeDeviceDoc>(
-            DB_ZIGBEE_DEVICES,
-            { selector: { timestamp: { "$gt": START_TIME } } }
-        );
-        const lastZigbeeDoc = last(zigbeeDocsResponse.docs);
+
+        const { docs: waterSensorRecentMessages } = await find<IAqaraWaterSensorMessage>(DB_ZIGBEE_DEVICE_MESSAGES, {
+            selector: {
+                timestamp: {
+                    "$gt": START_TIME,
+                },
+                water_leak: {
+                    "$in": [true, false]
+                }
+            }
+        });
+
         socket.emit('bootstrap', {
             mhzDocs: mhzDocsResponse.docs,
-            zigbeeDevices: lastZigbeeDoc && lastZigbeeDoc.message,
+            zigbeeDevices,
+            waterSensorRecentMessages,
         });
+
     } catch (e) {
         socket.emit('bootstrap', {
             error: e.message

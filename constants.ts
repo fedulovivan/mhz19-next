@@ -18,10 +18,10 @@ export const COUCHDB_PORT = 5984;
 export const DB_MHZ19 = 'mhz19'
 export const DB_HOME_ASSISTANT = 'home-assistant'
 export const DB_ZIGBEE_DEVICE_MESSAGES = 'zigbee-device-messages'
-export const DB_ZIGBEE_DEVICES = 'zigbee-devices'
+// export const DB_ZIGBEE_DEVICES = 'zigbee-devices'
 
-export const RPC_MAP = {
-    client: ["addNewPoint", "setBootstrapData"],
-    server: ["getBootstrapData"],
-}
+// export const RPC_MAP = {
+//     client: ["addNewPoint", "setBootstrapData"],
+//     server: ["getBootstrapData"],
+// }
 

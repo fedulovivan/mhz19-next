@@ -2,7 +2,9 @@
 import mqtt from 'mqtt';
 import Debug from 'debug';
 
-export function sendError(res, e) {
+const debug = Debug('mhz19-dispatcher');
+
+export function sendError(res: Express.Response, e: Error) {
     const { message } = e;
     res.json({
         error: true,
@@ -12,7 +14,6 @@ export function sendError(res, e) {
 
 export function mqttMessageDispatcher(
     mqttClient: mqtt.MqttClient,
-    debug: Debug.Debugger,
     mapping: {
         [topicPrefix: string]: (
             topic: string,
@@ -33,14 +34,14 @@ export function mqttMessageDispatcher(
         } catch(e) {
             debug('string:', raw);
         }
-        Object.keys(mapping).find(topicPrefix => {
-            if (topic.startsWith(topicPrefix)) {
-                const handler = mapping[topicPrefix];
-                handler(topic, json, timestamp, raw);
-                return true;
-            }
-            return false;
-        });
-        console.error('unknown topic:', topic, raw);
+        const topicPrefix = Object.keys(mapping).find(
+            topicPrefix => topic.startsWith(topicPrefix)
+        );
+        const topicHandler = topicPrefix && mapping[topicPrefix];
+        if (!topicHandler) {
+            console.error('unknown topic:', topic, raw);
+            return;
+        }
+        topicHandler(topic, json, timestamp, raw);
     });
 }

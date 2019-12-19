@@ -23,6 +23,8 @@ import classNames from 'classnames';
 import moment from 'moment';
 
 import last from 'lodash/last';
+import find from 'lodash/find';
+import sortBy from 'lodash/sortBy';
 
 import {
     XYPlot,
@@ -89,16 +91,18 @@ const HISTORY_OPTIONS = [
 ];
 
 interface IInitialState {
-    mhzDocs: object[];
-    zigbeeDevices: object[];
+    mhzDocs: Array<IMhzDoc>;
+    zigbeeDevices: Array<IZigbeeDeviceInfo>;
+    waterSensorRecentMessages: Array<IAqaraWaterSensorMessage>;
     historyOption: number;
-    deviceStates: object;
+    deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage };
     error?: string;
 }
 
 const intialState: IInitialState = {
     mhzDocs: [],
     zigbeeDevices: [],
+    waterSensorRecentMessages: [],
     historyOption: MINUTE * 30,
     deviceStates: {},
     error: undefined,
@@ -107,15 +111,20 @@ const intialState: IInitialState = {
 const reducer = (state: IInitialState, action: { type: string; payload: object }) => {
     const { type, payload } = action;
     switch (type) {
-        case 'SET_MHZ_DOCS':
+        // case 'SET_MHZ_DOCS':
+        //     return {
+        //         ...state,
+        //         mhzDocs: payload.mhzDocs,
+        //     }
+        // case 'SET_ZIGBEE_DEVICES':
+        //     return {
+        //         ...state,
+        //         zigbeeDevices: payload.zigbeeDevices,
+        //     }
+        case 'SET_WS_CONNECT_DATA':
             return {
                 ...state,
-                mhzDocs: payload.mhzDocs,
-            }
-        case 'SET_ZIGBEE_DEVICES':
-            return {
-                ...state,
-                zigbeeDevices: payload.zigbeeDevices,
+                ...payload.bootstrap,
             }
         case 'ADD_MHZ_DOC':
             return {
@@ -135,11 +144,11 @@ const reducer = (state: IInitialState, action: { type: string; payload: object }
                     [payload.friendly_name]: payload,
                 }
             };
-        case 'SET_ERROR':
-            return {
-                ...state,
-                error: payload.error,
-            }
+        // case 'SET_ERROR':
+        //     return {
+        //         ...state,
+        //         error: payload.error,
+        //     }
         default:
             return state;
     }
@@ -147,19 +156,9 @@ const reducer = (state: IInitialState, action: { type: string; payload: object }
 
 let io = null;
 
-function LeakageSensorCard({ type, model, friendly_name, deviceStates, lastSeen }) {
+function LeakageSensorCard({ type, model, friendly_name, mostRecentState, lastSeen, lastHistoricalState }) {
 
-    if (model !== 'SJCGQ11LM') return null;
-
-    const deviceState = deviceStates[friendly_name] || {};
-
-    const {
-        battery,
-        last_seen,
-        water_leak,
-    } = deviceState;
-
-    const classes = useStyles(/* props */);
+    const classes = useStyles();
 
     const [random, setRandom] = useState(0);
 
@@ -171,14 +170,17 @@ function LeakageSensorCard({ type, model, friendly_name, deviceStates, lastSeen 
 
     return (
         <Card key={friendly_name}>
-            <CardContent className={classNames(classes.card, { [classes.water_leak]: water_leak })}>
+            <CardContent className={classNames(classes.card, { [classes.water_leak]: mostRecentState.water_leak })}>
                 <img className={classes.sensorImage} src="/73a62bd23ab22ddf1d9bbfa77c48246a.jpg" />
                 <div>{friendly_name}</div>
-                <div data-rnd={random}>last seen {moment(last_seen || lastSeen).fromNow()}</div>
-                <div>{battery ? `battery ${battery}%` : 'battery info is not yet available'}</div>
+                <div data-rnd={random}>last seen {moment(mostRecentState.last_seen || (lastHistoricalState && lastHistoricalState.last_seen) || lastSeen).fromNow()}</div>
+                <div>{mostRecentState.battery ? `battery ${mostRecentState.battery}%` : 'battery info is not yet available'}</div>
             </CardContent>
         </Card>
     );
+}
+LeakageSensorCard.defaultProps = {
+    mostRecentState: {},
 }
 
 function Root() {
@@ -188,6 +190,7 @@ function Root() {
     const {
         mhzDocs,
         zigbeeDevices,
+        waterSensorRecentMessages,
         historyOption,
         deviceStates,
         error,
@@ -198,11 +201,7 @@ function Root() {
             query: { historyOption },
         });
         io.on('bootstrap', (bootstrap) => {
-            console.log(bootstrap);
-            const { mhzDocs, zigbeeDevices, error } = bootstrap;
-            dispatch({ type: 'SET_MHZ_DOCS', payload: { mhzDocs } });
-            dispatch({ type: 'SET_ZIGBEE_DEVICES', payload: { zigbeeDevices } });
-            dispatch({ type: 'SET_ERROR', payload: { error } });
+            dispatch({ type: 'SET_WS_CONNECT_DATA', payload: { bootstrap } });
         });
         io.on('mhzDoc', (doc) => {
             dispatch({ type: 'ADD_MHZ_DOC', payload: doc });
@@ -224,6 +223,8 @@ function Root() {
     const lastMhzDoc = last(mhzDocs);
 
     const seriesData = mhzDocs ? mhzDocs.map(({ co2, timestamp }) => ({ x: timestamp, y: co2 })) : [];
+
+    // const waterSensorRecentMessages
 
     return (
         <div className={classes.root}>
@@ -280,14 +281,16 @@ function Root() {
                     </CardContent>
                 </Card>
                 {zigbeeDevices && zigbeeDevices.map(({ type, model, friendly_name, lastSeen }) => {
+                    if (model !== 'SJCGQ11LM') return null;
                     return (
                         <LeakageSensorCard
                             key={friendly_name}
                             type={type}
                             model={model}
                             friendly_name={friendly_name}
-                            deviceStates={deviceStates}
+                            mostRecentState={deviceStates[friendly_name]}
                             lastSeen={lastSeen}
+                            lastHistoricalState={find(sortBy(waterSensorRecentMessages, 'timestamp'), ({ topic }) => topic === `zigbee2mqtt/${friendly_name}`)}
                         />
                     );
                 })}
