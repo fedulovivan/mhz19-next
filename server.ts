@@ -1,12 +1,13 @@
-import Express from 'express';
+
 import SocketIo from 'socket.io';
 import mqtt from 'mqtt';
-import http from 'http';
-import debug from 'debug';
-
+import Debug from 'debug';
 import last from 'lodash/last';
+import httpServer from './http';
 
-import restApi from './rest-api';
+import {
+    mqttMessageDispatcher
+} from './utils';
 
 import {
     insertMhzDoc,
@@ -20,7 +21,6 @@ import {
 import {
     APP_HOST,
     APP_PORT,
-    PUBLIC_PATH,
     MQTT_USERNAME,
     MQTT_PASSWORD,
     MQTT_HOST,
@@ -28,12 +28,9 @@ import {
     DB_ZIGBEE_DEVICES,
 } from './constants';
 
+const debug = Debug('mhz19-root');
+
 const START_TIME = (new Date()).valueOf();
-
-const debuglog = debug('mhz19');
-
-const express = Express();
-const httpServer = new http.Server(express);
 
 const socketIo = SocketIo(httpServer, { origins: `http://${APP_HOST}:${APP_PORT}` });
 
@@ -55,18 +52,10 @@ mqttClient.on('connect', async function () {
     mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
 });
 
-mqttClient.on('message', async function (topic, message) {
-    debuglog('\ntopic:', topic);
-    const raw = message.toString();
-    let json = null;
-    const timestamp = (new Date).valueOf();
-    try {
-        json = JSON.parse(raw);
-        debuglog('json:', json);
-    } catch(e) {
-        debuglog('string:', raw);
-    }
-    if (json && topic.startsWith('zigbee2mqtt')) {
+mqttMessageDispatcher(mqttClient, debug, {
+
+    'zigbee2mqtt': function(topic, json, timestamp, raw) {
+        if (!json) return;
         if (topic === 'zigbee2mqtt/bridge/log' && json.type === 'devices') {
             insert(DB_ZIGBEE_DEVICES, {
                 timestamp,
@@ -89,17 +78,19 @@ mqttClient.on('message', async function (topic, message) {
             });
         }
         return;
-    }
-    if (json && topic.startsWith('homeassistant')) {
+    },
+
+    'homeassistant': function(topic, json, timestamp, raw) {
         insertHomeassistantDoc({
             topic,
             timestamp,
             ...json,
         });
         return;
-    }
-    if (json && topic === '/ESP/MH/DATA') {
-        const doc = {
+    },
+
+    '/ESP/MH/DATA': function(topic, json, timestamp, raw) {
+        const doc: IMhzDoc = {
             timestamp,
             ...json,
         };
@@ -107,51 +98,37 @@ mqttClient.on('message', async function (topic, message) {
         socketIo.sockets.emit('mhzDoc', doc);
         return;
     }
-    console.error('unknown topic:', topic, raw);
-});
 
-express.use(Express.static(PUBLIC_PATH));
-
-express.use(restApi);
-
-httpServer.listen(APP_PORT, () => {
-    debuglog(`listening on ${APP_HOST}:${APP_PORT}`)
-    const browserLink = `http://${APP_HOST}:${APP_PORT}/`;
-    debuglog(`open browser at ${browserLink}`)
 });
 
 async function mhzDocsQueryAndEmit(socket: SocketIo.Socket, historyOption: number) {
     try {
-        const response = await queryMhzDocs(historyOption);
-        const response2 = await find(
+        const mhzDocsResponse = await queryMhzDocs(historyOption);
+        const zigbeeDocsResponse = await find<IZigbeeDeviceDoc>(
             DB_ZIGBEE_DEVICES,
             { selector: { timestamp: { "$gt": START_TIME } } }
         );
+        const lastZigbeeDoc = last(zigbeeDocsResponse.docs);
         socket.emit('bootstrap', {
-            mhzDocs: response.docs,
-            zigbeeDevices: last(response2.docs).message,
+            mhzDocs: mhzDocsResponse.docs,
+            zigbeeDevices: lastZigbeeDoc && lastZigbeeDoc.message,
         });
     } catch (e) {
         socket.emit('bootstrap', {
             error: e.message
         });
-        debuglog(`mqtt.find failed: ${e.message}`);
+        debug(`mqtt.find failed: ${e.message}`);
     }
 }
 
 socketIo.on('connection', async function(socket) {
-
-    debuglog(`new ws connection id=${socket.id}`);
-
+    debug(`new ws connection id=${socket.id}`);
     mhzDocsQueryAndEmit(socket, parseInt(socket.handshake.query.historyOption, 10));
-
     socket.on('disconnect', () => {
-        debuglog(`ws id=${socket.id} disconnected`);
+        debug(`ws id=${socket.id} disconnected`);
     });
-
     socket.on('queryMhzDocs', (historyOption) => {
-        debuglog(`queryMhzDocs received`, historyOption);
+        debug(`queryMhzDocs received`, historyOption);
         mhzDocsQueryAndEmit(socket, parseInt(historyOption, 10));
     });
-
 });

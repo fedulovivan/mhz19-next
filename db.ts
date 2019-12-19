@@ -1,3 +1,9 @@
+/**
+ * Couchdb
+ */
+
+import Nano from 'nano';
+
 import {
     COUCHDB_HOST,
     COUCHDB_PORT,
@@ -6,32 +12,30 @@ import {
     DB_ZIGBEE_DEVICE_MESSAGES,
 } from './constants';
 
-import nano from 'nano';
+const couchClient = Nano(`http://${COUCHDB_HOST}:${COUCHDB_PORT}`);
 
-const couchClient = nano(`http://${COUCHDB_HOST}:${COUCHDB_PORT}`);
-
-function useDb(name: string) {
-    return couchClient.db.use(name);
+function useDb<D>(name: string) {
+    return couchClient.db.use<D>(name);
 }
 
-export async function insert(dbName, doc) {
-    return useDb(dbName).insert(doc);
+export async function insert<D>(dbName: string, doc: D) {
+    return useDb<D>(dbName).insert(doc);
 }
 
-export async function find(dbName, query) {
-    return useDb(dbName).find(query);
+export async function find<D>(dbName: string, query: Nano.MangoQuery) {
+    return useDb<D>(dbName).find(query);
 }
 
 export async function insertMhzDoc(doc: IMhzDoc) {
-    return couchClient.db.use(DB_MHZ19).insert(doc);
+    return useDb<IMhzDoc>(DB_MHZ19).insert(doc);
 }
 
 export async function insertZigbeeDeviceDoc(doc: IZigbeeDeviceDoc) {
-    return couchClient.db.use(DB_ZIGBEE_DEVICE_MESSAGES).insert(doc);
+    return useDb<IZigbeeDeviceDoc>(DB_ZIGBEE_DEVICE_MESSAGES).insert(doc);
 }
 
-export async function insertHomeassistantDoc(doc: object) {
-    return couchClient.db.use(DB_HOME_ASSISTANT).insert(doc);
+export async function insertHomeassistantDoc(doc: IHassDoc) {
+    return useDb<IHassDoc>(DB_HOME_ASSISTANT).insert(doc);
 }
 
 export async function queryMhzDocs(historyOption = 0) {
@@ -42,20 +46,14 @@ export async function queryMhzDocs(historyOption = 0) {
             }
         },
         limit: 10000,
-        // fields: ["co2", "timestamp", "temp"],
     };
-    return useDb(DB_MHZ19).find(query);
+    return useDb<IMhzDoc>(DB_MHZ19).find(query);
 }
 
-export async function queryConfigDocs(/* historyOption = 0 */) {
+export async function queryConfigDocs() {
     const query = {
         selector: {
-        //     timestamp: {
-        //         "$gt": (new Date()).valueOf() - historyOption
-        //     }
         },
-        // fields: ["co2", "timestamp"],
-        // limit: 10000
     };
-    return useDb(DB_HOME_ASSISTANT).find(query);
+    return useDb<IHassDoc>(DB_HOME_ASSISTANT).find(query);
 }

@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "parcel:dev": "parcel watch index.html --log-level 5",
+    "parcel:dev": "parcel watch index.html",
     "parcel:build": "parcel build index.html",
     "server": "node server-entrypoint.js"
   },
