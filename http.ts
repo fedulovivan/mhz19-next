@@ -8,7 +8,8 @@ import restApi from './rest-api';
 import Debug from 'debug';
 
 import {
-    PUBLIC_PATH,
+    DIST_PATH,
+    IMAGES_PATH,
     APP_HOST,
     APP_PORT,
 } from './constants';
@@ -18,7 +19,8 @@ const debug = Debug('mhz19-http');
 const express = Express();
 const httpServer = new http.Server(express);
 
-express.use(Express.static(PUBLIC_PATH));
+express.use(Express.static(DIST_PATH));
+express.use('/images', Express.static(IMAGES_PATH));
 
 express.use(restApi);
 

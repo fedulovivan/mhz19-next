@@ -13,7 +13,8 @@ module.exports = {
         "plugin:react/recommended"
     ],
     rules: {
-        "no-unused-vars": "warn"
+        "no-unused-vars": "warn",
+        "react/prop-types": "off"
     },
     plugins: [
         "@typescript-eslint",

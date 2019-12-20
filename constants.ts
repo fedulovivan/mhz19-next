@@ -1,7 +1,8 @@
 export const APP_HOST = 'localhost';
 export const APP_PORT = 8888;
 
-export const PUBLIC_PATH = "./dist";
+export const DIST_PATH = `${__dirname}/dist`;
+export const IMAGES_PATH = `${__dirname}/images`;
 
 export const MINUTE = 60 * 1000;
 export const HOUR = 3600 * 1000;
@@ -18,10 +19,13 @@ export const COUCHDB_PORT = 5984;
 export const DB_MHZ19 = 'mhz19'
 export const DB_HOME_ASSISTANT = 'home-assistant'
 export const DB_ZIGBEE_DEVICE_MESSAGES = 'zigbee-device-messages'
-// export const DB_ZIGBEE_DEVICES = 'zigbee-devices'
 
-// export const RPC_MAP = {
-//     client: ["addNewPoint", "setBootstrapData"],
-//     server: ["getBootstrapData"],
-// }
-
+export const HISTORY_OPTIONS = [
+    { name: "1 minute", value: MINUTE },
+    { name: "15 minutes", value: MINUTE * 15 },
+    { name: "30 minutes", value: MINUTE * 30 },
+    { name: "1 hour", value: HOUR },
+    { name: "4 hours", value: HOUR * 4 },
+    { name: "12 hours", value: HOUR * 12 },
+    { name: "1 day", value: DAY },
+];

@@ -1,34 +1,20 @@
 
 /** @jsx jsx */
 
-/* eslint-disable react/prop-types */
-
 /**
- * choosing css in js - https://github.com/streamich/freestyler/blob/master/docs/en/generations.md
+ * why cssinjs? https://medium.com/jobsity/css-in-javascript-with-jss-and-react-54cdd2720222
+ * choosing cssinjs implementation - https://github.com/streamich/freestyler/blob/master/docs/en/generations.md
  */
 
-import { jsx } from '@emotion/core';
-
-import {
-    APP_HOST,
-    APP_PORT,
-    MINUTE,
-    HOUR,
-    DAY
-} from './constants';
-
-import * as React from 'react'; // workaround from https://github.com/parcel-bundler/parcel/issues/1199#issuecomment-381817548
+import { useEffect, useReducer } from 'react';
 import ReactDOM from 'react-dom';
-
-const { useState, useEffect, useReducer } = React;
-
 import SocketIoClient from 'socket.io-client';
-import classNames from 'classnames';
 import moment from 'moment';
-
 import last from 'lodash/last';
 import find from 'lodash/find';
 import sortBy from 'lodash/sortBy';
+import { css, jsx } from '@emotion/core';
+import { hot } from 'react-hot-loader';
 
 import {
     XYPlot,
@@ -39,7 +25,6 @@ import {
     YAxis,
 } from 'react-vis';
 
-import { makeStyles } from '@material-ui/core/styles';
 import Select from '@material-ui/core/Select';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
@@ -50,49 +35,18 @@ import FormControl from '@material-ui/core/FormControl';
 import grey from '@material-ui/core/colors/grey';
 import red from '@material-ui/core/colors/red';
 
+import LeakageSensorCard from './LeakageSensorCard';
+
+import {
+    APP_HOST,
+    APP_PORT,
+    MINUTE,
+    HISTORY_OPTIONS
+} from './constants';
+
 import 'react-vis/dist/style.css';
 
-const useStyles = makeStyles({
-    root: {
-    },
-    cards: {
-        display: 'grid',
-        gridAutoFlow: 'column',
-        gridColumnGap: '24px',
-        justifyContent: 'start',
-    },
-    card: {
-        display: 'grid',
-        // justifyContent: 'center',
-    },
-    unit: {
-        alignSelf: 'start',
-        color: grey[500],
-    },
-    value: {
-        // TBD
-    },
-    options: {
-        minWidth: '150px',
-    },
-    // sensorImage: {
-    //     width: '100px',
-    //     height: '100px',
-    // },
-    water_leak: {
-        backgroundColor: red[300],
-    }
-});
-
-const HISTORY_OPTIONS = [
-    { name: "1 minute", value: MINUTE },
-    { name: "15 minutes", value: MINUTE * 15 },
-    { name: "30 minutes", value: MINUTE * 30 },
-    { name: "1 hour", value: HOUR },
-    { name: "4 hours", value: HOUR * 4 },
-    { name: "12 hours", value: HOUR * 12 },
-    { name: "1 day", value: DAY },
-];
+// const { useState, useEffect, useReducer } = React;
 
 interface IInitialState {
     mhzDocs: Array<IMhzDoc>;
@@ -160,43 +114,6 @@ const reducer = (state: IInitialState, action: { type: string; payload: object }
 
 let io = null;
 
-function LeakageSensorCard({ mostRecentState, lastSeen, lastHistoricalState }) {
-
-    // const classes = /* useStyles() */{};
-
-    const [random, setRandom] = useState(0);
-
-    useEffect(()=> {
-        setInterval(() => {
-            setRandom(Math.random());
-        }, 10000);
-    }, []);
-
-    return (
-        <Card>
-            <CardContent /* className={classNames(classes.card, { [classes.water_leak]: mostRecentState.water_leak })} */>
-                {/* <div>{friendly_name}</div> */}
-                <img
-                    css={{
-                        width: '100px',
-                        height: '100px',
-                        '&:hover': {
-                            width: '105px',
-                            height: '105px',
-                        }
-                    }}
-                    src="/73a62bd23ab22ddf1d9bbfa77c48246a.jpg"
-                />
-                <div data-rnd={random}>last seen {moment(mostRecentState.last_seen || (lastHistoricalState && lastHistoricalState.last_seen) || lastSeen).fromNow()}</div>
-                <div>{mostRecentState.battery ? `battery ${mostRecentState.battery}%` : 'battery info is not yet available'}</div>
-            </CardContent>
-        </Card>
-    );
-}
-LeakageSensorCard.defaultProps = {
-    mostRecentState: {},
-}
-
 function Root() {
 
     const [state, dispatch] = useReducer(reducer, intialState);
@@ -232,19 +149,40 @@ function Root() {
         io.emit("queryMhzDocs", value);
     };
 
-    const classes = useStyles(/* props */);
-
     const lastMhzDoc = last(mhzDocs);
 
     const seriesData = mhzDocs ? mhzDocs.map(({ co2, timestamp }) => ({ x: timestamp, y: co2 })) : [];
 
+    // const classes = useStyles();
     // const waterSensorRecentMessages
+    // const classes = {};
+
+    const base = css`
+        display: grid;
+    `;
+    const cards = css`
+        ${base};
+        grid-auto-flow: column;
+        grid-column-gap: 24px;
+        justify-content: start;
+    `;
+    const card = css`
+        ${base};
+    `;
+    const value = css``;
+    const unit = css`
+        align-self: flex-start;
+        color: ${grey[500]};
+    `;
+    const options = css`
+        min-width: 150px;
+    `;
 
     return (
-        <div className={classes.root}>
-            <div className={classes.cards}>
+        <div>
+            <div css={cards}>
                 <Card>
-                    <CardContent className={classNames(classes.card, classes.options)}>
+                    <CardContent css={[card, options]}>
                         <FormControl>
                             <InputLabel>History Window</InputLabel>
                             <Select
@@ -275,33 +213,39 @@ function Root() {
                     </XYPlot>
                 </Card>
                 <Card>
-                    <CardContent className={classes.card}>
-                        <Typography className={classes.value} variant="h2">
+                    <CardContent css={card}>
+                        <Typography css={value} variant="h2">
                             {lastMhzDoc && lastMhzDoc.co2}
                         </Typography>
-                        <Typography className={classes.unit} variant="h5">
+                        <Typography css={unit} variant="h5">
                             CO2
                         </Typography>
                     </CardContent>
                 </Card>
                 <Card>
-                    <CardContent className={classes.card}>
-                        <Typography className={classes.value} variant="h2">
+                    <CardContent css={card}>
+                        <Typography css={value} variant="h2">
                             {lastMhzDoc && lastMhzDoc.temp}
                         </Typography>
-                        <Typography className={classes.unit} variant="h5">
+                        <Typography css={unit} variant="h5">
                             °C
                         </Typography>
                     </CardContent>
                 </Card>
+                <LeakageSensorCard />
                 {zigbeeDevices && zigbeeDevices.map(({ type, model, friendly_name, lastSeen }) => {
                     if (model !== 'SJCGQ11LM') return null;
                     return (
                         <LeakageSensorCard
                             key={friendly_name}
-                            mostRecentState={deviceStates[friendly_name]}
                             lastSeen={lastSeen}
-                            lastHistoricalState={find(sortBy(waterSensorRecentMessages, 'timestamp'), ({ topic }) => topic === `zigbee2mqtt/${friendly_name}`)}
+                            mostRecentState={deviceStates[friendly_name]}
+                            lastHistoricalState={
+                                find(
+                                    sortBy(waterSensorRecentMessages, 'timestamp'),
+                                    ({ topic }) => topic === `zigbee2mqtt/${friendly_name}`,
+                                )
+                            }
                         />
                     );
                 })}
@@ -312,7 +256,9 @@ function Root() {
 
 }
 
+const RootHot = hot(module)(Root);
+
 ReactDOM.render(
-    <Root />,
+    <RootHot />,
     document.getElementById('root')
 );
