@@ -9,10 +9,33 @@ import red from '@material-ui/core/colors/red';
 import moment from 'moment';
 
 interface ILeakageSensorCardProps {
-    mostRecentState?: IAqaraWaterSensorMessage;
-    lastHistoricalState?: IAqaraWaterSensorMessage;
-    lastSeen?: string;
+    mostRecentState: IAqaraWaterSensorMessage;
+    lastHistoricalState: IAqaraWaterSensorMessage;
+    lastSeen: string;
 }
+
+const nowrap = css`
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    min-width: 0;
+`;
+
+const warn = css`
+    background-color: ${red[600]};
+    color: white;
+`;
+
+const root = css`
+    width: 120px;
+    max-width: 120px;
+    display: grid;
+    grid-auto-flow: row;
+    grid-row-gap: 12px;
+    justify-items: center;
+    img {
+        width: 100%;
+    }
+`;
 
 export default function LeakageSensorCard(
     { mostRecentState, lastSeen, lastHistoricalState }: ILeakageSensorCardProps
@@ -27,19 +50,6 @@ export default function LeakageSensorCard(
         }, 10000);
     }, []);
 
-    const isWaterLeak = css`
-        background-color: ${red[300]};
-    `;
-
-    const img = css`
-        width: 100px;
-        height: 100px;
-        &:hover {
-            width: 105px;
-            height: 105px;
-        }
-    `;
-
     // improve me
     const formattedLastSeenTime = moment(
         mostRecentState.last_seen || (lastHistoricalState && lastHistoricalState.last_seen) || lastSeen
@@ -47,15 +57,14 @@ export default function LeakageSensorCard(
 
     return (
         <Card>
-            <CardContent css={mostRecentState.water_leak && isWaterLeak}>
+            <CardContent css={[mostRecentState.water_leak && warn, root]}>
                 <img
-                    css={img}
-                    src="/images/aqara-water-sensor.jpg"
+                    src="/images/aqara-water-sensor.png"
                 />
-                <div data-random={random}>
+                <div data-random={random} css={nowrap}>
                     last seen {formattedLastSeenTime}
                 </div>
-                <div>{mostRecentState.battery ? `battery ${mostRecentState.battery}%` : 'battery info is not yet available'}</div>
+                <div>{mostRecentState.battery ? `battery ${mostRecentState.battery}%` : 'no battery info'}</div>
             </CardContent>
         </Card>
    );

@@ -33,7 +33,6 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 import grey from '@material-ui/core/colors/grey';
-import red from '@material-ui/core/colors/red';
 
 import LeakageSensorCard from './LeakageSensorCard';
 
@@ -44,16 +43,21 @@ import {
     HISTORY_OPTIONS
 } from './constants';
 
-import 'react-vis/dist/style.css';
+import {
+    SET_WS_CONNECT_DATA,
+    ADD_MHZ_DOC,
+    SET_HISTORY_OPTION,
+    SAVE_DEVICE_STATE,
+} from './actionTypes';
 
-// const { useState, useEffect, useReducer } = React;
+import 'react-vis/dist/style.css';
 
 interface IInitialState {
     mhzDocs: Array<IMhzDoc>;
-    zigbeeDevices: Array<IZigbeeDeviceInfo>;
-    waterSensorRecentMessages: Array<IAqaraWaterSensorMessage>;
-    historyOption: number;
     deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage };
+    waterSensorRecentMessages: Array<IAqaraWaterSensorMessage>;
+    zigbeeDevices: Array<IZigbeeDeviceInfo>;
+    historyOption: number;
     error?: string;
 }
 
@@ -66,35 +70,25 @@ const intialState: IInitialState = {
     error: undefined,
 };
 
-const reducer = (state: IInitialState, action: { type: string; payload: object }) => {
+const reducer = (state: IInitialState, action: ActionType) => {
     const { type, payload } = action;
     switch (type) {
-        // case 'SET_MHZ_DOCS':
-        //     return {
-        //         ...state,
-        //         mhzDocs: payload.mhzDocs,
-        //     }
-        // case 'SET_ZIGBEE_DEVICES':
-        //     return {
-        //         ...state,
-        //         zigbeeDevices: payload.zigbeeDevices,
-        //     }
-        case 'SET_WS_CONNECT_DATA':
+        case SET_WS_CONNECT_DATA:
             return {
                 ...state,
                 ...payload.bootstrap,
             }
-        case 'ADD_MHZ_DOC':
+        case ADD_MHZ_DOC:
             return {
                 ...state,
                 mhzDocs: [...state.mhzDocs.slice(1), payload],
             }
-        case 'SET_HISTORY_OPTION':
+        case SET_HISTORY_OPTION:
             return {
                 ...state,
                 historyOption: payload.historyOption,
             }
-        case 'SAVE_DEVICE_STATE':
+        case SAVE_DEVICE_STATE:
             return {
                 ...state,
                 deviceStates: {
@@ -102,11 +96,6 @@ const reducer = (state: IInitialState, action: { type: string; payload: object }
                     [payload.friendly_name]: payload,
                 }
             };
-        // case 'SET_ERROR':
-        //     return {
-        //         ...state,
-        //         error: payload.error,
-        //     }
         default:
             return state;
     }
@@ -132,20 +121,20 @@ function Root() {
             query: { historyOption },
         });
         io.on('bootstrap', (bootstrap) => {
-            dispatch({ type: 'SET_WS_CONNECT_DATA', payload: { bootstrap } });
+            dispatch({ type: SET_WS_CONNECT_DATA, payload: { bootstrap } });
         });
         io.on('mhzDoc', (doc) => {
-            dispatch({ type: 'ADD_MHZ_DOC', payload: doc });
+            dispatch({ type: ADD_MHZ_DOC, payload: doc });
         });
         io.on('deviceState', (message) => {
             console.log('deviceState', message);
-            dispatch({ type: 'SAVE_DEVICE_STATE', payload: message });
+            dispatch({ type: SAVE_DEVICE_STATE, payload: message });
         });
     }, []);
 
     const handleHistoryOptionChange = (event) => {
         const value = parseInt(event.target.value, 10);
-        dispatch({ type: 'SET_HISTORY_OPTION', payload: { historyOption: value } })
+        dispatch({ type: SET_HISTORY_OPTION, payload: { historyOption: value } })
         io.emit("queryMhzDocs", value);
     };
 
@@ -232,7 +221,7 @@ function Root() {
                         </Typography>
                     </CardContent>
                 </Card>
-                <LeakageSensorCard />
+                {/* <LeakageSensorCard /> */}
                 {zigbeeDevices && zigbeeDevices.map(({ type, model, friendly_name, lastSeen }) => {
                     if (model !== 'SJCGQ11LM') return null;
                     return (
