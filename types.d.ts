@@ -39,3 +39,12 @@ interface IAqaraWaterSensorMessage {
     last_seen: string,
     water_leak: boolean;
 }
+
+interface IInitialState {
+    mhzDocs: Array<IMhzDoc>;
+    deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage };
+    waterSensorRecentMessages: Array<IAqaraWaterSensorMessage>;
+    zigbeeDevices: Array<IZigbeeDeviceInfo>;
+    historyOption: number;
+    error?: string;
+}

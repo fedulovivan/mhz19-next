@@ -1,107 +1,60 @@
-
 /** @jsx jsx */
 
-/**
- * why cssinjs? https://medium.com/jobsity/css-in-javascript-with-jss-and-react-54cdd2720222
- * choosing cssinjs implementation - https://github.com/streamich/freestyler/blob/master/docs/en/generations.md
- */
-
 import { useEffect, useReducer } from 'react';
-import ReactDOM from 'react-dom';
-import SocketIoClient from 'socket.io-client';
-import moment from 'moment';
+import SocketIoClient, { Socket } from 'socket.io-client';
 import last from 'lodash/last';
 import find from 'lodash/find';
 import sortBy from 'lodash/sortBy';
 import { css, jsx } from '@emotion/core';
 import { hot } from 'react-hot-loader';
 
-import {
-    XYPlot,
-    LineSeries,
-    VerticalGridLines,
-    HorizontalGridLines,
-    XAxis,
-    YAxis,
-} from 'react-vis';
-
 import Select from '@material-ui/core/Select';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import Typography from '@material-ui/core/Typography';
 import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
-import grey from '@material-ui/core/colors/grey';
 
 import LeakageSensorCard from './LeakageSensorCard';
+import NumericCard from './NumericCard';
+import MhzChartCard from './MhzChartCard';
+import reducer, { intialState } from './reducer';
 
 import {
     APP_HOST,
     APP_PORT,
-    MINUTE,
-    HISTORY_OPTIONS
+    HISTORY_OPTIONS,
 } from './constants';
 
 import {
     SET_WS_CONNECT_DATA,
-    ADD_MHZ_DOC,
     SET_HISTORY_OPTION,
     SAVE_DEVICE_STATE,
+    ADD_MHZ_DOC,
 } from './actionTypes';
 
 import 'react-vis/dist/style.css';
 
-interface IInitialState {
-    mhzDocs: Array<IMhzDoc>;
-    deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage };
-    waterSensorRecentMessages: Array<IAqaraWaterSensorMessage>;
-    zigbeeDevices: Array<IZigbeeDeviceInfo>;
-    historyOption: number;
-    error?: string;
-}
+let io: SocketIOClient.Socket;
 
-const intialState: IInitialState = {
-    mhzDocs: [],
-    zigbeeDevices: [],
-    waterSensorRecentMessages: [],
-    historyOption: MINUTE * 30,
-    deviceStates: {},
-    error: undefined,
-};
+const base = css`
+    display: grid;
+`;
 
-const reducer = (state: IInitialState, action: ActionType) => {
-    const { type, payload } = action;
-    switch (type) {
-        case SET_WS_CONNECT_DATA:
-            return {
-                ...state,
-                ...payload.bootstrap,
-            }
-        case ADD_MHZ_DOC:
-            return {
-                ...state,
-                mhzDocs: [...state.mhzDocs.slice(1), payload],
-            }
-        case SET_HISTORY_OPTION:
-            return {
-                ...state,
-                historyOption: payload.historyOption,
-            }
-        case SAVE_DEVICE_STATE:
-            return {
-                ...state,
-                deviceStates: {
-                    ...state.deviceStates,
-                    [payload.friendly_name]: payload,
-                }
-            };
-        default:
-            return state;
-    }
-}
+const cards = css`
+    ${base};
+    grid-auto-flow: column;
+    grid-column-gap: 24px;
+    justify-content: start;
+`;
 
-let io = null;
+const card = css`
+    ${base};
+`;
+
+const options = css`
+    min-width: 150px;
+`;
 
 function Root() {
 
@@ -114,7 +67,7 @@ function Root() {
         historyOption,
         deviceStates,
         error,
-    } = state;
+    } = state as IInitialState;
 
     useEffect(() => {
         io = SocketIoClient(`ws://${APP_HOST}:${APP_PORT}`, {
@@ -142,31 +95,6 @@ function Root() {
 
     const seriesData = mhzDocs ? mhzDocs.map(({ co2, timestamp }) => ({ x: timestamp, y: co2 })) : [];
 
-    // const classes = useStyles();
-    // const waterSensorRecentMessages
-    // const classes = {};
-
-    const base = css`
-        display: grid;
-    `;
-    const cards = css`
-        ${base};
-        grid-auto-flow: column;
-        grid-column-gap: 24px;
-        justify-content: start;
-    `;
-    const card = css`
-        ${base};
-    `;
-    const value = css``;
-    const unit = css`
-        align-self: flex-start;
-        color: ${grey[500]};
-    `;
-    const options = css`
-        min-width: 150px;
-    `;
-
     return (
         <div>
             <div css={cards}>
@@ -192,40 +120,14 @@ function Root() {
                         </FormControl>
                     </CardContent>
                 </Card>
-                <Card>
-                    <XYPlot width={300} height={200}>
-                        <YAxis />
-                        <XAxis tickTotal={5} tickFormat={v => moment(v).format("HH:mm")} />
-                        <VerticalGridLines />
-                        <HorizontalGridLines />
-                        <LineSeries data={seriesData} />
-                    </XYPlot>
-                </Card>
-                <Card>
-                    <CardContent css={card}>
-                        <Typography css={value} variant="h2">
-                            {lastMhzDoc && lastMhzDoc.co2}
-                        </Typography>
-                        <Typography css={unit} variant="h5">
-                            CO2
-                        </Typography>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardContent css={card}>
-                        <Typography css={value} variant="h2">
-                            {lastMhzDoc && lastMhzDoc.temp}
-                        </Typography>
-                        <Typography css={unit} variant="h5">
-                            °C
-                        </Typography>
-                    </CardContent>
-                </Card>
-                {/* <LeakageSensorCard /> */}
+                <MhzChartCard css={card} seriesData={seriesData} />
+                <NumericCard css={card} value={lastMhzDoc && lastMhzDoc.co2} unit="CO2" />
+                <NumericCard css={card} value={lastMhzDoc && lastMhzDoc.temp} unit="°C" />
                 {zigbeeDevices && zigbeeDevices.map(({ type, model, friendly_name, lastSeen }) => {
                     if (model !== 'SJCGQ11LM') return null;
                     return (
                         <LeakageSensorCard
+                            rootCss={card}
                             key={friendly_name}
                             lastSeen={lastSeen}
                             mostRecentState={deviceStates[friendly_name]}
@@ -245,9 +147,4 @@ function Root() {
 
 }
 
-const RootHot = hot(module)(Root);
-
-ReactDOM.render(
-    <RootHot />,
-    document.getElementById('root')
-);
+export default hot(module)(Root);
