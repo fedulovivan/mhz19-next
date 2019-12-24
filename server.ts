@@ -1,9 +1,10 @@
 
-import SocketIo from 'socket.io';
 import mqtt from 'mqtt';
 import Debug from 'debug';
 import last from 'lodash/last';
 import httpServer from './http';
+import RpcServer from './rpc/server';
+import { METHOD_GET_BOOTSTRAP_DATA, METHOD_ADD_MHZ_DOC, METHOD_SET_DEVICE_STATE } from './rpc';
 
 import {
     mqttMessageDispatcher
@@ -16,7 +17,7 @@ import {
     queryMhzDocs,
     insert,
     find,
-} from './db'
+} from './db';
 
 import {
     APP_HOST,
@@ -29,18 +30,36 @@ import {
     // DB_ZIGBEE_DEVICES,
 } from './constants';
 
+const TelegramBot = require('node-telegram-bot-api');
+
 const debug = Debug('mhz19-root');
 
 const START_TIME = (new Date()).valueOf();
 
-const socketIo = SocketIo(httpServer, { origins: `http://${APP_HOST}:${APP_PORT}` });
+const rpcServer = new RpcServer(httpServer);
+
+let zigbeeDevices: Array<IZigbeeDeviceInfo> = [];
+
+rpcServer.respondTo(METHOD_GET_BOOTSTRAP_DATA, async (requestPayload: object) => {
+    const { historyOption } = requestPayload;
+    const mhzDocsResponse = await queryMhzDocs(historyOption);
+    const { docs: waterSensorRecentMessages } = await find<IAqaraWaterSensorMessage>(DB_ZIGBEE_DEVICE_MESSAGES, {
+        selector: {
+            timestamp: { $gt: START_TIME },
+            water_leak: { $in: [true, false] },
+        }
+    });
+    return {
+        mhzDocs: mhzDocsResponse.docs,
+        waterSensorRecentMessages,
+        zigbeeDevices,
+    };
+});
 
 const mqttClient = mqtt.connect(`mqtt://${MQTT_HOST}:${MQTT_PORT}`, {
     username: MQTT_USERNAME,
     password: MQTT_PASSWORD,
 });
-
-let zigbeeDevices: Array<IZigbeeDeviceInfo> = [];
 
 mqttClient.on('connect', async function () {
     mqttClient.subscribe([
@@ -58,7 +77,7 @@ mqttClient.on('connect', async function () {
 mqttMessageDispatcher(mqttClient, {
 
     // zigbee2mqtt
-    'zigbee2mqtt': function(topic, json, timestamp) {
+    zigbee2mqtt: function(topic, json, timestamp) {
 
         if (!json) return;
 
@@ -78,7 +97,7 @@ mqttMessageDispatcher(mqttClient, {
         const deviceState = topic.match(/^zigbee2mqtt\/(0x\w+)$/);
         if (deviceState) {
             const friendly_name = deviceState[1];
-            socketIo.sockets.emit('deviceState', {
+            rpcServer.call(METHOD_SET_DEVICE_STATE, {
                 friendly_name,
                 timestamp,
                 ...json,
@@ -87,7 +106,7 @@ mqttMessageDispatcher(mqttClient, {
     },
 
     // homeassistant
-    'homeassistant': function(topic, json, timestamp, raw) {
+    homeassistant: function(topic, json, timestamp, raw) {
         insertHomeassistantDoc({
             topic,
             timestamp,
@@ -103,49 +122,47 @@ mqttMessageDispatcher(mqttClient, {
             ...json,
         };
         insertMhzDoc(doc);
-        socketIo.sockets.emit('mhzDoc', doc);
-        return;
+        rpcServer.call(METHOD_ADD_MHZ_DOC, doc);
+        // rpcServer.register();
+        // socketIo.sockets.emit('mhzDoc', doc);
     }
 
 });
 
-async function mhzDocsQueryAndEmit(socket: SocketIo.Socket, historyOption: number) {
-    try {
-        const mhzDocsResponse = await queryMhzDocs(historyOption);
+// async function mhzDocsQueryAndEmit(socket: SocketIo.Socket, historyOption: number) {
+//     try {
+//         const mhzDocsResponse = await queryMhzDocs(historyOption);
 
-        const { docs: waterSensorRecentMessages } = await find<IAqaraWaterSensorMessage>(DB_ZIGBEE_DEVICE_MESSAGES, {
-            selector: {
-                timestamp: {
-                    "$gt": START_TIME,
-                },
-                water_leak: {
-                    "$in": [true, false]
-                }
-            }
-        });
 
-        socket.emit('bootstrap', {
-            mhzDocs: mhzDocsResponse.docs,
-            zigbeeDevices,
-            waterSensorRecentMessages,
-        });
 
-    } catch (e) {
-        socket.emit('bootstrap', {
-            error: e.message
-        });
-        debug(`mqtt.find failed: ${e.message}`);
-    }
-}
+//         socket.emit('bootstrap', {
+//             mhzDocs: mhzDocsResponse.docs,
+//             zigbeeDevices,
+//             waterSensorRecentMessages,
+//         });
 
-socketIo.on('connection', async function(socket) {
-    debug(`new ws connection id=${socket.id}`);
-    mhzDocsQueryAndEmit(socket, parseInt(socket.handshake.query.historyOption, 10));
-    socket.on('disconnect', () => {
-        debug(`ws id=${socket.id} disconnected`);
-    });
-    socket.on('queryMhzDocs', (historyOption) => {
-        debug(`queryMhzDocs received`, historyOption);
-        mhzDocsQueryAndEmit(socket, parseInt(historyOption, 10));
-    });
-});
+//     } catch (e) {
+//         socket.emit('bootstrap', {
+//             error: e.message
+//         });
+//         debug(`mqtt.find failed: ${e.message}`);
+//     }
+// }
+
+// socketIo.on('connection', (socket) => {
+//     debug(`new ws connection id=${socket.id}`);
+//     socket.on('rpc-request', (name, id, params) => {
+//         debug('new rpc-request', { name, id, params });
+//         socket.emit('rpc-response', name, id, {
+//             message: 'pong'
+//         });
+//     });
+//     // mhzDocsQueryAndEmit(socket, parseInt(socket.handshake.query.historyOption, 10));
+//     // socket.on('disconnect', () => {
+//     //     debug(`ws id=${socket.id} disconnected`);
+//     // });
+//     // socket.on('queryMhzDocs', (historyOption) => {
+//     //     debug(`queryMhzDocs received`, historyOption);
+//     //     mhzDocsQueryAndEmit(socket, parseInt(historyOption, 10));
+//     // });
+// });

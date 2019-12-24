@@ -1,10 +1,10 @@
-export const SET_WS_CONNECT_DATA = 'SET_WS_CONNECT_DATA';
+export const SET_BOOTSTRAP_DATA = 'SET_BOOTSTRAP_DATA';
 export const ADD_MHZ_DOC = 'ADD_MHZ_DOC';
 export const SET_HISTORY_OPTION = 'SET_HISTORY_OPTION';
 export const SAVE_DEVICE_STATE = 'SAVE_DEVICE_STATE';
 
 interface SetWsConnectDataAction {
-    type: typeof SET_WS_CONNECT_DATA;
+    type: typeof SET_BOOTSTRAP_DATA;
     payload: {
         bootstrap: {
             mhzDocs: Array<IMhzDoc>;

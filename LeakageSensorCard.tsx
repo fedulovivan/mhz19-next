@@ -47,7 +47,7 @@ export default function LeakageSensorCard({
 
     const [random, setRandom] = useState(0);
 
-    // autorefresh
+    // auto re-render
     useEffect(() => {
         setInterval(() => {
             setRandom(Math.random());
@@ -71,8 +71,7 @@ export default function LeakageSensorCard({
             >
                 <img src="/images/aqara-water-sensor.png" alt="preview" />
                 <div data-random={random} css={nowrap}>
-                    last seen
-                    {formattedLastSeenTime}
+                    last seen {formattedLastSeenTime}
                 </div>
                 <div>{mostRecentState && mostRecentState.battery ? `battery ${mostRecentState.battery}%` : 'no battery info'}</div>
             </CardContent>

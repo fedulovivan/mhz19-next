@@ -9,8 +9,8 @@ module.exports = {
         browser: true
     },
     extends: [
-        "airbnb",
         "eslint:recommended",
+        "airbnb",
         "plugin:react/recommended",
     ],
     rules: {
@@ -22,6 +22,13 @@ module.exports = {
         "react/jsx-filename-extension": ["warn", { "extensions": [".js", ".jsx", ".tsx"] }],
         "padded-blocks": "off",
         "comma-dangle": "off",
+        "prefer-arrow-callback": "off",
+        "object-shorthand": "off",
+        "import/extensions": "off",
+        "arrow-body-style": "off",
+        "import/prefer-default-export": "off",
+        "max-classes-per-file": "off",
+        "react/jsx-one-expression-per-line": "off",
     },
     plugins: [
         "@typescript-eslint",
@@ -30,6 +37,11 @@ module.exports = {
     settings: {
         react: {
             version: "detect"
-        }
+        },
+        'import/resolver': {
+            node: {
+                extensions: ['.js', '.jsx', '.ts', '.tsx']
+            }
+        },
     },
 }

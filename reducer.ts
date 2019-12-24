@@ -7,7 +7,7 @@ import {
 } from './constants';
 
 import {
-    SET_WS_CONNECT_DATA,
+    SET_BOOTSTRAP_DATA,
     ADD_MHZ_DOC,
     SET_HISTORY_OPTION,
     SAVE_DEVICE_STATE,
@@ -25,30 +25,30 @@ export const intialState: IInitialState = {
 export default function reducer(state: IInitialState, action: ActionType) {
     const { type, payload } = action;
     switch (type) {
-        case SET_WS_CONNECT_DATA:
-            return {
-                ...state,
-                ...payload.bootstrap,
+    case SET_BOOTSTRAP_DATA:
+        return {
+            ...state,
+            ...payload,
+        };
+    case ADD_MHZ_DOC:
+        return {
+            ...state,
+            mhzDocs: [...state.mhzDocs.slice(1), payload],
+        };
+    case SET_HISTORY_OPTION:
+        return {
+            ...state,
+            historyOption: payload.historyOption,
+        };
+    case SAVE_DEVICE_STATE:
+        return {
+            ...state,
+            deviceStates: {
+                ...state.deviceStates,
+                [payload.friendly_name]: payload,
             }
-        case ADD_MHZ_DOC:
-            return {
-                ...state,
-                mhzDocs: [...state.mhzDocs.slice(1), payload],
-            }
-        case SET_HISTORY_OPTION:
-            return {
-                ...state,
-                historyOption: payload.historyOption,
-            }
-        case SAVE_DEVICE_STATE:
-            return {
-                ...state,
-                deviceStates: {
-                    ...state.deviceStates,
-                    [payload.friendly_name]: payload,
-                }
-            };
-        default:
-            return state;
+        };
+    default:
+        return state;
     }
 }

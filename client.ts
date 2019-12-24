@@ -5,16 +5,15 @@
  */
 
 import ReactDOM from 'react-dom';
-// import { renderToString } from 'react-dom/server';
 import React from 'react';
-
-import Root from './Root';
+import Root from './Root/Root';
 
 const component = React.createElement(Root);
-
-// console.log(renderToString(component));
 
 ReactDOM.render(
     component,
     document.getElementById('root')
 );
+
+// import { renderToString } from 'react-dom/server';
+// console.log(renderToString(component));
