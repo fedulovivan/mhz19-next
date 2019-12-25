@@ -19,7 +19,7 @@ import NumericCard from '../NumericCard';
 import MhzChartCard from '../MhzChartCard';
 import reducer, { intialState } from '../reducer';
 
-import RpcClient from '../rpc/client';
+import RpcClient from '../rpc/rpcClient';
 import { METHOD_GET_BOOTSTRAP_DATA, METHOD_ADD_MHZ_DOC, METHOD_SET_DEVICE_STATE } from '../rpc';
 
 import {

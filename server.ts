@@ -3,7 +3,7 @@ import mqtt from 'mqtt';
 import Debug from 'debug';
 import last from 'lodash/last';
 import httpServer from './http';
-import RpcServer from './rpc/server';
+import RpcServer from './rpc/rpcServer';
 import { METHOD_GET_BOOTSTRAP_DATA, METHOD_ADD_MHZ_DOC, METHOD_SET_DEVICE_STATE } from './rpc';
 
 import {
