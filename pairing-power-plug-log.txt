@@ -1,0 +1,121 @@
+ mhz-rpc-server client response received methodAddMhzDoc { clientTime: '2020-01-06T18:00:15.382Z' } +5s
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/bridge/log +2s
+  mhz19-dispatcher json: {
+  type: 'device_connected',
+  message: { friendly_name: '0x00158d0003a010a5' }
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/bridge/log +2ms
+  mhz19-dispatcher json: {
+  type: 'pairing',
+  message: 'interview_started',
+  meta: { friendly_name: '0x00158d0003a010a5' }
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: homeassistant/switch/0x00158d0003a010a5/switch/config +248ms
+  mhz19-dispatcher json: {
+  payload_off: 'OFF',
+  payload_on: 'ON',
+  value_template: '{{ value_json.state }}',
+  command_topic: 'zigbee2mqtt/0x00158d0003a010a5/set',
+  state_topic: 'zigbee2mqtt/0x00158d0003a010a5',
+  name: '0x00158d0003a010a5_switch',
+  unique_id: '0x00158d0003a010a5_switch_zigbee2mqtt',
+  device: {
+    identifiers: [ 'zigbee2mqtt_0x00158d0003a010a5' ],
+    name: '0x00158d0003a010a5',
+    sw_version: 'Zigbee2mqtt 1.7.1',
+    model: 'Mi power plug ZigBee (ZNCZ02LM)',
+    manufacturer: 'Xiaomi'
+  },
+  availability_topic: 'zigbee2mqtt/0x00158d0003a010a5/availability'
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: homeassistant/sensor/0x00158d0003a010a5/power/config +83ms
+  mhz19-dispatcher json: {
+  unit_of_measurement: 'W',
+  icon: 'mdi:factory',
+  value_template: '{{ value_json.power }}',
+  state_topic: 'zigbee2mqtt/0x00158d0003a010a5',
+  json_attributes_topic: 'zigbee2mqtt/0x00158d0003a010a5',
+  name: '0x00158d0003a010a5_power',
+  unique_id: '0x00158d0003a010a5_power_zigbee2mqtt',
+  device: {
+    identifiers: [ 'zigbee2mqtt_0x00158d0003a010a5' ],
+    name: '0x00158d0003a010a5',
+    sw_version: 'Zigbee2mqtt 1.7.1',
+    model: 'Mi power plug ZigBee (ZNCZ02LM)',
+    manufacturer: 'Xiaomi'
+  },
+  availability_topic: 'zigbee2mqtt/0x00158d0003a010a5/availability'
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: homeassistant/sensor/0x00158d0003a010a5/linkquality/config +95ms
+  mhz19-dispatcher json: {
+  unit_of_measurement: '-',
+  value_template: '{{ value_json.linkquality }}',
+  state_topic: 'zigbee2mqtt/0x00158d0003a010a5',
+  json_attributes_topic: 'zigbee2mqtt/0x00158d0003a010a5',
+  name: '0x00158d0003a010a5_linkquality',
+  unique_id: '0x00158d0003a010a5_linkquality_zigbee2mqtt',
+  device: {
+    identifiers: [ 'zigbee2mqtt_0x00158d0003a010a5' ],
+    name: '0x00158d0003a010a5',
+    sw_version: 'Zigbee2mqtt 1.7.1',
+    model: 'Mi power plug ZigBee (ZNCZ02LM)',
+    manufacturer: 'Xiaomi'
+  },
+  availability_topic: 'zigbee2mqtt/0x00158d0003a010a5/availability'
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/0x00158d0003a010a5 +932ms
+  mhz19-dispatcher json: {
+  state: 'ON',
+  power: 0,
+  voltage: null,
+  consumption: 0,
+  temperature: 36,
+  linkquality: 26,
+  last_seen: '2020-01-06T17:58:52.891Z'
+} +0ms
+  mhz-rpc-server client response received methodSetDeviceState { clientTime: '2020-01-06T18:00:19.184Z' } +4s
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/0x00158d0003a010a5/availability +33ms
+  mhz19-dispatcher string: online +1ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: /ESP/MH/DATA +1s
+  mhz19-dispatcher json: { co2: 1221, temp: 27 } +0ms
+  mhz-rpc-server client response received methodAddMhzDoc { clientTime: '2020-01-06T18:00:20.509Z' } +1s
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/0x00158d0003a010a5 +707ms
+  mhz19-dispatcher json: {
+  state: 'ON',
+  power: 0,
+  voltage: null,
+  consumption: 0,
+  temperature: 36,
+  linkquality: 21,
+  last_seen: '2020-01-06T17:58:54.919Z'
+} +0ms
+  mhz-rpc-server client response received methodSetDeviceState { clientTime: '2020-01-06T18:00:21.214Z' } +706ms
+^C
+
+
+# - id: '1576700289015'
+#   alias: New Automation
+#   description: ''
+#   trigger:
+#   - device_id: 8d757e2e28b9479baeeb6cc3310988b0
+#     domain: binary_sensor
+#     entity_id: binary_sensor.0x00158d00040356af_water_leak
+#     platform: device
+#     type: moist
+#   condition: []
+#   action:
+#   - data:
+#       message: foo
+#     service: notify.telegrammhz19
+
+
+ip firewall nat add chain=dstnat dst-port=8123 action=dst-nat protocol=tcp to-address=192.168.88.207 to-port=8123

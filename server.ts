@@ -1,7 +1,7 @@
 
+// import last from 'lodash/last';
 import mqtt from 'mqtt';
 import Debug from 'debug';
-import last from 'lodash/last';
 import httpServer from './http';
 import RpcServer from './rpc/rpcServer';
 import { METHOD_GET_BOOTSTRAP_DATA, METHOD_ADD_MHZ_DOC, METHOD_SET_DEVICE_STATE } from './rpc';
@@ -15,18 +15,18 @@ import {
     insertHomeassistantDoc,
     insertZigbeeDeviceDoc as insertZigbeeDeviceMessageDoc,
     queryMhzDocs,
-    insert,
     find,
+    // insert,
 } from './db';
 
 import {
-    APP_HOST,
-    APP_PORT,
     MQTT_USERNAME,
     MQTT_PASSWORD,
     MQTT_HOST,
     MQTT_PORT,
     DB_ZIGBEE_DEVICE_MESSAGES,
+    // APP_HOST,
+    // APP_PORT,
     // DB_ZIGBEE_DEVICES,
 } from './constants';
 
@@ -41,14 +41,16 @@ const rpcServer = new RpcServer(httpServer);
 let zigbeeDevices: Array<IZigbeeDeviceInfo> = [];
 
 rpcServer.respondTo(METHOD_GET_BOOTSTRAP_DATA, async (requestPayload: object) => {
-    const { historyOption } = requestPayload;
+    const { historyOption } = requestPayload as any;
     const mhzDocsResponse = await queryMhzDocs(historyOption);
-    const { docs: waterSensorRecentMessages } = await find<IAqaraWaterSensorMessage>(DB_ZIGBEE_DEVICE_MESSAGES, {
-        selector: {
-            timestamp: { $gt: START_TIME },
-            water_leak: { $in: [true, false] },
+    const { docs: waterSensorRecentMessages } = await find<IAqaraWaterSensorMessage>(
+        DB_ZIGBEE_DEVICE_MESSAGES, {
+            selector: {
+                timestamp: { $gt: START_TIME },
+                water_leak: { $in: [true, false] },
+            }
         }
-    });
+    );
     return {
         mhzDocs: mhzDocsResponse.docs,
         waterSensorRecentMessages,
@@ -82,7 +84,7 @@ mqttMessageDispatcher(mqttClient, {
         if (!json) return;
 
         if (topic === 'zigbee2mqtt/bridge/log' && (json as any).type === 'devices') {
-            // list of registered zigbee devices in respond to zigbee2mqtt/bridge/config/devices/get
+            // list of registered zigbee devices received in respond to zigbee2mqtt/bridge/config/devices/get
             zigbeeDevices = (json as any).message;
         } else {
             // either message from device or message from zigbee2mqtt/bridge/config
@@ -112,7 +114,6 @@ mqttMessageDispatcher(mqttClient, {
             timestamp,
             ...json,
         });
-        return;
     },
 
     // /ESP/MH/DATA
@@ -123,8 +124,6 @@ mqttMessageDispatcher(mqttClient, {
         };
         insertMhzDoc(doc);
         rpcServer.call(METHOD_ADD_MHZ_DOC, doc);
-        // rpcServer.register();
-        // socketIo.sockets.emit('mhzDoc', doc);
     }
 
 });
@@ -132,8 +131,6 @@ mqttMessageDispatcher(mqttClient, {
 // async function mhzDocsQueryAndEmit(socket: SocketIo.Socket, historyOption: number) {
 //     try {
 //         const mhzDocsResponse = await queryMhzDocs(historyOption);
-
-
 
 //         socket.emit('bootstrap', {
 //             mhzDocs: mhzDocsResponse.docs,

@@ -29,6 +29,9 @@ module.exports = {
         "import/prefer-default-export": "off",
         "max-classes-per-file": "off",
         "react/jsx-one-expression-per-line": "off",
+        "camelcase": "off",
+        "space-before-function-paren": "off",
+        "func-names": "off",
     },
     plugins: [
         "@typescript-eslint",
