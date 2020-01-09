@@ -10,13 +10,13 @@ import {
     SET_BOOTSTRAP_DATA,
     ADD_MHZ_DOC,
     SET_HISTORY_OPTION,
-    SAVE_DEVICE_STATE,
+    SAVE_RECENT_DEVICE_STATE,
 } from './actionTypes';
 
 export const intialState: IInitialState = {
     mhzDocs: [],
     zigbeeDevices: [],
-    waterSensorRecentMessages: [],
+    zigbeeDevivesMessages: [],
     historyOption: MINUTE * 30,
     deviceStates: {},
     error: undefined,
@@ -40,7 +40,7 @@ export default function reducer(state: IInitialState, action: ActionType) {
             ...state,
             historyOption: payload.historyOption,
         };
-    case SAVE_DEVICE_STATE:
+    case SAVE_RECENT_DEVICE_STATE:
         return {
             ...state,
             deviceStates: {

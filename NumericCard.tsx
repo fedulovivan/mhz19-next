@@ -16,10 +16,11 @@ const unitCss = css`
 interface INumericCardProps {
     value?: string | number;
     unit?: string;
+    desc?: string;
     rootCss?: SerializedStyles;
 }
 
-export default function NumericCard({ value, unit, rootCss }: INumericCardProps) {
+export default function NumericCard({ value, unit, desc, rootCss }: INumericCardProps) {
     return (
         <Card>
             <CardContent css={rootCss}>
@@ -27,8 +28,15 @@ export default function NumericCard({ value, unit, rootCss }: INumericCardProps)
                     { value }
                 </Typography>
                 {
+                    desc && (
+                        <Typography css={unitCss} variant="h6">
+                            { desc }
+                        </Typography>
+                    )
+                }
+                {
                     unit && (
-                        <Typography css={unitCss} variant="h5">
+                        <Typography css={unitCss} variant="h4">
                             { unit }
                         </Typography>
                     )

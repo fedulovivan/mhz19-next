@@ -1,9 +1,12 @@
+/* eslint-disable no-nested-ternary */
 /** @jsx jsx */
 
 import { useEffect, useReducer } from 'react';
 import last from 'lodash/last';
-import find from 'lodash/find';
 import sortBy from 'lodash/sortBy';
+import groupBy from 'lodash/groupBy';
+import get from 'lodash/get';
+
 import { hot } from 'react-hot-loader';
 import { jsx } from '@emotion/core';
 
@@ -14,7 +17,7 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 
-import LeakageSensorCard from '../LeakageSensorCard';
+import LeakageSensorCard from '../LeakageSensorCard/LeakageSensorCard';
 import NumericCard from '../NumericCard';
 import MhzChartCard from '../MhzChartCard';
 import reducer, { intialState } from '../reducer';
@@ -24,12 +27,13 @@ import { METHOD_GET_BOOTSTRAP_DATA, METHOD_ADD_MHZ_DOC, METHOD_SET_DEVICE_STATE 
 
 import {
     HISTORY_OPTIONS,
+    ZIGBEE_DEVICE_MODEL_LUMI_WATER_LEAK,
+    ZIGBEE_DEVICE_MODEL_LUMI_POWER_PLUG,
 } from '../constants';
 
 import {
     SET_BOOTSTRAP_DATA,
-    SET_HISTORY_OPTION,
-    SAVE_DEVICE_STATE,
+    SAVE_RECENT_DEVICE_STATE,
     ADD_MHZ_DOC,
 } from '../actionTypes';
 
@@ -46,7 +50,7 @@ function Root() {
     const {
         mhzDocs,
         zigbeeDevices,
-        waterSensorRecentMessages,
+        zigbeeDevivesMessages,
         historyOption,
         deviceStates,
         error,
@@ -66,7 +70,7 @@ function Root() {
         });
 
         rpcClient.respondTo(METHOD_SET_DEVICE_STATE, async (payload: object) => {
-            dispatch({ type: SAVE_DEVICE_STATE, payload });
+            dispatch({ type: SAVE_RECENT_DEVICE_STATE, payload });
             return { clientTime: new Date() };
         });
 
@@ -83,6 +87,8 @@ function Root() {
     const seriesData = mhzDocs
         ? mhzDocs.map(({ co2, timestamp }) => ({ x: timestamp, y: co2 }))
         : [];
+
+    const grouppedSensorRecentMessages = groupBy(sortBy(zigbeeDevivesMessages, 'timestamp'), 'topic');
 
     return (
         <div>
@@ -111,23 +117,42 @@ function Root() {
                 </Card>
                 <MhzChartCard css={styles.card} seriesData={seriesData} />
                 <NumericCard css={styles.card} value={lastMhzDoc && lastMhzDoc.co2} unit="CO2" />
-                <NumericCard css={styles.card} value={lastMhzDoc && lastMhzDoc.temp} unit="°C" />
-                {zigbeeDevices && zigbeeDevices.map(({ type, model, friendly_name, lastSeen }) => {
-                    if (model !== 'SJCGQ11LM') return null;
-                    return (
-                        <LeakageSensorCard
-                            rootCss={styles.card}
-                            key={friendly_name}
-                            lastSeen={lastSeen}
-                            mostRecentState={deviceStates[friendly_name]}
-                            lastHistoricalState={
-                                find(
-                                    sortBy(waterSensorRecentMessages, 'timestamp'),
-                                    ({ topic }) => topic === `zigbee2mqtt/${friendly_name}`,
-                                )
-                            }
-                        />
-                    );
+                <NumericCard css={styles.card} value={lastMhzDoc && lastMhzDoc.temp} unit="°C" desc="MHZ19 Temperature" />
+                {zigbeeDevices && sortBy(zigbeeDevices, 'type').map(({
+                    type, model, friendly_name, lastSeen
+                }) => {
+                    const historyMessages = grouppedSensorRecentMessages[`zigbee2mqtt/${friendly_name}`];
+                    const mostRecentState = deviceStates[friendly_name];
+                    if (model === ZIGBEE_DEVICE_MODEL_LUMI_WATER_LEAK) {
+                        return (
+                            <LeakageSensorCard
+                                key={friendly_name}
+                                rootCss={styles.card}
+                                lastSeen={lastSeen}
+                                mostRecentState={mostRecentState}
+                                historyMessages={historyMessages}
+                            />
+                        );
+                    }
+                    if (model === ZIGBEE_DEVICE_MODEL_LUMI_POWER_PLUG) {
+                        return (
+                            <NumericCard
+                                key={friendly_name}
+                                css={styles.card}
+                                value={
+                                    mostRecentState
+                                        ? mostRecentState.power
+                                        : (
+                                            historyMessages
+                                                ? last(historyMessages).power
+                                                : 'unknown'
+                                        )
+                                }
+                                unit="W"
+                                desc="Heater Consumption"
+                            />
+                        );
+                    }
                 })}
             </div>
             {error}

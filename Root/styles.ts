@@ -6,8 +6,9 @@ export const base = css`
 
 export const cards = css`
     ${base};
-    grid-auto-flow: column;
+    grid-template-columns: repeat(4, 1fr);
     grid-column-gap: 24px;
+    grid-row-gap: 24px;
     justify-content: start;
 `;
 

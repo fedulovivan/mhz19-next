@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 /**
  * Couchdb
  */
@@ -30,8 +31,8 @@ export async function insertMhzDoc(doc: IMhzDoc) {
     return useDb<IMhzDoc>(DB_MHZ19).insert(doc);
 }
 
-export async function insertZigbeeDeviceDoc(doc: IZigbeeDeviceDoc) {
-    return useDb<IZigbeeDeviceDoc>(DB_ZIGBEE_DEVICE_MESSAGES).insert(doc);
+export async function insertZigbeeDeviceDoc(doc: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage) {
+    return useDb<IAqaraWaterSensorMessage & IAqaraPowerPlugMessage>(DB_ZIGBEE_DEVICE_MESSAGES).insert(doc);
 }
 
 export async function insertHomeassistantDoc(doc: IHassDoc) {
@@ -42,7 +43,7 @@ export async function queryMhzDocs(historyOption = 0) {
     const query = {
         selector: {
             timestamp: {
-                "$gt": (new Date()).valueOf() - historyOption
+                $gt: (new Date()).valueOf() - historyOption
             }
         },
         limit: 10000,
@@ -53,6 +54,7 @@ export async function queryMhzDocs(historyOption = 0) {
 export async function queryConfigDocs() {
     const query = {
         selector: {
+            // TODO
         },
     };
     return useDb<IHassDoc>(DB_HOME_ASSISTANT).find(query);
