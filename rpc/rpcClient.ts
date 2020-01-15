@@ -9,30 +9,25 @@ import {
 
 export default class RpcClient extends RpcBase {
 
-    io: SocketIOClient.Socket;
+    clientSocket: SocketIOClient.Socket;
 
     constructor() {
         super();
-        this.io = SocketIoClient(`ws://${APP_HOST}:${APP_PORT}`);
-        this.io.on(EVENT_RPC_REQUEST, (name: string, id: number, requestPayload: object) => {
-            const handler = this.methodHandlers.get(name);
-            if (handler) {
-                handler(requestPayload).then((response) => {
-                    this.io.emit(EVENT_RPC_RESPONSE, name, id, response);
-                });
-            }
-        });
-        this.io.on(EVENT_RPC_RESPONSE, (name: string, id: number, params: object) => {
-            const resolver = this.responsePromiseResolvers.get(id);
-            if (resolver) {
-                console.log('server response received', name, params);
-                resolver(params);
-            }
-        });
+        this.clientSocket = SocketIoClient(`ws://${APP_HOST}:${APP_PORT}`);
+        this.clientSocket.on(
+            EVENT_RPC_REQUEST,
+            (name: string, id: number, requestPayload: object) => this.rpcRequestHandler(
+                this.clientSocket,
+                name,
+                id,
+                requestPayload
+            )
+        );
+        this.clientSocket.on(EVENT_RPC_RESPONSE, this.rpcResponseHandler.bind(this));
     }
 
     emitRequest(name: string, requestId: number, params: object): void {
-        this.io.emit(EVENT_RPC_REQUEST, name, requestId, params);
+        this.clientSocket.emit(EVENT_RPC_REQUEST, name, requestId, params);
     }
 
 }

@@ -1,27 +1,27 @@
-export abstract class RpcBase {
+/* eslint-disable import/no-mutable-exports */
+/* eslint-disable global-require */
 
-    requestIdSequence: number = 0;
+import RpcBase from './rpcBase';
 
-    responsePromiseResolvers: Map<number, (params: object) => void> = new Map();
+// import RpcServer from './rpcServer';
+// import RpcClient from './rpcClient';
 
-    methodHandlers: Map<string, (params: object) => Promise<object|void>> = new Map();
+// export { default as RpcBase } from './rpcBase';
+// export { default as RpcServer } from './rpcServer';
+// export { default as RpcClient } from './rpcClient';
 
-    respondTo(name: string, handler: (params: object) => Promise<object|void>): void {
-        this.methodHandlers.set(name, handler);
-    }
+let RpcServer = null;
+let RpcClient = null;
 
-    abstract emitRequest(methodName: string, requestId: number, params: object): void;
-
-    async call(methodName: string, params: object) {
-        return new Promise((resolve) => {
-            this.requestIdSequence += 1;
-            const requestId = this.requestIdSequence;
-            this.emitRequest(methodName, requestId, params);
-            this.responsePromiseResolvers.set(requestId, resolve);
-        });
-    }
-
+if (window) {
+    RpcClient = require('./rpcClient');
 }
+
+if (process) {
+    RpcServer = require('./rpcServer');
+}
+
+export { RpcBase, RpcServer, RpcClient };
 
 export const EVENT_RPC_REQUEST = 'rpc-request';
 export const EVENT_RPC_RESPONSE = 'rpc-response';

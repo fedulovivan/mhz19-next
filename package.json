@@ -5,7 +5,9 @@
   "scripts": {
     "parcel:dev": "parcel watch index.html --no-cache",
     "parcel:build": "parcel build index.html --no-cache",
-    "server": "node server-entrypoint.js"
+    "server": "node server-entrypoint.js",
+    "start": "concurrently --raw \"yarn parcel:dev\" \"DEBUG=mhz19* yarn server\"",
+    "start-old": "concurrently --names \"client,server\" --prefix-colors \"bgBlue.bold,bgGreen.bold\" \"yarn parcel:dev\" \"DEBUG=mhz19* yarn server\""
   },
   "type": "module",
   "dependencies": {
@@ -44,9 +46,10 @@
     "react-vis": "^1.11.7",
     "socket.io": "^2.3.0",
     "socket.io-client": "^2.3.0",
-    "typescript": "^3.7.3"
+    "typescript": "3.7.4"
   },
   "devDependencies": {
+    "concurrently": "^5.0.2",
     "eslint": "^6.7.2",
     "eslint-config-airbnb": "^18.0.1",
     "eslint-plugin-import": "^2.19.1",

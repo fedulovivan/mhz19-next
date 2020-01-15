@@ -5,7 +5,6 @@ import { useEffect, useReducer } from 'react';
 import last from 'lodash/last';
 import sortBy from 'lodash/sortBy';
 import groupBy from 'lodash/groupBy';
-import get from 'lodash/get';
 
 import { hot } from 'react-hot-loader';
 import { jsx } from '@emotion/core';
@@ -22,8 +21,12 @@ import NumericCard from '../NumericCard';
 import MhzChartCard from '../MhzChartCard';
 import reducer, { intialState } from '../reducer';
 
-import RpcClient from '../rpc/rpcClient';
-import { METHOD_GET_BOOTSTRAP_DATA, METHOD_ADD_MHZ_DOC, METHOD_SET_DEVICE_STATE } from '../rpc';
+import {
+    RpcClient,
+    METHOD_GET_BOOTSTRAP_DATA,
+    METHOD_ADD_MHZ_DOC,
+    METHOD_SET_DEVICE_STATE
+} from '../rpc';
 
 import {
     HISTORY_OPTIONS,
@@ -58,11 +61,13 @@ function Root() {
 
     useEffect(() => {
 
-        async function bootstrap() {
-            const responsePayload = await rpcClient.call(METHOD_GET_BOOTSTRAP_DATA, { historyOption });
+        (async function bootstrap() {
+            const responsePayload = await rpcClient.call(
+                METHOD_GET_BOOTSTRAP_DATA,
+                { historyOption }
+            );
             dispatch({ type: SET_BOOTSTRAP_DATA, payload: responsePayload });
-        }
-        bootstrap();
+        }());
 
         rpcClient.respondTo(METHOD_ADD_MHZ_DOC, async (payload: object) => {
             dispatch({ type: ADD_MHZ_DOC, payload });
@@ -144,7 +149,7 @@ function Root() {
                                         ? mostRecentState.power
                                         : (
                                             historyMessages
-                                                ? last(historyMessages).power
+                                                ? last(historyMessages)?.power
                                                 : 'unknown'
                                         )
                                 }
@@ -162,17 +167,3 @@ function Root() {
 }
 
 export default hot(module)(Root);
-
-// io = SocketIoClient(`ws://${APP_HOST}:${APP_PORT}`, {
-//     query: { historyOption },
-// });
-// io.on('bootstrap', (bootstrap) => {
-//     dispatch({ type: SET_WS_CONNECT_DATA, payload: { bootstrap } });
-// });
-// io.on('mhzDoc', (doc) => {
-//     dispatch({ type: ADD_MHZ_DOC, payload: doc });
-// });
-// io.on('deviceState', (message) => {
-//     console.log('deviceState', message);
-//     dispatch({ type: SAVE_DEVICE_STATE, payload: message });
-// });

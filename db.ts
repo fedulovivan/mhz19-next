@@ -13,9 +13,9 @@ import {
     DB_ZIGBEE_DEVICE_MESSAGES,
 } from './constants';
 
-const couchClient = Nano(`http://${COUCHDB_HOST}:${COUCHDB_PORT}`);
 
 function useDb<D>(name: string) {
+    const couchClient = Nano(`http://${COUCHDB_HOST}:${COUCHDB_PORT}`);
     return couchClient.db.use<D>(name);
 }
 

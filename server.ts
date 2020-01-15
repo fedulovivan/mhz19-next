@@ -1,10 +1,13 @@
 
-import mqtt from 'mqtt';
-import Debug from 'debug';
+// import Debug from 'debug';
 import httpServer from './http';
-import RpcServer from './rpc/rpcServer';
-import { METHOD_GET_BOOTSTRAP_DATA, METHOD_ADD_MHZ_DOC, METHOD_SET_DEVICE_STATE } from './rpc';
-
+import {
+    RpcServer,
+    METHOD_GET_BOOTSTRAP_DATA,
+    METHOD_ADD_MHZ_DOC,
+    METHOD_SET_DEVICE_STATE
+} from './rpc';
+import mqttClient from './mqttClient';
 import {
     mqttMessageDispatcher
 } from './utils';
@@ -18,15 +21,11 @@ import {
 } from './db';
 
 import {
-    MQTT_USERNAME,
-    MQTT_PASSWORD,
-    MQTT_HOST,
-    MQTT_PORT,
     DB_ZIGBEE_DEVICE_MESSAGES,
 } from './constants';
 
 // const TelegramBot = require('node-telegram-bot-api');
-// const debug = Debug('mhz19-root');
+// const debug = Debug('mhz19-server');
 
 const START_TIME = (new Date()).valueOf();
 
@@ -36,52 +35,40 @@ let zigbeeDevices: Array<IZigbeeDeviceRegistrationInfo> = [];
 
 rpcServer.respondTo(METHOD_GET_BOOTSTRAP_DATA, async (requestPayload: object) => {
     const { historyOption } = requestPayload as any;
-    const mhzDocsResponse = await queryMhzDocs(historyOption);
-    const { docs: zigbeeDevivesMessages } = await find<IAqaraWaterSensorMessage>(
-        DB_ZIGBEE_DEVICE_MESSAGES, {
-            selector: {
-                topic: {
-                    // eslint-disable-next-line
-                    $regex: "zigbee2mqtt/0x[a-z0-9]+"
+    try {
+        const mhzDocsResponse = await queryMhzDocs(historyOption);
+        const { docs: zigbeeDevivesMessages } = await find<IAqaraWaterSensorMessage>(
+            DB_ZIGBEE_DEVICE_MESSAGES, {
+                selector: {
+                    topic: {
+                        // eslint-disable-next-line
+                        $regex: "zigbee2mqtt/0x[a-z0-9]+"
+                    },
+                    timestamp: { $gt: START_TIME - 3600 * 24 * 1000 },
                 },
-                timestamp: { $gt: START_TIME - 3600 * 24 * 1000 },
-            },
-            limit: 999,
-        }
-    );
-    return {
-        mhzDocs: mhzDocsResponse.docs,
-        zigbeeDevivesMessages,
-        zigbeeDevices,
-    };
-});
-
-const mqttClient = mqtt.connect(`mqtt://${MQTT_HOST}:${MQTT_PORT}`, {
-    username: MQTT_USERNAME,
-    password: MQTT_PASSWORD,
-});
-
-mqttClient.on('connect', async function () {
-    mqttClient.subscribe([
-        'zigbee2mqtt/#',
-        'homeassistant/#',
-        '/ESP/MH/DATA',
-        // '/ESP/MH/CO2',
-        // '/ESP/MH/CO2',
-        // '/ESP/MH/DEBUG',
-    ]);
-    // ask zigbee2mqtt coordinator for the list of paired devices
-    mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
+                limit: 999,
+            }
+        );
+        return {
+            mhzDocs: mhzDocsResponse.docs,
+            zigbeeDevivesMessages,
+            zigbeeDevices,
+        };
+    } catch (e) {
+        return {
+            error: `Failed to prepare bootstrap data: ${e.message}`,
+        };
+    }
 });
 
 mqttMessageDispatcher(mqttClient, {
 
     // zigbee2mqtt
-    zigbee2mqtt: function(topic, json, timestamp) {
+    zigbee2mqtt: function(topic, json: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage, timestamp) {
 
         if (!json) return;
 
-        if (topic === 'zigbee2mqtt/bridge/log' && (json as any).type === 'devices') {
+        if (topic === 'zigbee2mqtt/bridge/log' && json.type === 'devices') {
             // list of registered zigbee devices received in respond to zigbee2mqtt/bridge/config/devices/get
             zigbeeDevices = (json as any).message;
         } else {
