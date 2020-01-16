@@ -1,3 +1,6 @@
+/// <reference types="socket.io" />
+
+/* eslint-disable no-console */
 
 import { EVENT_RPC_RESPONSE } from './index';
 
@@ -21,7 +24,12 @@ export default abstract class RpcBase {
         }
     }
 
-    rpcRequestHandler(socket: SocketIo.Socket | SocketIOClient.Socket, name: string, id: number, requestPayload: object) {
+    rpcRequestHandler(
+        socket: SocketIo.Socket | SocketIOClient.Socket,
+        name: string,
+        id: number,
+        requestPayload: object
+    ) {
         const handler = this.methodHandlers.get(name);
         if (handler) {
             handler(requestPayload).then((response) => {

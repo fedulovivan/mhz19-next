@@ -2,11 +2,11 @@
 // import Debug from 'debug';
 import httpServer from './http';
 import {
-    RpcServer,
     METHOD_GET_BOOTSTRAP_DATA,
     METHOD_ADD_MHZ_DOC,
     METHOD_SET_DEVICE_STATE
 } from './rpc';
+import RpcServer from './rpc/rpcServer';
 import mqttClient from './mqttClient';
 import {
     mqttMessageDispatcher

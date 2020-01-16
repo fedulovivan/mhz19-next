@@ -32,6 +32,7 @@ module.exports = {
         "camelcase": "off",
         "space-before-function-paren": "off",
         "func-names": "off",
+        "spaced-comment": "off",
     },
     plugins: [
         "@typescript-eslint",
