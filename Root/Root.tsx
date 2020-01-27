@@ -18,13 +18,16 @@ import FormControl from '@material-ui/core/FormControl';
 
 import LeakageSensorCard from '../LeakageSensorCard/LeakageSensorCard';
 import NumericCard from '../NumericCard';
-import MhzChartCard from '../MhzChartCard';
+import MhzChartCard from '../MhzChartCard/MhzChartCard';
 import reducer, { intialState } from '../reducer';
+
+import * as actions from '../actions';
 
 import {
     METHOD_GET_BOOTSTRAP_DATA,
     METHOD_ADD_MHZ_DOC,
-    METHOD_SET_DEVICE_STATE
+    METHOD_SET_DEVICE_STATE,
+    METHOD_GET_MHZ_DOCS,
 } from '../rpc';
 
 import RpcClient from '../rpc/rpcClient';
@@ -39,6 +42,7 @@ import {
     SET_BOOTSTRAP_DATA,
     SAVE_RECENT_DEVICE_STATE,
     ADD_MHZ_DOC,
+    SET_MHZ_DOCS,
 } from '../actionTypes';
 
 import 'react-vis/dist/style.css';
@@ -58,8 +62,10 @@ function Root() {
         historyOption,
         deviceStates,
         error,
+        isPendingGetMhzDocs,
     } = state as IInitialState;
 
+    // actions executed only once on component mount
     useEffect(() => {
 
         (async function bootstrap() {
@@ -72,7 +78,7 @@ function Root() {
 
         rpcClient.respondTo(METHOD_ADD_MHZ_DOC, async (payload: object) => {
             dispatch({ type: ADD_MHZ_DOC, payload });
-            return { clientTime: new Date() };
+            return { clientTime: new Date() }; // not required, just to test if client response may be received
         });
 
         rpcClient.respondTo(METHOD_SET_DEVICE_STATE, async (payload: object) => {
@@ -82,10 +88,10 @@ function Root() {
 
     }, []);
 
-    const handleHistoryOptionChange = (event) => {
+    const handleHistoryOptionChange = async (event) => {
         const value = parseInt(event.target.value, 10);
-        // dispatch({ type: SET_HISTORY_OPTION, payload: { historyOption: value } })
-        // io.emit('queryMhzDocs', value);
+        const f = actions.getMhzDocs(value);
+        f(dispatch, rpcClient);
     };
 
     const lastMhzDoc = last(mhzDocs);
@@ -121,7 +127,7 @@ function Root() {
                         </FormControl>
                     </CardContent>
                 </Card>
-                <MhzChartCard css={styles.card} seriesData={seriesData} />
+                <MhzChartCard css={styles.card} seriesData={seriesData} loading={isPendingGetMhzDocs} />
                 <NumericCard css={styles.card} value={lastMhzDoc && lastMhzDoc.co2} unit="CO2" />
                 <NumericCard css={styles.card} value={lastMhzDoc && lastMhzDoc.temp} unit="°C" desc="MHZ19 Temperature" />
                 {zigbeeDevices && sortBy(zigbeeDevices, 'type').map(({

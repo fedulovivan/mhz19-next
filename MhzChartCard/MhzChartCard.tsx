@@ -2,7 +2,7 @@
 
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import { jsx, css, SerializedStyles } from '@emotion/core';
+import { jsx, SerializedStyles } from '@emotion/core';
 import moment from 'moment';
 
 import {
@@ -14,22 +14,18 @@ import {
     YAxis,
 } from 'react-vis';
 
-// const valueCss = css``;
-
-// const unitCss = css`
-//     align-self: flex-start;
-//     color: ${grey[500]};
-// `;
+import * as styles from './styles';
 
 interface IMhzChartCardProps {
     seriesData: Array<{ x: number; y: number }>;
     css: SerializedStyles;
+    loading: boolean;
 }
 
-export default function MhzChartCard({ seriesData, css: rootCss }: IMhzChartCardProps) {
+export default function MhzChartCard({ seriesData, css: rootCss, loading }: IMhzChartCardProps) {
     return (
         <Card>
-            <CardContent css={rootCss}>
+            <CardContent css={[rootCss, loading && styles.loading]}>
                 <XYPlot width={300} height={200}>
                     <YAxis />
                     <XAxis tickTotal={5} tickFormat={v => moment(v).format('HH:mm')} />

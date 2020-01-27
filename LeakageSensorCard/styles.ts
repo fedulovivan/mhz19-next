@@ -13,9 +13,9 @@ export const warn = css`
 `;
 
 export const root = css`
-    display: grid;
     /* width: 120px;
     max-width: 120px; */
+    display: grid;
     grid-auto-flow: row;
     grid-row-gap: 12px;
     justify-items: center;

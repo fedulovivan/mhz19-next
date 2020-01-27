@@ -52,4 +52,5 @@ interface IInitialState {
     zigbeeDevices: Array<IZigbeeDeviceRegistrationInfo>;
     historyOption: number;
     error?: string;
+    isPendingGetMhzDocs: boolean;
 }

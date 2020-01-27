@@ -3,6 +3,10 @@ export const ADD_MHZ_DOC = 'ADD_MHZ_DOC';
 export const SET_HISTORY_OPTION = 'SET_HISTORY_OPTION';
 export const SAVE_RECENT_DEVICE_STATE = 'SAVE_RECENT_DEVICE_STATE';
 
+export const GET_MHZ_DOCS_PENDING = 'GET_MHZ_DOCS_PENDING';
+export const GET_MHZ_DOCS_SUCCEED = 'GET_MHZ_DOCS_SUCCEED';
+export const GET_MHZ_DOCS_FAILED = 'GET_MHZ_DOCS_FAILED';
+
 interface SetWsConnectDataAction {
     type: typeof SET_BOOTSTRAP_DATA;
     payload: {

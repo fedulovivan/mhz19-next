@@ -19,7 +19,7 @@ export default abstract class RpcBase {
     rpcResponseHandler(name: string, id: number, params: object) {
         const resolver = this.responsePromiseResolvers.get(id);
         if (resolver) {
-            console.log('response received', name, params);
+            console.log('rpc response received', name, params);
             resolver(params);
         }
     }
@@ -30,6 +30,7 @@ export default abstract class RpcBase {
         id: number,
         requestPayload: object
     ) {
+        console.log('rpc request received:', name, requestPayload);
         const handler = this.methodHandlers.get(name);
         if (handler) {
             handler(requestPayload).then((response) => {

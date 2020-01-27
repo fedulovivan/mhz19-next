@@ -3,7 +3,7 @@ import {
     MINUTE,
     APP_HOST,
     APP_PORT,
-    HISTORY_OPTIONS
+    HISTORY_OPTIONS,
 } from './constants';
 
 import {
@@ -11,6 +11,8 @@ import {
     ADD_MHZ_DOC,
     SET_HISTORY_OPTION,
     SAVE_RECENT_DEVICE_STATE,
+    GET_MHZ_DOCS_PENDING,
+    GET_MHZ_DOCS_SUCCEED,
 } from './actionTypes';
 
 export const intialState: IInitialState = {
@@ -20,6 +22,7 @@ export const intialState: IInitialState = {
     historyOption: MINUTE * 30,
     deviceStates: {},
     error: undefined,
+    isPendingGetMhzDocs: false,
 };
 
 export default function reducer(state: IInitialState, action: ActionType) {
@@ -47,6 +50,18 @@ export default function reducer(state: IInitialState, action: ActionType) {
                 ...state.deviceStates,
                 [payload.friendly_name]: payload,
             }
+        };
+    case GET_MHZ_DOCS_PENDING: {
+        return {
+            ...state,
+            isPendingGetMhzDocs: true,
+        };
+    }
+    case GET_MHZ_DOCS_SUCCEED:
+        return {
+            ...state,
+            isPendingGetMhzDocs: false,
+            mhzDocs: payload.mhzDocs,
         };
     default:
         return state;

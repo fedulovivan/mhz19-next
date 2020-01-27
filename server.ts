@@ -4,7 +4,8 @@ import httpServer from './http';
 import {
     METHOD_GET_BOOTSTRAP_DATA,
     METHOD_ADD_MHZ_DOC,
-    METHOD_SET_DEVICE_STATE
+    METHOD_SET_DEVICE_STATE,
+    METHOD_GET_MHZ_DOCS,
 } from './rpc';
 import RpcServer from './rpc/rpcServer';
 import mqttClient from './mqttClient';
@@ -23,9 +24,6 @@ import {
 import {
     DB_ZIGBEE_DEVICE_MESSAGES,
 } from './constants';
-
-// const TelegramBot = require('node-telegram-bot-api');
-// const debug = Debug('mhz19-server');
 
 const START_TIME = (new Date()).valueOf();
 
@@ -57,6 +55,20 @@ rpcServer.respondTo(METHOD_GET_BOOTSTRAP_DATA, async (requestPayload: object) =>
     } catch (e) {
         return {
             error: `Failed to prepare bootstrap data: ${e.message}`,
+        };
+    }
+});
+
+rpcServer.respondTo(METHOD_GET_MHZ_DOCS, async (requestPayload: object) => {
+    const { historyOption } = requestPayload as any;
+    try {
+        const mhzDocsResponse = await queryMhzDocs(historyOption);
+        return {
+            mhzDocs: mhzDocsResponse.docs,
+        };
+    } catch (e) {
+        return {
+            error: 'Failed to fetch MHZ docs'
         };
     }
 });
