@@ -5,7 +5,7 @@ import {
     MQTT_PASSWORD,
     MQTT_HOST,
     MQTT_PORT,
-} from './constants';
+} from 'app/constants';
 
 const debug = Debug('mhz19-mqtt-client');
 

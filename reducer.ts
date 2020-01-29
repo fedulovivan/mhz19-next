@@ -4,7 +4,7 @@ import {
     APP_HOST,
     APP_PORT,
     HISTORY_OPTIONS,
-} from './constants';
+} from 'app/constants';
 
 import {
     ActionType,
@@ -14,7 +14,7 @@ import {
     SAVE_RECENT_DEVICE_STATE,
     GET_MHZ_DOCS_PENDING,
     GET_MHZ_DOCS_SUCCEED,
-} from './actionTypes';
+} from 'app/actionTypes';
 
 export const intialState: IInitialState = {
     mhzDocs: [],

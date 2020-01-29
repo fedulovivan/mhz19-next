@@ -4,15 +4,15 @@
 
 import Express from 'express';
 import http from 'http';
-import restApi from './rest-api';
 import Debug from 'debug';
+import restApi from 'app/rest-api';
 
 import {
     DIST_PATH,
     IMAGES_PATH,
     APP_HOST,
     APP_PORT,
-} from './constants';
+} from 'app/constants';
 
 const debug = Debug('mhz19-http');
 

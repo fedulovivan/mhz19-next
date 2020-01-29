@@ -1,11 +1,11 @@
 import SocketIoClient from 'socket.io-client';
 
-import { RpcBase, EVENT_RPC_REQUEST, EVENT_RPC_RESPONSE } from './index';
-
 import {
     APP_HOST,
     APP_PORT,
-} from '../constants';
+} from 'app/constants';
+
+import { RpcBase, EVENT_RPC_REQUEST, EVENT_RPC_RESPONSE } from './index';
 
 export default class RpcClient extends RpcBase {
 

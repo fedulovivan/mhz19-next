@@ -1,17 +1,16 @@
 
-// import Debug from 'debug';
-import httpServer from './http';
+import httpServer from 'app/http';
 import {
     METHOD_GET_BOOTSTRAP_DATA,
     METHOD_ADD_MHZ_DOC,
     METHOD_SET_DEVICE_STATE,
     METHOD_GET_MHZ_DOCS,
-} from './rpc';
-import RpcServer from './rpc/rpcServer';
-import mqttClient from './mqttClient';
+} from 'app/rpc';
+import RpcServer from 'app/rpc/rpcServer';
+import mqttClient from 'app/mqttClient';
 import {
     mqttMessageDispatcher
-} from './utils';
+} from 'app/utils';
 
 import {
     insertMhzDoc,
@@ -19,11 +18,11 @@ import {
     insertZigbeeDeviceDoc,
     queryMhzDocs,
     find,
-} from './db';
+} from 'app/db';
 
 import {
     DB_ZIGBEE_DEVICE_MESSAGES,
-} from './constants';
+} from 'app/constants';
 
 const START_TIME = (new Date()).valueOf();
 

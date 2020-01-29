@@ -3,11 +3,11 @@ import Express from 'express';
 import {
     queryMhzDocs,
     queryConfigDocs,
-} from './db';
+} from 'app/db';
 
 import {
     sendError
-} from './utils';
+} from 'app/utils';
 
 const router = Express.Router();
 
@@ -18,7 +18,7 @@ router.get('/mhz-docs', async (req, res) => {
     } catch (e) {
         sendError(res, e);
     }
-})
+});
 
 router.get('/configs-docs', async (req, res) => {
     try {
@@ -27,6 +27,6 @@ router.get('/configs-docs', async (req, res) => {
     } catch (e) {
         sendError(res, e);
     }
-})
+});
 
 export default router;
