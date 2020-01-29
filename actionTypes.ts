@@ -12,8 +12,8 @@ interface SetWsConnectDataAction {
     payload: {
         bootstrap: {
             mhzDocs: Array<IMhzDoc>;
-            deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage };
             zigbeeDevivesMessages: Array<IAqaraWaterSensorMessage>;
+            // deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage };
         }
     };
 }

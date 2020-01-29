@@ -1,8 +1,9 @@
 /** @jsx jsx */
 
+// eslint-disable-next-line no-unused-vars
+import { jsx, SerializedStyles } from '@emotion/core';
 import Card from '@material-ui/core/Card';
 import CardContent from '@material-ui/core/CardContent';
-import { jsx, SerializedStyles } from '@emotion/core';
 import moment from 'moment';
 
 import {

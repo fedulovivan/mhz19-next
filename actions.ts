@@ -1,4 +1,5 @@
 
+import RpcClient from './rpc/rpcClient';
 import { METHOD_GET_MHZ_DOCS } from './rpc';
 
 import {
@@ -8,7 +9,7 @@ import {
     SET_HISTORY_OPTION,
 } from './actionTypes';
 
-export const getMhzDocs = (historyOption) => async (dispatch, rpcClient) => {
+export const getMhzDocs = (historyOption: number) => async (dispatch: DispatchWithoutAction, rpcClient: RpcClient) => {
     dispatch({ type: SET_HISTORY_OPTION, payload: { historyOption } });
     dispatch({ type: GET_MHZ_DOCS_PENDING });
     const responsePayload = await rpcClient.call(METHOD_GET_MHZ_DOCS, { historyOption });

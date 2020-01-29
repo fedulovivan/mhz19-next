@@ -7,6 +7,7 @@ import {
 } from './constants';
 
 import {
+    ActionType,
     SET_BOOTSTRAP_DATA,
     ADD_MHZ_DOC,
     SET_HISTORY_OPTION,
@@ -20,9 +21,9 @@ export const intialState: IInitialState = {
     zigbeeDevices: [],
     zigbeeDevivesMessages: [],
     historyOption: MINUTE * 30,
-    deviceStates: {},
     error: undefined,
     isPendingGetMhzDocs: false,
+    // deviceStates: {},
 };
 
 export default function reducer(state: IInitialState, action: ActionType) {
@@ -46,11 +47,18 @@ export default function reducer(state: IInitialState, action: ActionType) {
     case SAVE_RECENT_DEVICE_STATE:
         return {
             ...state,
-            deviceStates: {
-                ...state.deviceStates,
-                [payload.friendly_name]: payload,
-            }
+            zigbeeDevivesMessages: [
+                ...state.zigbeeDevivesMessages,
+                payload,
+            ]
         };
+        // return {
+        //     ...state,
+        //     deviceStates: {
+        //         ...state.deviceStates,
+        //         [payload.friendly_name]: payload,
+        //     }
+        // };
     case GET_MHZ_DOCS_PENDING: {
         return {
             ...state,

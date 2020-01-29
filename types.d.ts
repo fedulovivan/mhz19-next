@@ -1,6 +1,6 @@
 interface IMhzDoc {
     timestamp: number;
-    co2?: number;
+    co2: number;
     temp?: number;
 }
 
@@ -47,10 +47,10 @@ interface IAqaraPowerPlugMessage extends IZigbeeDeviceMessageBase {
 
 interface IInitialState {
     mhzDocs: Array<IMhzDoc>;
-    deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage };
     zigbeeDevivesMessages: Array<IAqaraWaterSensorMessage & IAqaraPowerPlugMessage>;
     zigbeeDevices: Array<IZigbeeDeviceRegistrationInfo>;
     historyOption: number;
     error?: string;
     isPendingGetMhzDocs: boolean;
+    // deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage };
 }

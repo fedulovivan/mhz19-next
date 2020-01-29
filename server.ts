@@ -95,9 +95,8 @@ mqttMessageDispatcher(mqttClient, {
         // message from device
         const deviceState = topic.match(/^zigbee2mqtt\/(0x\w+)$/);
         if (deviceState) {
-            const friendly_name = deviceState[1];
             rpcServer.call(METHOD_SET_DEVICE_STATE, {
-                friendly_name,
+                topic,
                 timestamp,
                 ...json,
             });

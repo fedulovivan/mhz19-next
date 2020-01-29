@@ -26,6 +26,7 @@ module.exports = {
         "object-shorthand": "off",
         "import/extensions": "off",
         "arrow-body-style": "off",
+        "arrow-parens": "off",
         "import/prefer-default-export": "off",
         "max-classes-per-file": "off",
         "react/jsx-one-expression-per-line": "off",
