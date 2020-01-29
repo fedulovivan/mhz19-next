@@ -3,12 +3,12 @@ import http from 'http';
 import SocketIo from 'socket.io';
 import Debug from 'debug';
 
-import { RpcBase, EVENT_RPC_REQUEST, EVENT_RPC_RESPONSE } from './index';
-
 import {
     APP_HOST,
     APP_PORT,
-} from '../constants';
+} from 'app/constants';
+
+import { RpcBase, EVENT_RPC_REQUEST, EVENT_RPC_RESPONSE } from './index';
 
 const debug = Debug('mhz-rpc-server');
 

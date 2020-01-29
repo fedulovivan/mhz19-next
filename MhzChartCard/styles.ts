@@ -1,6 +1,6 @@
 import { css } from '@emotion/core';
 
-import { contentOverlay } from '../styles';
+import { contentOverlay } from 'app/styles';
 
 export const loading = css`
     position: relative;

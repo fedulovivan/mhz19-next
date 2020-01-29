@@ -25,6 +25,7 @@ module.exports = {
         "prefer-arrow-callback": "off",
         "object-shorthand": "off",
         "import/extensions": "off",
+        "import/order": "warn",
         "arrow-body-style": "off",
         "import/prefer-default-export": "off",
         "max-classes-per-file": "off",
@@ -42,10 +43,15 @@ module.exports = {
         react: {
             version: "detect"
         },
-        'import/resolver': {
-            node: {
-                extensions: ['.js', '.jsx', '.ts', '.tsx']
+        "import/resolver": {
+            // a way to tell eslint-plugin-import how to load aliased paths
+            // settings for eslint-import-resolver-alias
+            alias: {
+                map: [
+                    ["app", "./"]
+                ],
+                extensions: [".js", ".jsx", ".ts", ".tsx"]
             }
-        },
+        }
     },
 }

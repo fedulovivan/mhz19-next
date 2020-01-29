@@ -1,12 +1,12 @@
 
-import { METHOD_GET_MHZ_DOCS } from './rpc';
+import { METHOD_GET_MHZ_DOCS } from 'app/rpc';
 
 import {
     GET_MHZ_DOCS_PENDING,
     GET_MHZ_DOCS_SUCCEED,
     GET_MHZ_DOCS_FAILED,
     SET_HISTORY_OPTION,
-} from './actionTypes';
+} from 'app/actionTypes';
 
 export const getMhzDocs = (historyOption) => async (dispatch, rpcClient) => {
     dispatch({ type: SET_HISTORY_OPTION, payload: { historyOption } });
