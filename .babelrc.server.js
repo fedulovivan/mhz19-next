@@ -18,7 +18,7 @@ module.exports = {
             "module-resolver",
             {
                 "alias": {
-                    "app": "./"
+                    "src": "./src"
                 }
             }
         ]

@@ -28,6 +28,7 @@
     "@types/socket.io-client": "^1.4.32",
     "@typescript-eslint/eslint-plugin": "^2.11.0",
     "@typescript-eslint/parser": "^2.11.0",
+    "app": "^0.1.0",
     "debug": "^4.1.1",
     "eslint-plugin-react-hooks": "^2.3.0",
     "express": "^4.17.1",
@@ -57,6 +58,6 @@
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom",
-    "app": "."
+    "src": "./src"
   }
 }

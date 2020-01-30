@@ -12,32 +12,33 @@ import MenuItem from '@material-ui/core/MenuItem';
 import InputLabel from '@material-ui/core/InputLabel';
 import FormControl from '@material-ui/core/FormControl';
 
-import LeakageSensorCard from 'app/LeakageSensorCard/LeakageSensorCard';
-import MhzChartCard from 'app/MhzChartCard/MhzChartCard';
-import NumericCard from 'app/NumericCard';
-import reducer, { intialState } from 'app/reducer';
-import * as actions from 'app/actions';
-import * as selectors from 'app/selectors';
+import LeakageSensorCard from 'src/components/LeakageSensorCard/LeakageSensorCard';
+import MhzChartCard from 'src/components/MhzChartCard/MhzChartCard';
+import NumericCard from 'src/components/NumericCard';
+
+import reducer, { intialState } from 'src/react/reducer';
+import * as actions from 'src/react/actions';
+import * as selectors from 'src/react/selectors';
 
 import {
     METHOD_GET_BOOTSTRAP_DATA,
     METHOD_ADD_MHZ_DOC,
     METHOD_SET_DEVICE_STATE,
-} from 'app/rpc';
+} from 'src/rpc';
 
-import RpcClient from 'app/rpc/rpcClient';
+import RpcClient from 'src/rpc/rpcClient';
 
 import {
     HISTORY_OPTIONS,
     ZIGBEE_DEVICE_MODEL_LUMI_WATER_LEAK,
     ZIGBEE_DEVICE_MODEL_LUMI_POWER_PLUG,
-} from 'app/constants';
+} from 'src/constants';
 
 import {
     SET_BOOTSTRAP_DATA,
     SAVE_RECENT_DEVICE_STATE,
     ADD_MHZ_DOC,
-} from 'app/actionTypes';
+} from 'src/react/actionTypes';
 
 import 'react-vis/dist/style.css';
 

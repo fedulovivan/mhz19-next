@@ -6,7 +6,7 @@
 
 import ReactDOM from 'react-dom';
 import React from 'react';
-import Root from 'app/Root/Root';
+import Root from 'src/components/Root/Root';
 
 const component = React.createElement(Root);
 

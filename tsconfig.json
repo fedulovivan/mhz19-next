@@ -4,7 +4,7 @@
     // a way to tell typescript how to load aliased paths
     "baseUrl": "./",
     "paths": {
-      "app*": ["./*"]
+      "src*": ["./src/*"]
     },
 
     /* Basic Options */

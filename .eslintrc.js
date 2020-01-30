@@ -49,7 +49,7 @@ module.exports = {
             // settings for eslint-import-resolver-alias
             alias: {
                 map: [
-                    ["app", "./"]
+                    ["src", "./src"]
                 ],
                 extensions: [".js", ".jsx", ".ts", ".tsx"]
             }

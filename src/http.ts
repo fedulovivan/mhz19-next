@@ -5,14 +5,14 @@
 import Express from 'express';
 import http from 'http';
 import Debug from 'debug';
-import restApi from 'app/rest-api';
+import restApi from 'src/rest-api';
 
 import {
     DIST_PATH,
     IMAGES_PATH,
     APP_HOST,
     APP_PORT,
-} from 'app/constants';
+} from 'src/constants';
 
 const debug = Debug('mhz19-http');
 
@@ -25,9 +25,9 @@ express.use('/images', Express.static(IMAGES_PATH));
 express.use(restApi);
 
 httpServer.listen(APP_PORT, () => {
-    debug(`listening on ${APP_HOST}:${APP_PORT}`)
+    debug(`listening on ${APP_HOST}:${APP_PORT}`);
     const browserLink = `http://${APP_HOST}:${APP_PORT}/`;
-    debug(`open browser at ${browserLink}`)
+    debug(`open browser at ${browserLink}`);
 });
 
 export default httpServer;

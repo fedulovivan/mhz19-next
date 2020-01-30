@@ -3,11 +3,11 @@ import Express from 'express';
 import {
     queryMhzDocs,
     queryConfigDocs,
-} from 'app/db';
+} from 'src/db';
 
 import {
     sendError
-} from 'app/utils';
+} from 'src/utils';
 
 const router = Express.Router();
 

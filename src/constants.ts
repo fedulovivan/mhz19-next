@@ -1,8 +1,12 @@
+import path from 'path';
+
+export const ROOT = path.join(__dirname, '..');
+
 export const APP_HOST = 'localhost';
 export const APP_PORT = 8888;
 
-export const DIST_PATH = `${__dirname}/dist`;
-export const IMAGES_PATH = `${__dirname}/images`;
+export const DIST_PATH = `${ROOT}/dist`;
+export const IMAGES_PATH = `${ROOT}/images`;
 
 export const MINUTE = 60 * 1000;
 export const HOUR = 3600 * 1000;

@@ -6,7 +6,7 @@ import Debug from 'debug';
 import {
     APP_HOST,
     APP_PORT,
-} from 'app/constants';
+} from 'src/constants';
 
 import { RpcBase, EVENT_RPC_REQUEST, EVENT_RPC_RESPONSE } from './index';
 

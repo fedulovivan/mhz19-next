@@ -11,7 +11,7 @@ import {
     DB_MHZ19,
     DB_HOME_ASSISTANT,
     DB_ZIGBEE_DEVICE_MESSAGES,
-} from 'app/constants';
+} from 'src/constants';
 
 
 function useDb<D>(name: string) {
