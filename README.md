@@ -18,9 +18,9 @@
 ![ui screen](https://raw.githubusercontent.com/fedulovivan/mhz19-next/master/images/screen01.png)
 
 ### Scripts
-`yarn parcel:dev` - launch parcel in development more with hmr enabled
-`yarn server` - launch backend
-`yarn start` - launch two commands above simultaneusly
+- `yarn parcel:dev` - launch parcel in development more with hmr enabled
+- `yarn server` - launch backend
+- `yarn start` - launch two commands above simultaneusly
 
 ### TBD
 
