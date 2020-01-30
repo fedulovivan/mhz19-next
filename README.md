@@ -15,7 +15,7 @@
 
 ### UI screen
 
-![ui screen](https://raw.githubusercontent.com/fedulovivan/mhz19-next/master/screen01.png)
+![ui screen](https://raw.githubusercontent.com/fedulovivan/mhz19-next/master/images/screen01.png)
 
 ### Scripts
 `yarn parcel:dev` - launch parcel in development more with hmr enabled
