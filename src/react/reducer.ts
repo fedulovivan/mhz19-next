@@ -1,12 +1,10 @@
 
 import {
     MINUTE,
-    APP_HOST,
-    APP_PORT,
-    HISTORY_OPTIONS,
 } from 'src/constants';
 
 import {
+    // eslint-disable-next-line no-unused-vars
     ActionType,
     SET_BOOTSTRAP_DATA,
     ADD_MHZ_DOC,
@@ -14,6 +12,7 @@ import {
     SAVE_RECENT_DEVICE_STATE,
     GET_MHZ_DOCS_PENDING,
     GET_MHZ_DOCS_SUCCEED,
+    GET_MHZ_DOCS_FAILED,
 } from 'src/react/actionTypes';
 
 export const intialState: IInitialState = {
@@ -70,6 +69,11 @@ export default function reducer(state: IInitialState, action: ActionType) {
             ...state,
             isPendingGetMhzDocs: false,
             mhzDocs: payload.mhzDocs,
+        };
+    case GET_MHZ_DOCS_FAILED:
+        return {
+            ...state,
+            isPendingGetMhzDocs: false,
         };
     default:
         return state;

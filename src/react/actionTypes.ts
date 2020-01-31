@@ -35,4 +35,24 @@ interface SaveDeviceStateAction {
     payload: IZigbeeDeviceRegistrationInfo;
 }
 
-export type ActionType = SetWsConnectDataAction | AddMhzDocAction | SetHistoryOptionAction | SaveDeviceStateAction;
+interface GetMhzDocsPending {
+    type: typeof GET_MHZ_DOCS_PENDING;
+    payload?: {};
+}
+interface GetMhzDocsSucceed {
+    type: typeof GET_MHZ_DOCS_SUCCEED;
+    payload?: {};
+}
+interface GetMhzDocsFailed {
+    type: typeof GET_MHZ_DOCS_FAILED;
+    payload?: {};
+}
+
+export type ActionType =
+      SetWsConnectDataAction
+    | AddMhzDocAction
+    | SetHistoryOptionAction
+    | SaveDeviceStateAction
+    | GetMhzDocsPending
+    | GetMhzDocsSucceed
+    | GetMhzDocsFailed;
