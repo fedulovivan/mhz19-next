@@ -36,7 +36,7 @@ import {
 
 import {
     SET_BOOTSTRAP_DATA,
-    SAVE_RECENT_DEVICE_STATE,
+    SAVE_ZIGBEE_DEVICE_MESSAGE,
     ADD_MHZ_DOC,
 } from 'src/react/actionTypes';
 
@@ -68,7 +68,7 @@ function Root() {
         });
 
         rpcClient.respondTo(METHOD_SET_DEVICE_STATE, async (payload: object) => {
-            dispatch({ type: SAVE_RECENT_DEVICE_STATE, payload });
+            dispatch({ type: SAVE_ZIGBEE_DEVICE_MESSAGE, payload });
             // not required, just to test if client response may be received
             return { clientTime: new Date() };
         });

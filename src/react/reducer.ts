@@ -1,3 +1,4 @@
+/* eslint-disable no-case-declarations */
 /* eslint-disable default-case */
 /* eslint-disable no-param-reassign */
 
@@ -13,13 +14,13 @@ import {
     SetWsConnectDataAction,
     AddMhzDocAction,
     SetHistoryOptionAction,
-    SaveDeviceStateAction,
+    SaveZigbeeDeviceMessage,
     GetMhzDocsSucceed,
 
     SET_BOOTSTRAP_DATA,
     ADD_MHZ_DOC,
     SET_HISTORY_OPTION,
-    SAVE_RECENT_DEVICE_STATE,
+    SAVE_ZIGBEE_DEVICE_MESSAGE,
     GET_MHZ_DOCS_PENDING,
     GET_MHZ_DOCS_FAILED,
     GET_MHZ_DOCS_SUCCEED,
@@ -39,7 +40,16 @@ export default produce((draft: IInitialState, action: ActionType) => {
     const { type } = action;
     switch (type) {
         case SET_BOOTSTRAP_DATA:
-            draft.error = (action as SetWsConnectDataAction).payload.error;
+            const {
+                zigbeeDevices,
+                zigbeeDevivesMessages,
+                mhzDocs,
+                error,
+            } = (action as SetWsConnectDataAction).payload;
+            draft.zigbeeDevices = zigbeeDevices;
+            draft.zigbeeDevivesMessages = zigbeeDevivesMessages;
+            draft.mhzDocs = mhzDocs;
+            draft.error = error;
             break;
         case ADD_MHZ_DOC:
             draft.mhzDocs.splice(1).push((action as AddMhzDocAction).payload);
@@ -47,8 +57,8 @@ export default produce((draft: IInitialState, action: ActionType) => {
         case SET_HISTORY_OPTION:
             draft.historyOption = (action as SetHistoryOptionAction).payload.historyOption;
             break;
-        case SAVE_RECENT_DEVICE_STATE:
-            draft.zigbeeDevivesMessages.push((action as SaveDeviceStateAction).payload);
+        case SAVE_ZIGBEE_DEVICE_MESSAGE:
+            draft.zigbeeDevivesMessages.push((action as SaveZigbeeDeviceMessage).payload);
             break;
         case GET_MHZ_DOCS_PENDING:
             draft.isPendingGetMhzDocs = true;
@@ -81,7 +91,7 @@ export default produce((draft: IInitialState, action: ActionType) => {
 //             ...state,
 //             historyOption: payload.historyOption,
 //         };
-//     case SAVE_RECENT_DEVICE_STATE:
+//     case SAVE_ZIGBEE_DEVICE_MESSAGE:
 //         return {
 //             ...state,
 //             zigbeeDevivesMessages: [

@@ -1,7 +1,7 @@
 export const SET_BOOTSTRAP_DATA = 'SET_BOOTSTRAP_DATA';
 export const ADD_MHZ_DOC = 'ADD_MHZ_DOC';
 export const SET_HISTORY_OPTION = 'SET_HISTORY_OPTION';
-export const SAVE_RECENT_DEVICE_STATE = 'SAVE_RECENT_DEVICE_STATE';
+export const SAVE_ZIGBEE_DEVICE_MESSAGE = 'SAVE_ZIGBEE_DEVICE_MESSAGE';
 export const GET_MHZ_DOCS_PENDING = 'GET_MHZ_DOCS_PENDING';
 export const GET_MHZ_DOCS_SUCCEED = 'GET_MHZ_DOCS_SUCCEED';
 export const GET_MHZ_DOCS_FAILED = 'GET_MHZ_DOCS_FAILED';
@@ -10,7 +10,8 @@ export interface SetWsConnectDataAction {
     type: typeof SET_BOOTSTRAP_DATA;
     payload: {
         mhzDocs: Array<IMhzDoc>;
-        zigbeeDevivesMessages: Array<IAqaraWaterSensorMessage>;
+        zigbeeDevivesMessages: Array<IAqaraWaterSensorMessage & IAqaraPowerPlugMessage>;
+        zigbeeDevices: Array<IZigbeeDeviceRegistrationInfo>;
         error: string;
     };
 }
@@ -27,8 +28,8 @@ export interface SetHistoryOptionAction {
     };
 }
 
-export interface SaveDeviceStateAction {
-    type: typeof SAVE_RECENT_DEVICE_STATE;
+export interface SaveZigbeeDeviceMessage {
+    type: typeof SAVE_ZIGBEE_DEVICE_MESSAGE;
     payload: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage;
 }
 
@@ -52,7 +53,7 @@ export type ActionType =
       SetWsConnectDataAction
     | AddMhzDocAction
     | SetHistoryOptionAction
-    | SaveDeviceStateAction
+    | SaveZigbeeDeviceMessage
     | GetMhzDocsPending
     | GetMhzDocsSucceed
     | GetMhzDocsFailed;
