@@ -52,5 +52,4 @@ interface IInitialState {
     historyOption: number;
     error?: string;
     isPendingGetMhzDocs: boolean;
-    // deviceStates: { [friendly_name: string]: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage };
 }

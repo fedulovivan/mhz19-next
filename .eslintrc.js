@@ -26,6 +26,7 @@ module.exports = {
         "object-shorthand": "off",
         "import/extensions": "off",
         "import/order": "warn",
+        "indent": ["warn", 4, { "SwitchCase": 1 }],
         "arrow-body-style": "off",
         "arrow-parens": "off",
         "import/prefer-default-export": "off",
