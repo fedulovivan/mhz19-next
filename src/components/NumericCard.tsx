@@ -13,13 +13,6 @@ const unitCss = css`
     color: ${grey[500]};
 `;
 
-interface INumericCardProps {
-    value?: string | number;
-    unit?: string;
-    desc?: string;
-    rootCss?: SerializedStyles;
-}
-
 export default function NumericCard({ value, unit, desc, rootCss }: INumericCardProps) {
     return (
         <Card>

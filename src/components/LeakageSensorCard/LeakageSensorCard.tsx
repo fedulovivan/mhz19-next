@@ -10,11 +10,7 @@ import moment from 'moment';
 
 import * as styles from './styles';
 
-interface ILeakageSensorCardProps {
-    deviceMessage?: IAqaraWaterSensorMessage;
-    lastSeen?: number;
-    css?: SerializedStyles;
-}
+
 
 export default function LeakageSensorCard({
     deviceMessage,

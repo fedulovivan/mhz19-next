@@ -17,12 +17,6 @@ import {
 
 import * as styles from './styles';
 
-interface IMhzChartCardProps {
-    seriesData: Array<{ x: number; y: number }>;
-    css: SerializedStyles;
-    loading: boolean;
-}
-
 export default function MhzChartCard({ seriesData, css: rootCss, loading }: IMhzChartCardProps) {
     return (
         <Card>
