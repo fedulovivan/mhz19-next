@@ -33,7 +33,7 @@
     "eslint-plugin-react-hooks": "^2.3.0",
     "express": "^4.17.1",
     "immer": "^5.3.2",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.19",
     "moment": "^2.24.0",
     "mqtt": "^3.0.0",
     "nano": "^8.1.0",
