@@ -1,6 +1,59 @@
 // eslint-disable-next-line no-unused-vars
 import { SerializedStyles } from '@emotion/core';
+
 import * as TYPE from 'src/react/actionTypes';
+
+type IMqttMessageDispatcherHandler = (params: {
+    fullTopic: string;
+    json: IZigbeeDeviceMessage;
+    timestamp: number;
+    rawMessage: string;
+    deviceId: string | null;
+    deviceName: string | null;
+}) => void;
+
+/**
+ * after connection to mqtt server we ask zigbee2mqtt for the list of connected devices
+ * this array element of response to zigbee2mqtt/bridge/config/devices/get request
+ * received at zigbee2mqtt/bridge/config/devices topic
+ * see src/mqttClient.ts
+ */
+interface IZigbee2mqttBridgeConfigDevice {
+    dateCode: string;
+    friendly_name: string;
+    ieeeAddr: string;
+    lastSeen: any;
+    networkAddress: number;
+    softwareBuildID: string;
+    type: string;
+    description: string;
+    hardwareVersion?: number;
+    manufacturerID?: number;
+    manufacturerName: string;
+    model: string;
+    modelID: string;
+    powerSource: string;
+    vendor: string;
+}
+
+interface IAqaraWaterSensorMessage {
+    battery: number;
+    battery_low: boolean;
+    linkquality: number;
+    tamper: boolean;
+    voltage: number;
+    water_leak: boolean;
+}
+
+interface IWallSwitchMessage {
+    action: 'single_left' | 'single_right' | 'double_left' | 'double_right';
+    battery: number;
+    click: 'left' | 'right';
+    linkquality: number;
+    voltage: number;
+}
+
+type IZigbeeDeviceMessage = IAqaraPowerPlugMessage & IAqaraWaterSensorMessage & IWallSwitchMessage;
 
 interface IMhzDoc {
     timestamp: number;
@@ -28,10 +81,10 @@ interface IZigbeeDeviceMessageBase {
     linkquality: number;
     last_seen: string;
 }
-interface IAqaraWaterSensorMessage extends IZigbeeDeviceMessageBase {
-    battery: number;
-    water_leak: boolean;
-}
+// interface IAqaraWaterSensorMessage extends IZigbeeDeviceMessageBase {
+//     battery: number;
+//     water_leak: boolean;
+// }
 declare enum PowerPlugState {
     ON = 'ON',
     OFF = 'OFF',

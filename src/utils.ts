@@ -1,9 +1,19 @@
-
 import Debug from 'debug';
+import { Response } from 'express';
+import { MqttClient } from 'mqtt';
+
+import { DEVICE_NAME_TO_ID } from 'src/constants';
+import {
+  IAqaraPowerPlugMessage,
+  IAqaraWaterSensorMessage,
+  IMqttMessageDispatcherHandler,
+  IWallSwitchMessage,
+  IZigbeeDeviceMessage,
+} from 'src/typings';
 
 const debug = Debug('mhz19-dispatcher');
 
-export function sendError(res: Express.Response, e: Error) {
+export function sendError(res: Response, e: Error) {
     const { message } = e;
     res.json({
         error: true,
@@ -12,35 +22,36 @@ export function sendError(res: Express.Response, e: Error) {
 }
 
 export function mqttMessageDispatcher(
-    mqttClient: mqtt.MqttClient,
-    handlersMap: {
-        [topicPrefix: string]: (
-            topic: string,
-            json: object | null,
-            timestamp: number,
-            raw: string,
-        ) => void
-    },
+    mqttClient: MqttClient,
+    handlersMap: Array<[
+        topicPrefixOrDeviceName: string,
+        handler: IMqttMessageDispatcherHandler,
+    ]>,
 ) {
-    mqttClient.on('message', async function (topic, message) {
-        debug('\ntopic:', topic);
-        const raw = message.toString();
-        let json: object | null = null;
+    mqttClient.on('message', async function (fullTopic, message) {
+        debug('\ntopic:', fullTopic);
+        const rawMessage = message.toString();
+        let json: IZigbeeDeviceMessage = null;
         const timestamp = (new Date).valueOf();
         try {
-            json = JSON.parse(raw);
+            json = JSON.parse(rawMessage);
             debug('json:', json);
         } catch (e) {
-            debug('string:', raw);
+            debug('string:', rawMessage);
         }
-        const topicPrefix = Object.keys(handlersMap).find(
-            (p: string) => topic.startsWith(p)
-        );
-        const topicHandler = topicPrefix && handlersMap[topicPrefix];
-        if (!topicHandler) {
-            console.error('unknown topic:', topic, raw);
-            return;
-        }
-        topicHandler(topic, json, timestamp, raw);
+        handlersMap.forEach(([topicPrefixOrDeviceName, handler]) => {
+            const deviceId = DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
+            const deviceName = deviceId ? topicPrefixOrDeviceName : null;
+            if (fullTopic.startsWith(deviceId ? `zigbee2mqtt/${deviceId}` : topicPrefixOrDeviceName)) {
+                handler({
+                    fullTopic,
+                    json,
+                    timestamp,
+                    rawMessage,
+                    deviceId,
+                    deviceName
+                });
+            }
+        });
     });
 }

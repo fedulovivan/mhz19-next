@@ -1,0 +1,17 @@
+{
+    "groupRules": [
+        "^(react|react-dom|react-redux|react-router|react-router-dom|react-hot-loader/root)$",
+        {},
+        "^lib",
+        "^src",
+        "^[.]"
+    ],
+    "maxDefaultAndBindingNamesPerLine": 3,
+    "maxBindingNamesPerLine": 2,
+    "maxNamesPerWrappedLine": 1,
+    "quoteMark": "single",
+    "trailingComma": "multiLine",
+    "formatExports": false,
+    "keepUnused": [".*"],
+    "maxLineLength": 0
+}

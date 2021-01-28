@@ -13,6 +13,12 @@ import {
 } from 'src/utils';
 
 import {
+    IZigbeeDeviceRegistrationInfo,
+    IAqaraWaterSensorMessage,
+    IAqaraPowerPlugMessage,
+} from 'src/typings';
+
+import {
     insertMhzDoc,
     insertHomeassistantDoc,
     insertZigbeeDeviceDoc,
@@ -72,10 +78,10 @@ rpcServer.respondTo(METHOD_GET_MHZ_DOCS, async (requestPayload: object) => {
     }
 });
 
-mqttMessageDispatcher(mqttClient, {
+mqttMessageDispatcher(mqttClient, [
 
     // zigbee2mqtt
-    zigbee2mqtt: function(topic, json: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage, timestamp) {
+    ['zigbee2mqtt', function(topic, json: IAqaraWaterSensorMessage & IAqaraPowerPlugMessage, timestamp) {
 
         if (!json) return;
 
@@ -100,25 +106,25 @@ mqttMessageDispatcher(mqttClient, {
                 ...json,
             });
         }
-    },
+    }],
 
     // homeassistant
-    homeassistant: function(topic, json, timestamp, raw) {
+    ['homeassistant', function(topic, json, timestamp, raw) {
         insertHomeassistantDoc({
             topic,
             timestamp,
             ...json,
         });
-    },
+    }],
 
     // /ESP/MH/DATA
-    '/ESP/MH/DATA': function(topic, json, timestamp, raw) {
+    ['/ESP/MH/DATA', function(topic, json, timestamp, raw) {
         const doc: IMhzDoc = {
             timestamp,
             ...json,
         };
         insertMhzDoc(doc);
         rpcServer.call(METHOD_ADD_MHZ_DOC, doc);
-    }
+    }]
 
-});
+]);

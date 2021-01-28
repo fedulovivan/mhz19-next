@@ -10,7 +10,7 @@ Browser-server communication is implemented as RPC layer over websockets.
 
 ### Used technologies
 
-- [typescript](https://www.typescriptlang.org/index.html) 3.7
+- [typescript](https://www.typescriptlang.org/index.html) 4.0
 - [react](https://reactjs.org/) 16 and useSate, useEffect, useReducer [react hooks](https://reactjs.org/docs/hooks-intro.html)
 - RPC layer implemented over [socket.io](https://socket.io/)
 - [emotion](https://emotion.sh/) as styled components library
@@ -33,3 +33,13 @@ Browser-server communication is implemented as RPC layer over websockets.
 - `yarn parcel:dev` - launch parcel in development more with hmr enabled
 - `yarn server` - launch backend
 - `yarn start` - launch two commands above simultaneusly
+
+### Macmini power consumption history
+20/11 228.56
+21/11 228.91
+22/11 229.25
+23/11 229.55
+24/11 229.90
+25/11 230.25
+26/11 230.59
+27/11 230.96

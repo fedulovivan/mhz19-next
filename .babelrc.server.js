@@ -21,6 +21,7 @@ module.exports = {
                     "src": "./src"
                 }
             }
-        ]
+        ],
+        "@babel/plugin-proposal-class-properties"
     ],
 }

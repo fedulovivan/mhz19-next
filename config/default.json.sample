@@ -1,0 +1,12 @@
+{
+    "telegram": {
+        "token": "token",
+        "chatId": 123
+    },
+    "mqttBroker": {
+        "username": "username",
+        "password": "password",
+        "host": "localhost",
+        "port": 1883
+    }
+}
