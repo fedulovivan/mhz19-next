@@ -33,6 +33,7 @@ Browser-server communication is implemented as RPC layer over websockets.
 - `yarn parcel:dev` - launch parcel in development more with hmr enabled
 - `yarn server` - launch backend
 - `yarn start` - launch two commands above simultaneusly
+- `service mhz19 status` check service status
 
 ### Macmini power consumption history
 20/11 228.56
