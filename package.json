@@ -3,14 +3,13 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "parcel:dev": "parcel watch index.html --no-cache",
-    "parcel:build": "parcel build index.html --no-cache",
+    "_parcel:dev": "parcel watch index.html --no-cache",
+    "_parcel:build": "parcel build index.html --no-cache",
     "server:dev": "DEBUG=mhz19* node server-entrypoint.js",
-    "pm2": "pm2 start server-entrypoint.js",
-    "pm2:start": "yarn run pm2",
+    "pm2:start": "pm2 start server-entrypoint.js",
     "pm2:stop": "pm2 stop server-entrypoint.js",
     "pm2:list": "pm2 list server-entrypoint.js",
-    "start": "concurrently --raw \"yarn parcel:dev\" \"yarn server:dev\""
+    "_start": "concurrently --raw \"yarn parcel:dev\" \"yarn server:dev\""
   },
   "type": "module",
   "dependencies": {
@@ -46,7 +45,6 @@
     "nano": "^9.0.1",
     "node-telegram-bot-api": "^0.50.0",
     "parcel": "^1.12.4",
-    "pm2": "^4.5.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1",
     "react-hot-loader": "^4.12.18",
