@@ -16,9 +16,13 @@ import {
   TOILET_CEILING_LIGHT,
   TV_POWER_PLUG,
 } from 'src/constants';
+import db, { insertIntoValveStatusMessages } from 'src/db2';
+import httpServer from 'src/http';
 import mqttClient from 'src/mqttClient';
 import { IMqttMessageDispatcherHandler } from 'src/typings';
 import { mqttMessageDispatcher } from 'src/utils';
+
+console.log(typeof httpServer);
 
 const log = SimpleNodeLogger.createSimpleFileLogger({
     logFilePath: 'main.log',
@@ -84,7 +88,6 @@ function stdDev(values: Array<number>): number {
     }, 0) / values.length;
     return Math.sqrt(variance);
 }
-
 
 async function asyncTimeout(timeout: number) {
     return new Promise((resolve) => {
@@ -166,6 +169,7 @@ class Alerter {
 
 const leakageSensorHandler: IMqttMessageDispatcherHandler = ({ json, deviceName }) => {
     if (json.water_leak) {
+        mqttClient.publish(`/VALVE/STATE/SET`, "on");
         if (!Alerter.state()) {
             Alerter.on();
             const msg = `Leakage detected for "${deviceName}"! Alert on.`;
@@ -192,12 +196,19 @@ const appleTvLastPowerValues = new Fifo(TV_POWER_PLUG);
 
 mqttMessageDispatcher(mqttClient, [
 
+    [
+        `/VALVE/STATE/STATUS`, (payload) => {
+            const { rawMessage, timestamp } = payload;
+            insertIntoValveStatusMessages(rawMessage, timestamp);
+        }
+    ],
+
     // switch speakers power depending on the mean power consumption of tv
     [
         TV_POWER_PLUG, ({ json }) => {
             if (json?.power) {
                 appleTvLastPowerValues.push(json.power);
-                const meanPower = mean(appleTvLastPowerValues.get());
+                const meanPower = Math.round(mean(appleTvLastPowerValues.get()));
                 if (appleTvLastPowerValues.full() && meanPower >= powerThreshold && lastStates[TV_POWER_PLUG] !== "on") {
                     log.info(`mean power for apple tv is ${meanPower}w, threshold ${powerThreshold}w, automatically switching on audioengine speakers`);
                     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[AUDIOENGINE_POWER_PLUG]}/set/state`, "on");

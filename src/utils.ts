@@ -31,7 +31,7 @@ export function mqttMessageDispatcher(
     mqttClient.on('message', async function (fullTopic, message) {
         debug('\ntopic:', fullTopic);
         const rawMessage = message.toString();
-        let json: IZigbeeDeviceMessage = null;
+        let json: IZigbeeDeviceMessage | null = null;
         const timestamp = (new Date).valueOf();
         try {
             json = JSON.parse(rawMessage);
@@ -41,7 +41,7 @@ export function mqttMessageDispatcher(
         }
         handlersMap.forEach(([topicPrefixOrDeviceName, handler]) => {
             const deviceId = DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
-            const deviceName = deviceId ? topicPrefixOrDeviceName : null;
+            const deviceName = deviceId ? topicPrefixOrDeviceName : undefined;
             if (fullTopic.startsWith(deviceId ? `zigbee2mqtt/${deviceId}` : topicPrefixOrDeviceName)) {
                 handler({
                     fullTopic,

@@ -5,11 +5,11 @@ import * as TYPE from 'src/react/actionTypes';
 
 type IMqttMessageDispatcherHandler = (params: {
     fullTopic: string;
-    json: IZigbeeDeviceMessage;
+    json: IZigbeeDeviceMessage | null;
     timestamp: number;
     rawMessage: string;
-    deviceId: string | null;
-    deviceName: string | null;
+    deviceId: string | undefined;
+    deviceName: string | undefined;
 }) => void;
 
 /**

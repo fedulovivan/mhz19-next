@@ -19,6 +19,7 @@ const mqttClient = mqtt.connect(`mqtt://${config.mqttBroker.host}:${config.mqttB
 mqttClient.on('connect', function () {
     mqttClient.subscribe([
         'zigbee2mqtt/#',
+        '/VALVE/STATE/STATUS'
         // 'homeassistant/#',
         // '/ESP/MH/DATA',
         // '/ESP/MH/CO2',

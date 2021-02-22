@@ -30,10 +30,16 @@ Browser-server communication is implemented as RPC layer over websockets.
 ![ui screen](images/screen01.png)
 
 ### Scripts
+
 - `yarn parcel:dev` - launch parcel in development more with hmr enabled
 - `yarn server` - launch backend
 - `yarn start` - launch two commands above simultaneusly
 - `service mhz19 status` check service status
+
+### TODOs
+
+- why cssinjs? https://medium.com/jobsity/css-in-javascript-with-jss-and-react-54cdd2720222
+- choosing cssinjs implementation - https://github.com/streamich/freestyler/blob/master/docs/en/generations.md
 
 ### Macmini power consumption history
 20/11 228.56
