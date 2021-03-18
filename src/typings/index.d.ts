@@ -45,6 +45,20 @@ interface IAqaraWaterSensorMessage {
     water_leak: boolean;
 }
 
+// interface IZigbee2mqttDevicesListMessage {
+//     message: Array<IZigbee2mqttBridgeConfigDevice>;
+//     type: 'devices';
+// }
+
+interface IAqaraTemperatureSensorMessage {
+    battery: number;
+    humidity: number;
+    linkquality: number;
+    pressure: number;
+    temperature: number;
+    voltage: number;
+}
+
 interface IWallSwitchMessage {
     action: 'single_left' | 'single_right' | 'double_left' | 'double_right';
     battery: number;
@@ -53,7 +67,13 @@ interface IWallSwitchMessage {
     voltage: number;
 }
 
-type IZigbeeDeviceMessage = IAqaraPowerPlugMessage & IAqaraWaterSensorMessage & IWallSwitchMessage;
+type IZigbeeDeviceMessage = (
+    IAqaraPowerPlugMessage
+    & IAqaraWaterSensorMessage
+    & IWallSwitchMessage
+    & IAqaraTemperatureSensorMessage
+    & Array<IZigbee2mqttBridgeConfigDevice>
+);
 
 interface IMhzDoc {
     timestamp: number;

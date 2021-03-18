@@ -3,13 +3,13 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "parcel:build": "parcel build index.html --no-cache",
+    "build": "parcel build index.html --no-cache",
+    "list": "pm2 list server-entrypoint.js",
+    "start": "pm2 start server-entrypoint.js",
+    "stop": "pm2 stop server-entrypoint.js",
     "parcel:dev": "parcel watch index.html --no-cache",
-    "pm2:list": "pm2 list server-entrypoint.js",
-    "pm2:start": "pm2 start server-entrypoint.js",
-    "pm2:stop": "pm2 stop server-entrypoint.js",
     "server:dev": "DEBUG=mhz19* node server-entrypoint.js",
-    "dev": "concurrently --raw \"yarn parcel:dev\" \"yarn server:dev\""
+    "all:dev": "concurrently --raw \"yarn parcel:dev\" \"yarn server:dev\""
   },
   "dependencies": {
     "@babel/core": "^7.12.9",
@@ -37,6 +37,7 @@
     "@typescript-eslint/parser": "^4.8.2",
     "app": "^0.1.0",
     "axios": "^0.21.1",
+    "common-tags": "^1.8.0",
     "config": "^3.3.3",
     "debug": "^4.1.1",
     "eslint-plugin-react-hooks": "^4.2.0",

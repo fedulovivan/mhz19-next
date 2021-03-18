@@ -1,3 +1,5 @@
+/* eslint-disable no-lonely-if */
+
 import { exec } from 'child_process';
 import config from 'config';
 import TelegramBot from 'node-telegram-bot-api';
@@ -13,15 +15,22 @@ import {
   LEAKAGE_SENSOR_KITCHEN,
   LEAKAGE_SENSOR_TOILET,
   SWITCH_1,
+  TEMPERATURE_SENSOR,
   TOILET_CEILING_LIGHT,
   TV_POWER_PLUG,
 } from 'src/constants';
-import db, { insertIntoValveStatusMessages } from 'src/db2';
+import db, {
+  insertIntoTemperatureSensorMessages,
+  insertIntoValveStatusMessages,
+  insertIntoZigbeeDevices,
+} from 'src/db2';
 import httpServer from 'src/http';
 import mqttClient from 'src/mqttClient';
 import { IMqttMessageDispatcherHandler } from 'src/typings';
+import { IAqaraTemperatureSensorMessage, IZigbee2mqttBridgeConfigDevice } from 'src/typings/index.d';
 import { mqttMessageDispatcher } from 'src/utils';
 
+// do not comment this, otherwise server wont be started :)
 console.log(typeof httpServer);
 
 const log = SimpleNodeLogger.createSimpleFileLogger({
@@ -167,8 +176,10 @@ class Alerter {
     }
 }
 
-const leakageSensorHandler: IMqttMessageDispatcherHandler = ({ json, deviceName }) => {
-    if (json.water_leak) {
+const leakageSensorHandler: IMqttMessageDispatcherHandler = ({
+    deviceId, timestamp, json, deviceName
+}) => {
+    if (json?.water_leak) {
         mqttClient.publish(`/VALVE/STATE/SET`, "on");
         if (!Alerter.state()) {
             Alerter.on();
@@ -184,11 +195,12 @@ const leakageSensorHandler: IMqttMessageDispatcherHandler = ({ json, deviceName 
             log.info(msg);
         }
     }
-}
+    // updateLastSeen(deviceId, timestamp, json?.voltage, json?.battery);
+};
 
-setInterval(() => {
-    mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[TV_POWER_PLUG]}/get/state`, "");
-}, 60000);
+// setInterval(() => {
+//     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[TV_POWER_PLUG]}/get/state`, "");
+// }, 60000);
 
 const lastStates: Record<string, "on" | "off" | null> = {};
 const powerThreshold = 10;
@@ -203,25 +215,47 @@ mqttMessageDispatcher(mqttClient, [
         }
     ],
 
-    // switch speakers power depending on the mean power consumption of tv
     [
-        TV_POWER_PLUG, ({ json }) => {
-            if (json?.power) {
-                appleTvLastPowerValues.push(json.power);
-                const meanPower = Math.round(mean(appleTvLastPowerValues.get()));
-                if (appleTvLastPowerValues.full() && meanPower >= powerThreshold && lastStates[TV_POWER_PLUG] !== "on") {
-                    log.info(`mean power for apple tv is ${meanPower}w, threshold ${powerThreshold}w, automatically switching on audioengine speakers`);
-                    mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[AUDIOENGINE_POWER_PLUG]}/set/state`, "on");
-                    lastStates[TV_POWER_PLUG] = "on";
-                }
-                if (appleTvLastPowerValues.full() && meanPower < powerThreshold && lastStates[TV_POWER_PLUG] !== "off") {
-                    log.info(`mean power for apple tv is ${meanPower}w, threshold ${powerThreshold}w, automatically switching off audioengine speakers`);
-                    mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[AUDIOENGINE_POWER_PLUG]}/set/state`, "off");
-                    lastStates[TV_POWER_PLUG] = "off";
-                }
+        TEMPERATURE_SENSOR, ({ deviceId, json, timestamp }) => {
+            insertIntoTemperatureSensorMessages(
+                deviceId,
+                timestamp,
+                <IAqaraTemperatureSensorMessage>json,
+            );
+            // updateLastSeen(deviceId, timestamp, json?.voltage, json?.battery);
+        }
+    ],
+
+    [
+        'zigbee2mqtt/bridge/config/devices', ({ json }) => {
+            const devices = <Array<IZigbee2mqttBridgeConfigDevice>>json;
+            if (devices?.length) {
+                devices.forEach(device => {
+                    insertIntoZigbeeDevices(device);
+                });
             }
         }
     ],
+
+    // switch speakers power depending on the mean power consumption of tv
+    // [
+    //     TV_POWER_PLUG, ({ json }) => {
+    //         if (json?.power) {
+    //             appleTvLastPowerValues.push(json.power);
+    //             const meanPower = Math.round(mean(appleTvLastPowerValues.get()));
+    //             if (appleTvLastPowerValues.full() && meanPower >= powerThreshold && lastStates[TV_POWER_PLUG] !== "on") {
+    //                 log.info(`mean power for apple tv is ${meanPower}w, threshold ${powerThreshold}w, automatically switching on audioengine speakers`);
+    //                 mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[AUDIOENGINE_POWER_PLUG]}/set/state`, "on");
+    //                 lastStates[TV_POWER_PLUG] = "on";
+    //             }
+    //             if (appleTvLastPowerValues.full() && meanPower < powerThreshold && lastStates[TV_POWER_PLUG] !== "off") {
+    //                 log.info(`mean power for apple tv is ${meanPower}w, threshold ${powerThreshold}w, automatically switching off audioengine speakers`);
+    //                 mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[AUDIOENGINE_POWER_PLUG]}/set/state`, "off");
+    //                 lastStates[TV_POWER_PLUG] = "off";
+    //             }
+    //         }
+    //     }
+    // ],
 
     // play alert and sent telegram message when leakage sensors turn their water_leak state
     [LEAKAGE_SENSOR_KITCHEN, leakageSensorHandler],
@@ -230,8 +264,8 @@ mqttMessageDispatcher(mqttClient, [
 
     // switch bedroom ceiling light on/off
     [
-        SWITCH_1, ({ json }) => {
-            if(json.action === 'single_left') {
+        SWITCH_1, ({ timestamp, deviceId, json }) => {
+            if (json?.action === 'single_left') {
                 log.info("switching on bedroom ceiling light");
                 bedroomCeilingLight.sendCommand({
                     id: -1,
@@ -239,7 +273,7 @@ mqttMessageDispatcher(mqttClient, [
                     params: ['on', 'smooth', 0],
                 });
             }
-            if(json.action === 'single_right') {
+            if (json?.action === 'single_right') {
                 log.info("switching off bedroom ceiling light");
                 bedroomCeilingLight.sendCommand({
                     id: -1,
@@ -247,6 +281,7 @@ mqttMessageDispatcher(mqttClient, [
                     params: ['off', 'smooth', 0],
                 });
             }
+            // updateLastSeen(deviceId, timestamp, json?.voltage, json?.battery);
         }
     ]
 ]);

@@ -26,6 +26,20 @@ router.get('/valve-state', async (req, res) => {
     });
 });
 
+router.get('/temperature-sensor-messages', async (req, res) => {
+    db.all(`SELECT * FROM temperature_sensor_messages ORDER BY timestamp`, (error, rows) => {
+        if (error) return sendError(res, error);
+        res.json(rows);
+    });
+});
+
+router.get('/zigbee-devices', async (req, res) => {
+    db.all(`SELECT * FROM zigbee_devices`, (error, rows) => {
+        if (error) return sendError(res, error);
+        res.json(rows);
+    });
+});
+
 // router.get('/mhz-docs', async (req, res) => {
 //     try {
 //         const result = await queryMhzDocs(parseInt(req.query.historyOption, 10));

@@ -4,4 +4,4 @@ node_modules
 *.log
 *.out
 config/*.json
-
+database.bin

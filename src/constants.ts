@@ -41,6 +41,7 @@ export const LEAKAGE_SENSOR_TOILET = 'leakage-sensor-toilet'; // 2
 export const SWITCH_1 = 'switch-1';
 export const TOILET_CEILING_LIGHT = 'toilet-ceiling-light';
 export const TV_POWER_PLUG = 'tv-power-plug';
+export const TEMPERATURE_SENSOR = 'temperature-sensor';
 
 export const DEVICE_NAME_TO_ID: Record<string, string> = {
     [AUDIOENGINE_POWER_PLUG]: '0x00158d000391f252',
@@ -52,4 +53,5 @@ export const DEVICE_NAME_TO_ID: Record<string, string> = {
     [SWITCH_1]: '0x00158d00042446ec',
     [TOILET_CEILING_LIGHT]: '192.168.88.217',
     [TV_POWER_PLUG]: '0x00158d0003a010a5',
-}
+    [TEMPERATURE_SENSOR]: '0x00158d00067cb0c9',
+};

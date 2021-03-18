@@ -15,8 +15,19 @@ import {
   red,
 } from '@material-ui/core/colors';
 import axios from 'axios';
+import last from 'lodash/last';
 import moment from 'moment';
 import { hot } from 'react-hot-loader';
+import {
+  HorizontalGridLines,
+  LineSeries,
+  VerticalGridLines,
+  XAxis,
+  XYPlot,
+  YAxis,
+} from 'react-vis';
+
+import { IAqaraTemperatureSensorMessage, IZigbee2mqttBridgeConfigDevice } from 'src/typings/index.d';
 
 const ValveButton: React.FC<{
     onClick: React.DOMAttributes<HTMLButtonElement>['onClick'];
@@ -66,7 +77,9 @@ const handler = (state: 'on' | 'off') => {
 const Root2: React.FC = () => {
 
     // state
-    const [lastState, setLastState] = useState<{ data: string; timestamp: number }>();
+    const [lastState, setLastState] = useState<{ data?: string; timestamp?: number }>({});
+    const [zigbeeDevices, setZigbeeDevices] = useState<Array<IZigbee2mqttBridgeConfigDevice>>([]);
+    const [temperatureSensorMessages, setTemperatureSensorMessages] = useState<Array<object/* todo */>>([]);
 
     // on/off handler
     const handleOpen = useCallback(() => handler('off'), []);
@@ -76,17 +89,24 @@ const Root2: React.FC = () => {
     useEffect(() => {
         const fetchOnce = () => {
             axios.get('/valve-state/get-last').then(({ data }) => setLastState(data?.[0]));
+            axios.get('/zigbee-devices').then(({ data }) => setZigbeeDevices(data));
+            axios.get('/temperature-sensor-messages').then(({ data }) => setTemperatureSensorMessages(data));
         };
         fetchOnce();
         const intervalId = setInterval(fetchOnce, 10000);
         return () => clearInterval(intervalId);
     }, []);
 
+    const seriesData = temperatureSensorMessages.map(row => {
+
+    });
+
     return (
         <div>
             Hello from mhz19-next!
             <br />
-            Water valves&nbsp;
+            <br />
+            Valves menipulator&nbsp;
             {
                 lastState
                     ? (
@@ -102,6 +122,7 @@ const Root2: React.FC = () => {
                     display: grid;
                     grid-template-columns: 1fr 1fr;
                     grid-column-gap: 18px;
+                    margin-top: 20px;
                 `}
             >
                 <ValveButton
@@ -119,9 +140,63 @@ const Root2: React.FC = () => {
                     OPEN valves
                 </ValveButton>
             </div>
+
+            <hr className={css`margin: 20px 0`} />
+
+            <div
+                className={css`
+                    display: grid;
+                    grid-template-columns: repeat(4, 1fr);
+                    margin-top: 20px;
+                `}
+            >
+                <div>Name</div>
+                <div>Last Seen</div>
+                <div>Battery</div>
+                <div>Device ID</div>
+                {zigbeeDevices.map(device => {
+                    return (
+                        <React.Fragment key={device.friendly_name}>
+                            <div>{device.description ?? '-'}</div>
+                            <div>{moment(device.last_seen).fromNow()}</div>
+                            <div>{device.battery}</div>
+                            <div>{device.friendly_name}</div>
+                        </React.Fragment>
+                    );
+                })}
+            </div>
+
+            <hr className={css`margin: 20px 0`} />
+
+            Temperature: {last(temperatureSensorMessages)?.temperature} C,
+            Humidity: {last(temperatureSensorMessages)?.humidity} %,
+            Pressure: {Math.round(last(temperatureSensorMessages)?.pressure / 1.33322)} mmh
+
         </div>
     );
 
 };
 
 export default hot(module)(Root2);
+
+
+/*             <XYPlot
+                width={600}
+                height={300}
+            >
+
+                <XAxis  tickFormat={v => moment(v).format('HH:mm')} />
+                <YAxis />
+
+                <VerticalGridLines />
+                <HorizontalGridLines />
+
+                <LineSeries
+                    data={
+                        temperatureSensorMessages.map(row => {
+                            return { x: row.timestamp, y: row.pressure };
+                        })
+                    }
+                />
+
+            </XYPlot> */

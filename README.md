@@ -31,6 +31,7 @@ Browser-server communication is implemented as RPC layer over websockets.
 
 ### Scripts
 
+- `pm2 list` check status and uptime of server
 - `yarn parcel:dev` - launch parcel in development more with hmr enabled
 - `yarn server` - launch backend
 - `yarn start` - launch two commands above simultaneusly
