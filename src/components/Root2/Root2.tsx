@@ -18,6 +18,7 @@ import {
 import axios from 'axios';
 import first from 'lodash/first';
 import groupBy from 'lodash/groupBy';
+import last from 'lodash/last';
 import moment from 'moment';
 import { hot } from 'react-hot-loader';
 
@@ -80,7 +81,7 @@ const handler = (state: 'on' | 'off') => {
 
 const Messages: React.FC<{ data: Array<any> }> = ({ data }) => {
     const showMessage = () => alert(JSON.stringify(data, null, '  '));
-    return <a href="#" onClick={showMessage} className={css`margin-right: 5px;`}>view</a>;
+    return <a href="#" onClick={showMessage} className={css`margin-right: 5px;`} title={`View ${data.length} message(s)`}>view</a>;
 };
 
 const Root2: React.FC = () => {
@@ -92,6 +93,8 @@ const Root2: React.FC = () => {
 
     const deviceMessagesGroupped = groupBy(deviceMessagesUnified, 'device_id');
     deviceMessagesGroupped['valves-manipulator-box'] = [valvesLastState];
+
+    const temperatureSensorMessages = deviceMessagesGroupped['0x00158d00067cb0c9'];
 
     // on/off handler
     const handleOpen = useCallback(() => handler('off'), []);
@@ -178,6 +181,10 @@ const Root2: React.FC = () => {
             </div>
 
             <hr className={css`margin: 20px 0`} />
+
+            Temperature: {last(temperatureSensorMessages)?.temperature} C,
+            Humidity: {last(temperatureSensorMessages)?.humidity} %,
+            Pressure: {Math.round(last(temperatureSensorMessages)?.pressure / 1.33322)} mmh
 
         </div>
     );
