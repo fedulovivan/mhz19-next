@@ -3,14 +3,8 @@ import { Response } from 'express';
 import { MqttClient } from 'mqtt';
 
 import { DEVICE_NAME_TO_ID } from 'src/constants';
-import { updateLastSeen } from 'src/db2';
-import {
-  IAqaraPowerPlugMessage,
-  IAqaraWaterSensorMessage,
-  IMqttMessageDispatcherHandler,
-  IWallSwitchMessage,
-  IZigbeeDeviceMessage,
-} from 'src/typings';
+import { insertIntoDeviceMessagesUnified } from 'src/db2';
+import { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
 const debug = Debug('mhz19-dispatcher');
 
@@ -34,7 +28,7 @@ export function mqttMessageDispatcher(
         debug('\ntopic:', fullTopic);
         const rawMessage = message.toString();
         let json: IZigbeeDeviceMessage | null = null;
-        const timestamp = (new Date).valueOf();
+        const timestamp = (new Date()).valueOf();
 
         try {
             json = JSON.parse(rawMessage);
@@ -43,9 +37,9 @@ export function mqttMessageDispatcher(
             debug('string:', rawMessage);
         }
 
-        if (fullTopic.startsWith('zigbee2mqtt/0x')) {
-            const [prefix, deviceId] = fullTopic.split('/');
-            updateLastSeen(deviceId, timestamp, json?.voltage, json?.battery);
+        if (fullTopic.startsWith('zigbee2mqtt/0x')/*  || fullTopic.startsWith('zigbee2mqtt/bridge') */) {
+            const [, deviceId] = fullTopic.split('/');
+            insertIntoDeviceMessagesUnified(deviceId, timestamp, json);
         }
 
         handlersMap.forEach(([topicPrefixOrDeviceName, handler]) => {

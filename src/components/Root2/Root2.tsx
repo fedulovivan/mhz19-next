@@ -1,3 +1,4 @@
+/* eslint-disable jsx-a11y/anchor-is-valid */
 /**
  * Main Component
  */
@@ -15,19 +16,22 @@ import {
   red,
 } from '@material-ui/core/colors';
 import axios from 'axios';
-import last from 'lodash/last';
+import first from 'lodash/first';
+import groupBy from 'lodash/groupBy';
 import moment from 'moment';
 import { hot } from 'react-hot-loader';
-import {
-  HorizontalGridLines,
-  LineSeries,
-  VerticalGridLines,
-  XAxis,
-  XYPlot,
-  YAxis,
-} from 'react-vis';
 
-import { IAqaraTemperatureSensorMessage, IZigbee2mqttBridgeConfigDevice } from 'src/typings/index.d';
+import { IZigbee2mqttBridgeConfigDevice, IZigbeeDeviceMessage } from 'src/typings/index.d';
+
+const LAST_SEEN_OUDATION = 45 * 60 * 1000; // 45m
+
+function toZigbeeDeviceFormat(foo) {
+    return {
+        description: `Valves manipulator box`,
+        friendly_name: `valves-manipulator-box`,
+        ...foo,
+    };
+}
 
 const ValveButton: React.FC<{
     onClick: React.DOMAttributes<HTMLButtonElement>['onClick'];
@@ -74,12 +78,20 @@ const handler = (state: 'on' | 'off') => {
     axios.put(`/valve-state/${state}`);
 };
 
+const Messages: React.FC<{ data: Array<any> }> = ({ data }) => {
+    const showMessage = () => alert(JSON.stringify(data, null, '  '));
+    return <a href="#" onClick={showMessage} className={css`margin-right: 5px;`}>view</a>;
+};
+
 const Root2: React.FC = () => {
 
     // state
-    const [lastState, setLastState] = useState<{ data?: string; timestamp?: number }>({});
+    const [valvesLastState, setValvesLastState] = useState<{ data?: string; timestamp?: number }>({});
     const [zigbeeDevices, setZigbeeDevices] = useState<Array<IZigbee2mqttBridgeConfigDevice>>([]);
-    const [temperatureSensorMessages, setTemperatureSensorMessages] = useState<Array<object/* todo */>>([]);
+    const [deviceMessagesUnified, setDeviceMessagesUnified] = useState<Array<{ deviceId: string, timestamp: number } & IZigbeeDeviceMessage>>([]);
+
+    const deviceMessagesGroupped = groupBy(deviceMessagesUnified, 'device_id');
+    deviceMessagesGroupped['valves-manipulator-box'] = [valvesLastState];
 
     // on/off handler
     const handleOpen = useCallback(() => handler('off'), []);
@@ -88,35 +100,19 @@ const Root2: React.FC = () => {
     // periodically fetch last state
     useEffect(() => {
         const fetchOnce = () => {
-            axios.get('/valve-state/get-last').then(({ data }) => setLastState(data?.[0]));
+            axios.get('/valve-state/get-last').then(({ data }) => setValvesLastState(data));
             axios.get('/zigbee-devices').then(({ data }) => setZigbeeDevices(data));
-            axios.get('/temperature-sensor-messages').then(({ data }) => setTemperatureSensorMessages(data));
+            axios.get('/device-messages-unified').then(({ data }) => setDeviceMessagesUnified(data));
         };
         fetchOnce();
         const intervalId = setInterval(fetchOnce, 10000);
         return () => clearInterval(intervalId);
     }, []);
 
-    const seriesData = temperatureSensorMessages.map(row => {
-
-    });
-
     return (
         <div>
             Hello from mhz19-next!
             <br />
-            <br />
-            Valves menipulator&nbsp;
-            {
-                lastState
-                    ? (
-                        <>
-                            last seen <b>{moment(lastState?.timestamp).fromNow()}</b>,
-                            last message: {lastState?.data}
-                        </>
-                    )
-                    : '<no info>'
-            }
             <div
                 className={css`
                     display: grid;
@@ -151,15 +147,30 @@ const Root2: React.FC = () => {
                 `}
             >
                 <div>Name</div>
-                <div>Last Seen</div>
+                <div>Last Message</div>
                 <div>Battery</div>
                 <div>Device ID</div>
-                {zigbeeDevices.map(device => {
+                {[...zigbeeDevices, toZigbeeDeviceFormat(valvesLastState)].map(device => {
+
+                    // ignore Coordinator device, it does not contain anything interesting
+                    if (device.friendly_name === 'Coordinator') return null;
+
+                    const deviceMessages = (deviceMessagesGroupped[device.friendly_name]);
+                    const lastMessage = first(deviceMessages);
+
+                    const lastSeenMoment = lastMessage ? moment(lastMessage.timestamp) : undefined;
+
+                    const fromNowMs = lastSeenMoment ? Date.now() - lastSeenMoment.valueOf() : undefined;
+
+                    const outdated = fromNowMs ? fromNowMs > LAST_SEEN_OUDATION : true;
                     return (
                         <React.Fragment key={device.friendly_name}>
                             <div>{device.description ?? '-'}</div>
-                            <div>{moment(device.last_seen).fromNow()}</div>
-                            <div>{device.battery}</div>
+                            <div className={outdated ? css`color: red` : undefined}>
+                                {deviceMessages ? <Messages data={deviceMessages} /> : null}
+                                {lastSeenMoment ? lastSeenMoment.fromNow() : 'no info'}
+                            </div>
+                            <div>{lastMessage?.battery ?? '-'}</div>
                             <div>{device.friendly_name}</div>
                         </React.Fragment>
                     );
@@ -168,35 +179,9 @@ const Root2: React.FC = () => {
 
             <hr className={css`margin: 20px 0`} />
 
-            Temperature: {last(temperatureSensorMessages)?.temperature} C,
-            Humidity: {last(temperatureSensorMessages)?.humidity} %,
-            Pressure: {Math.round(last(temperatureSensorMessages)?.pressure / 1.33322)} mmh
-
         </div>
     );
 
 };
 
 export default hot(module)(Root2);
-
-
-/*             <XYPlot
-                width={600}
-                height={300}
-            >
-
-                <XAxis  tickFormat={v => moment(v).format('HH:mm')} />
-                <YAxis />
-
-                <VerticalGridLines />
-                <HorizontalGridLines />
-
-                <LineSeries
-                    data={
-                        temperatureSensorMessages.map(row => {
-                            return { x: row.timestamp, y: row.pressure };
-                        })
-                    }
-                />
-
-            </XYPlot> */

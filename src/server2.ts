@@ -19,11 +19,7 @@ import {
   TOILET_CEILING_LIGHT,
   TV_POWER_PLUG,
 } from 'src/constants';
-import db, {
-  insertIntoTemperatureSensorMessages,
-  insertIntoValveStatusMessages,
-  insertIntoZigbeeDevices,
-} from 'src/db2';
+import db, { insertIntoValveStatusMessages, insertIntoZigbeeDevices } from 'src/db2';
 import httpServer from 'src/http';
 import mqttClient from 'src/mqttClient';
 import { IMqttMessageDispatcherHandler } from 'src/typings';
@@ -195,7 +191,6 @@ const leakageSensorHandler: IMqttMessageDispatcherHandler = ({
             log.info(msg);
         }
     }
-    // updateLastSeen(deviceId, timestamp, json?.voltage, json?.battery);
 };
 
 // setInterval(() => {
@@ -215,16 +210,15 @@ mqttMessageDispatcher(mqttClient, [
         }
     ],
 
-    [
-        TEMPERATURE_SENSOR, ({ deviceId, json, timestamp }) => {
-            insertIntoTemperatureSensorMessages(
-                deviceId,
-                timestamp,
-                <IAqaraTemperatureSensorMessage>json,
-            );
-            // updateLastSeen(deviceId, timestamp, json?.voltage, json?.battery);
-        }
-    ],
+    // [
+    //     TEMPERATURE_SENSOR, ({ deviceId, json, timestamp }) => {
+    //         insertIntoTemperatureSensorMessages(
+    //             deviceId,
+    //             timestamp,
+    //             <IAqaraTemperatureSensorMessage>json,
+    //         );
+    //     }
+    // ],
 
     [
         'zigbee2mqtt/bridge/config/devices', ({ json }) => {
@@ -281,7 +275,6 @@ mqttMessageDispatcher(mqttClient, [
                     params: ['off', 'smooth', 0],
                 });
             }
-            // updateLastSeen(deviceId, timestamp, json?.voltage, json?.battery);
         }
     ]
 ]);

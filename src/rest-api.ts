@@ -1,4 +1,5 @@
 import Express from 'express';
+import first from 'lodash/first';
 
 import { queryConfigDocs, queryMhzDocs } from 'src/db';
 import db from 'src/db2';
@@ -15,7 +16,7 @@ router.put('/valve-state/:state', async (req, res) => {
 router.get('/valve-state/get-last', async (req, res) => {
     db.all(`SELECT * FROM valve_status_messages ORDER BY timestamp DESC LIMIT 1`, (error, rows) => {
         if (error) return sendError(res, error);
-        res.json(rows);
+        res.json(first(rows));
     });
 });
 
@@ -26,17 +27,28 @@ router.get('/valve-state', async (req, res) => {
     });
 });
 
-router.get('/temperature-sensor-messages', async (req, res) => {
-    db.all(`SELECT * FROM temperature_sensor_messages ORDER BY timestamp`, (error, rows) => {
-        if (error) return sendError(res, error);
-        res.json(rows);
-    });
-});
+// router.get('/temperature-sensor-messages', async (req, res) => {
+//     res.json([]);
+//     // db.all(`SELECT * FROM temperature_sensor_messages ORDER BY timestamp DESC LIMIT 10`, (error, rows) => {
+//     //     if (error) return sendError(res, error);
+//     //     res.json(rows);
+//     // });
+// });
 
 router.get('/zigbee-devices', async (req, res) => {
     db.all(`SELECT * FROM zigbee_devices`, (error, rows) => {
         if (error) return sendError(res, error);
         res.json(rows);
+    });
+});
+
+router.get('/device-messages-unified', async (req, res) => {
+    db.all(`SELECT * FROM device_messages_unified ORDER BY timestamp DESC`, (error, rows) => {
+        if (error) return sendError(res, error);
+        res.json(rows.map(({ json, ...rest }) => ({
+            ...rest,
+            ...JSON.parse(json),
+        })));
     });
 });
 

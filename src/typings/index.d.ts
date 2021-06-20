@@ -34,6 +34,8 @@ interface IZigbee2mqttBridgeConfigDevice {
     modelID: string;
     powerSource: string;
     vendor: string;
+    battery?: number;
+    last_seen?: string;
 }
 
 interface IAqaraWaterSensorMessage {
@@ -87,7 +89,7 @@ interface IHassDoc {
 interface IZigbeeDeviceRegistrationInfo {
     ieeeAddr: string;
     type: string;
-    networkAddress: number,
+    networkAddress: number;
     friendly_name: string;
     softwareBuildID: string;
     dateCode: string;
