@@ -1,16 +1,17 @@
+import Debug from 'debug';
 // eslint-disable-next-line no-unused-vars
 import http from 'http';
 import SocketIo from 'socket.io';
-import Debug from 'debug';
+
+import { APP_HOST, APP_PORT } from 'src/constants';
 
 import {
-    APP_HOST,
-    APP_PORT,
-} from 'src/constants';
+  EVENT_RPC_REQUEST,
+  EVENT_RPC_RESPONSE,
+  RpcBase,
+} from './index';
 
-import { RpcBase, EVENT_RPC_REQUEST, EVENT_RPC_RESPONSE } from './index';
-
-const debug = Debug('mhz-rpc-server');
+const debug = Debug('mhz19-rpc-server');
 
 export default class RpcServer extends RpcBase {
 

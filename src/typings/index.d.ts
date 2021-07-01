@@ -77,6 +77,23 @@ type IZigbeeDeviceMessage = (
     & Array<IZigbee2mqttBridgeConfigDevice>
 );
 
+interface IYeelightDevice {
+    id: string;
+    Location: string;
+    location: string;
+    model: string;
+    support: string;
+    host: string;
+    port: number;
+    power: string;
+    bright: string;
+    color_mode: string;
+    ct: string;
+    rgb: string;
+    hue: string;
+    sat: string;
+}
+
 interface IMhzDoc {
     timestamp: number;
     co2: number;

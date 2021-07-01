@@ -8,11 +8,10 @@ import { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings
 
 const debug = Debug('mhz19-dispatcher');
 
-export function sendError(res: Response, e: Error) {
-    const { message } = e;
+export function sendError(res: Response, e: Error | string) {
     res.json({
         error: true,
-        message,
+        message: e.message || e,
     });
 }
 
@@ -57,4 +56,10 @@ export function mqttMessageDispatcher(
             }
         });
     });
+}
+
+export function getOptInt(input?: string): number | undefined {
+    if (input) {
+        return parseInt(input, 10);
+    }
 }
