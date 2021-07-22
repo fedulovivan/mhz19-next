@@ -2,6 +2,7 @@ dist
 node_modules
 .cache
 *.log
-*.out
+nohup.out
 config/*.json
 database.bin
+.parcel-cache

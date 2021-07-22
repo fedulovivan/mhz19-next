@@ -1,44 +1,36 @@
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-lonely-if */
 
+import 'src/http';
+
 import { exec } from 'child_process';
 import config from 'config';
 import Debug from 'debug';
-// import miio from 'miio';
 import TelegramBot from 'node-telegram-bot-api';
-import { Device, Discovery } from 'yeelight-platform';
 
 import {
-  BATHROOM_CEILING_LIGHT,
-  BEDROOM_CEILING_LIGHT,
-  DEVICE_CUSTOM_ATTRIBUTE_NAME,
-  DEVICE_NAME_TO_ID,
-  LEAKAGE_SENSOR_BATHROOM,
-  LEAKAGE_SENSOR_KITCHEN,
-  LEAKAGE_SENSOR_TOILET,
-  SWITCH_1,
-  TOILET_CEILING_LIGHT,
-  TV_POWER_PLUG,
+    BEDROOM_CEILING_LIGHT,
+    DEVICE_CUSTOM_ATTRIBUTE_NAME,
+    DEVICE_NAME_TO_ID,
+    LEAKAGE_SENSOR_BATHROOM,
+    LEAKAGE_SENSOR_KITCHEN,
+    LEAKAGE_SENSOR_TOILET,
+    SWITCH_1,
 } from 'src/constants';
 import {
-  fetchYeelightDevices,
-  insertIntoDeviceCustomAttributes,
-  insertIntoValveStatusMessages,
-  insertIntoYeelightDevices,
-  insertIntoZigbeeDevices,
-} from 'src/db2';
-import httpServer from 'src/http';
+    insertIntoDeviceCustomAttributes,
+    insertIntoValveStatusMessages,
+    insertIntoYeelightDevices,
+    insertIntoZigbeeDevices,
+} from 'src/db';
 import log from 'src/logger';
 import mqttClient from 'src/mqttClient';
 import { IMqttMessageDispatcherHandler } from 'src/typings';
 import { IYeelightDevice, IZigbee2mqttBridgeConfigDevice } from 'src/typings/index.d';
-import { mqttMessageDispatcher } from 'src/utils';
+import { asyncTimeout, mqttMessageDispatcher } from 'src/utils';
 import yeelightDevices from 'src/yeelightDevices';
 
-const debug = Debug('mhz19-server2');
-
-// do not comment this, otherwise server wont be started :)
-console.log(typeof httpServer);
+const debug = Debug('mhz19-server');
 
 const bot = new TelegramBot(config.telegram.token);
 
@@ -64,8 +56,6 @@ deviceCustomAttributes.forEach(row => {
 // devices.on('unavailable', a => log.info('unavailable', a));
 // devices.on('error', a => log.info('error', a));
 
-
-
 // const bathCeilingLight = new Device({ host: DEVICE_NAME_TO_ID[BATHROOM_CEILING_LIGHT], port: 55443 });
 // bathCeilingLight.connect();
 // const toiletCeilingLight = new Device({ host: DEVICE_NAME_TO_ID[TOILET_CEILING_LIGHT], port: 55443 });
@@ -87,12 +77,6 @@ function stdDev(values: Array<number>): number {
         return memo;
     }, 0) / values.length;
     return Math.sqrt(variance);
-}
-
-async function asyncTimeout(timeout: number) {
-    return new Promise((resolve) => {
-        setTimeout(resolve, timeout);
-    });
 }
 
 class Fifo {

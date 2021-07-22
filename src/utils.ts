@@ -3,10 +3,19 @@ import { Response } from 'express';
 import { MqttClient } from 'mqtt';
 
 import { DEVICE_NAME_TO_ID } from 'src/constants';
-import { insertIntoDeviceMessagesUnified } from 'src/db2';
+import { insertIntoDeviceMessagesUnified } from 'src/db';
 import { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
 const debug = Debug('mhz19-dispatcher');
+
+/**
+ * AKA delayAsync
+ */
+export async function asyncTimeout(timeout: number) {
+    return new Promise((resolve) => {
+        setTimeout(resolve, timeout);
+    });
+}
 
 export function sendError(res: Response, e: Error | string) {
     res.json({

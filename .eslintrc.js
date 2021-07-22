@@ -94,6 +94,7 @@ module.exports = {
         "no-use-before-define": "off",
         "@typescript-eslint/no-use-before-define": ["error"],
         "no-empty-function": "off",
+        "no-undef": "off",
         "@typescript-eslint/no-empty-function": ["warn"],
         "react/jsx-curly-brace-presence": "warn",
         "react/forbid-prop-types": 1,

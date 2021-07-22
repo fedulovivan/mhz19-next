@@ -3,12 +3,8 @@
 import { oneLine } from 'common-tags';
 import Debug from 'debug';
 import sqlite3, { Statement } from 'sqlite3';
-import { promisify } from 'util';
 
-import { IZigbeeDeviceMessage } from 'src/typings';
-import { IAqaraTemperatureSensorMessage, IZigbee2mqttBridgeConfigDevice } from 'src/typings/index.d';
-
-const debug = Debug('mhz19-db2');
+const debug = Debug('mhz19-db');
 
 const db = new sqlite3.Database('database.bin');
 
@@ -18,26 +14,11 @@ let insert_into_device_messages_unified: Statement;
 let insert_into_yeelight_devices: Statement;
 let insert_into_yeelight_device_messages: Statement;
 let insert_into_device_custom_attributes: Statement;
+let delete_from_yeelight_devices: Statement;
 
 db.serialize(function() {
 
-    // create all tables
-    // db.run('DROP TABLE device_custom_attributes');
-    db.run(`
-        CREATE TABLE IF NOT EXISTS device_custom_attributes (
-            device_id STRING,
-            attribute_type STRING,
-            value STRING,
-            UNIQUE(device_id, attribute_type)
-        )
-    `);
-    db.run(`
-        CREATE TABLE IF NOT EXISTS yeelight_device_messages (
-            device_id STRING,
-            timestamp INTEGER,
-            json STRING
-        )
-    `);
+    db.run(`PRAGMA foreign_keys = ON`);
     db.run(`
         CREATE TABLE IF NOT EXISTS yeelight_devices (
             timestamp INTEGER,
@@ -49,6 +30,14 @@ db.serialize(function() {
             port INTEGER,
             power STRING,
             json STRING
+        )
+    `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS yeelight_device_messages (
+            device_id STRING,
+            timestamp INTEGER,
+            json STRING,
+            FOREIGN KEY(device_id) REFERENCES yeelight_devices(id) ON DELETE CASCADE
         )
     `);
     db.run(`
@@ -73,12 +62,19 @@ db.serialize(function() {
             timestamp INTEGER
         )
     `);
-
     db.run(`
         CREATE TABLE IF NOT EXISTS device_messages_unified (
             device_id STRING,
             timestamp INTEGER,
             json STRING
+        )
+    `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS device_custom_attributes (
+            device_id STRING,
+            attribute_type STRING,
+            value STRING,
+            UNIQUE(device_id, attribute_type)
         )
     `);
 
@@ -87,7 +83,7 @@ db.serialize(function() {
     db.run(`DELETE FROM yeelight_device_messages`);
     db.run(`DELETE FROM device_custom_attributes`);
 
-    // prepare insert/update statements
+    // prepare insert/update/delete statements
     insert_into_valve_status_messages = db.prepare(`
         INSERT INTO valve_status_messages VALUES(?, ?)
     `);
@@ -106,6 +102,9 @@ db.serialize(function() {
     insert_into_device_custom_attributes = db.prepare(`
         INSERT INTO device_custom_attributes VALUES(?, ?, ?)
     `);
+    delete_from_yeelight_devices = db.prepare(`
+        DELETE FROM yeelight_devices WHERE id = ?
+    `);
 
 });
 
@@ -114,10 +113,12 @@ db.serialize(function() {
  * const query = promisify(db.all);
  */
 function select(
-    qstring: string
+    qstring: string,
+    params: any = undefined,
 ): Promise<Array<Record<string, any>>> {
+    // debug(`executing query: `, qstring, params);
     return new Promise((resolve, reject) => {
-        db.all(qstring, (error, rows) => {
+        db.all(qstring, params, (error, rows) => {
             if (error) {
                 return reject(error);
             }
@@ -126,10 +127,11 @@ function select(
     });
 }
 
-function insert(
+function runStatement(
     statement: Statement,
     ...args: Array<any>
 ): Promise<void> {
+    // debug(`executing statement: `, statement.toString(), args);
     return new Promise<void>((resolve, reject) => {
         statement.run(
             ...args,
@@ -140,12 +142,19 @@ function insert(
     });
 }
 
+export async function deleteYeelightDevice(id: string) {
+    return runStatement(
+        delete_from_yeelight_devices,
+        id
+    );
+}
+
 export async function insertIntoDeviceMessagesUnified(
     deviceId: string,
     timestamp: number,
     json: IZigbeeDeviceMessage | null
 ) {
-    return insert(
+    return runStatement(
         insert_into_device_messages_unified,
         deviceId,
         timestamp,
@@ -158,7 +167,7 @@ export async function insertIntoYeelightDeviceMessages(
     timestamp: number,
     json: any
 ) {
-    return insert(
+    return runStatement(
         insert_into_yeelight_device_messages,
         deviceId,
         timestamp,
@@ -170,7 +179,7 @@ export async function insertIntoValveStatusMessages(
     data: string,
     timestamp: number
 ) {
-    return insert(
+    return runStatement(
         insert_into_valve_status_messages,
         data,
         timestamp
@@ -182,7 +191,7 @@ export async function insertIntoDeviceCustomAttributes(
     attributeType: string,
     value: string,
 ) {
-    return insert(
+    return runStatement(
         insert_into_device_custom_attributes,
         deviceId,
         attributeType,
@@ -200,7 +209,7 @@ export async function insertIntoYeelightDevices(
     power: string,
     json: Record<string, any>,
 ): Promise<void> {
-    return insert(
+    return runStatement(
         insert_into_yeelight_devices,
         Date.now(),
         id,
@@ -226,6 +235,10 @@ export async function fetchYeelightDevices() {
     return unwrapJson(rows);
 }
 
+export async function fetchZigbeeDevices() {
+    return select(`SELECT * FROM zigbee_devices`);
+}
+
 export async function fetchDeviceCustomAttributes() {
     return select(`SELECT * FROM device_custom_attributes`);
 }
@@ -240,13 +253,29 @@ export async function fetchDeviceMessagesUnified(historyWindowSize?: number) {
     return unwrapJson(rows);
 }
 
-export async function fetchYeelightDeviceMessages(historyWindowSize?: number) {
-    const where = historyWindowSize ? `WHERE timestamp > ${Date.now() - historyWindowSize}` : "";
+export async function fetchYeelightDeviceMessages(
+    historyWindowSize?: number,
+    deviceId?: string,
+    commandId?: number,
+): Promise<Array<IYeelightDeviceMessage>> {
+    const where = [];
+    const params: any = {};
+    if (historyWindowSize) {
+        where.push(`timestamp > $timestamp`);
+        params.$timestamp = Date.now() - historyWindowSize;
+    }
+    if (deviceId) {
+        where.push(`device_id = $deviceId`);
+        params.$deviceId = deviceId;
+    }
+    if (commandId) {
+        where.push(`json_extract(json, '$.id') = ${commandId}`);
+    }
     const rows = await select(oneLine`
         SELECT * FROM yeelight_device_messages
-        ${where}
+        WHERE ${where.join(' AND ')}
         ORDER BY timestamp DESC
-    `);
+    `, params);
     return unwrapJson(rows);
 }
 
@@ -274,7 +303,7 @@ export async function fetchStats() {
 export function insertIntoZigbeeDevices(
     json: IZigbee2mqttBridgeConfigDevice
 ) {
-    return insert(
+    return runStatement(
         insert_into_zigbee_devices,
         json.description,
         json.friendly_name,

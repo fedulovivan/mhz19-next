@@ -1,15 +1,7 @@
-import React, {
-  useCallback,
-  useEffect,
-  useState,
-} from 'react';
+import React, { useCallback, useState } from 'react';
 
 import { css } from '@emotion/css';
-import {
-  green,
-  grey,
-  red,
-} from '@material-ui/core/colors';
+import { grey } from '@material-ui/core/colors';
 
 const ValveButton: React.FC<{
     onClick: React.DOMAttributes<HTMLButtonElement>['onClick'];
@@ -31,7 +23,7 @@ const ValveButton: React.FC<{
         height: 40px;
     `;
     const handleClick = useCallback((e: React.MouseEvent<HTMLButtonElement>) => {
-        onClick?.(e);
+        if (onClick) onClick(e);
         let innerTimer = autoDisableFor;
         setTimer(innerTimer);
         const intervalId = setInterval(() => {

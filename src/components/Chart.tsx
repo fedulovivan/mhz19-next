@@ -4,19 +4,20 @@
 
 import React from 'react';
 
+import { css } from '@emotion/css';
 import {
-  blue,
-  green,
-  grey,
-  red,
+    blue,
+    green,
+    grey,
+    red,
 } from '@material-ui/core/colors';
+import Paper from '@material-ui/core/Paper';
 import Highcharts from 'highcharts';
 import HighchartsReact from 'highcharts-react-official';
 import brokenAxis from 'highcharts/modules/broken-axis';
 import sortBy from 'lodash/sortBy';
 
 import { NO_DATA_GAP } from 'src/constants';
-import { IZigbeeDeviceMessage } from 'src/typings/index.d';
 
 brokenAxis(Highcharts);
 
@@ -70,9 +71,13 @@ const SERIES_COLORS = [
     blue[400],
 ];
 
+const rootStyles = css`
+    padding: 20px;
+`;
+
 const Chart: React.FC<{
-    messages: Array<{ deviceId: SVGStringList; timestamp: number } & IZigbeeDeviceMessage>;
-    title: string;
+    messages: Array<IAqaraTemperatureSensorMessage & TDeviceIdAndTimestamp>;
+    title?: string;
 }> = ({
     messages,
     title,
@@ -159,10 +164,12 @@ const Chart: React.FC<{
     };
 
     return (
-        <HighchartsReact
-            highcharts={Highcharts}
-            options={options}
-        />
+        <Paper elevation={2} className={rootStyles}>
+            <HighchartsReact
+                highcharts={Highcharts}
+                options={options}
+            />
+        </Paper>
     );
 };
 

@@ -1,7 +1,11 @@
 import Debug from 'debug';
 import { Device, Discovery } from 'yeelight-platform';
 
-import { insertIntoYeelightDeviceMessages, insertIntoYeelightDevices } from 'src/db2';
+import {
+    deleteYeelightDevice,
+    insertIntoYeelightDeviceMessages,
+    insertIntoYeelightDevices,
+} from 'src/db';
 import log from 'src/logger';
 import { IYeelightDevice } from 'src/typings/index.d';
 
@@ -33,17 +37,29 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
         return;
     }
 
-    const deviceClient: Device = new Device({ host, port });
+    const deviceClient: Device = new Device({
+        host,
+        port,
+        interval: 30000, // polling interval
+        tracked_attrs: ['power', 'bright'],
+        debug: true,
+    });
     yeelightDevices.set(id, deviceClient);
     deviceClient.connect();
     deviceClient.on('connected', () => {
-        log.info(`yeelight device ${id} connected`);
+        log.info(`yeelight device ${id} "connected" event received`);
     });
+    deviceClient.on('disconnected', () => {
+        // log.info(`yeelight device ${id} "disconnected" event received`);
+        deleteYeelightDevice(id);
+    });
+    // deviceClient.on('socketEnd', () => log.info('socketEnd'));
+    // deviceClient.on('socketError', (err) => log.error('socketError: ', err));
     deviceClient.on('deviceUpdate', (newProps: any) => {
         insertIntoYeelightDeviceMessages(
             id,
             Date.now(),
-            { result: newProps.result }
+            newProps
         );
     });
 

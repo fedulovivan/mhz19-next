@@ -26,7 +26,7 @@ mqttClient.on('connect', function () {
         // '/ESP/MH/CO2',
         // '/ESP/MH/DEBUG',
     ]);
-    // ask zigbee2mqtt coordinator to send list of paired devices
+    // ask zigbee2mqtt coordinator to send list of connected devices
     mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
 });
 mqttClient.on('error', (...args) => debug('error', ...args));

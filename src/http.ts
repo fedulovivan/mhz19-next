@@ -2,27 +2,28 @@
  * Http server
  */
 
+import Debug from 'debug';
 import Express from 'express';
 import http from 'http';
-import Debug from 'debug';
-import restApi from 'src/rest-api';
 
 import {
-    DIST_PATH,
-    IMAGES_PATH,
     APP_HOST,
     APP_PORT,
+    DIST_PATH,
+    IMAGES_PATH,
 } from 'src/constants';
+import restAPI from 'src/restAPI';
 
 const debug = Debug('mhz19-http');
 
-const express = Express();
-const httpServer = new http.Server(express);
+const app = Express();
+const httpServer = new http.Server(app);
 
-express.use(Express.static(DIST_PATH));
-express.use('/images', Express.static(IMAGES_PATH));
+app.use(Express.static(DIST_PATH));
+app.use('/images', Express.static(IMAGES_PATH));
+app.use(Express.json());
 
-express.use(restApi);
+app.use(restAPI);
 
 httpServer.listen(APP_PORT, () => {
     debug(`listening on ${APP_HOST}:${APP_PORT}`);
