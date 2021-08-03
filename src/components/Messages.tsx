@@ -8,6 +8,8 @@ import Paper from '@material-ui/core/Paper';
 import { DataGrid, GridColumns } from '@material-ui/data-grid';
 import useOnclickOutside from 'react-cool-onclickoutside';
 
+import { dateFormatter } from 'src/clientUtils';
+
 const rootStyles = css`
     display: grid;
     grid-template-rows: 20px auto 35px;
@@ -42,17 +44,8 @@ const columns: GridColumns = [
     }
 ];
 
-const dateFormatter = new Intl.DateTimeFormat('en-GB', {
-    year: 'numeric',
-    month: 'numeric',
-    day: 'numeric',
-    hour: 'numeric',
-    minute: 'numeric',
-    second: 'numeric',
-});
-
-function toDataGridRows(data: Array<any>): Array<any> {
-    return data.map((row, index) => {
+function toDataGridRows(sortedMessages: Array<any>): Array<any> {
+    return sortedMessages.map((row, index) => {
         const {
             device_id,
             timestamp,
@@ -68,9 +61,9 @@ function toDataGridRows(data: Array<any>): Array<any> {
 }
 
 const Messages: React.FC<{
-    data: Array<any>;
+    sortedMessages: Array<any>;
     deviceId: string;
-}> = ({ data, deviceId }) => {
+}> = ({ sortedMessages, deviceId }) => {
     const [shownModal, setShowModal] = useState(false);
     const showMessage = (e) => {
         setShowModal(true);
@@ -88,34 +81,15 @@ const Messages: React.FC<{
                     className={rootStyles}
                     ref={ref}
                 >
-                    <header>{data.length} message(s) for device {deviceId}</header>
+                    <header>{sortedMessages.length} message(s) for device {deviceId}</header>
                     <section>
                         <DataGrid
                             columns={columns}
-                            rows={toDataGridRows(data)}
+                            rows={toDataGridRows(sortedMessages)}
                             // pageSize={10}
                             autoPageSize
                         />
                     </section>
-                    {/* <section>
-                        <div>Timestamp</div>
-                        <div>JSON</div>
-                        {
-                            data.map((row, index) => {
-                                const {
-                                    device_id,
-                                    timestamp,
-                                    ...json
-                                } = row;
-                                return (
-                                    <React.Fragment key={[timestamp, index].join('-')}>
-                                        <div>{dateFormatter.format(new Date(timestamp))}</div>
-                                        <div>{JSON.stringify(json)}</div>
-                                    </React.Fragment>
-                                );
-                            })
-                        }
-                    </section> */}
                     <footer>
                         <Button
                             onClick={() => setShowModal(false)}
@@ -132,7 +106,7 @@ const Messages: React.FC<{
                 href="#"
                 onClick={showMessage}
                 className={css`margin-right: 5px;`}
-                title={`View ${data.length} message(s)`}
+                title={`View ${sortedMessages.length} message(s)`}
             >
                 view
             </Link>

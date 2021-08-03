@@ -116,7 +116,7 @@ router.put('/yeelight-device/:deviceId/:state', async (req, res) => {
         const { commandId } = req.body;
         const device = yeelightDevices.get(deviceId);
         if (!device) {
-            return sendError(res, `yeelight device ${deviceId} is not discovered`);
+            return sendError(res, `yeelight device ${deviceId} is not registered`);
         }
         log.info(`calling set_power state=${state} on device ${deviceId}`);
         device.sendCommand({

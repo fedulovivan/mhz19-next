@@ -1,6 +1,12 @@
 /**
  * TODOs:
  * (+) show spinner/loader on page first open
+ * - inject debug module into logger calls
+ * - fix yeelight devices reconnection problem
+ * - fix yeelight device messages FOREIGN key problem
+ * - fix markup for Messages popout bottom button
+ * - new widget for device messages history
+ * - LastSeenBar message=undefined figure this out
  */
 
 import React, { useEffect, useState } from 'react';

@@ -67,7 +67,7 @@ const YeelightDeviceRow: React.FC<{
             <TableCell>{deviceCustomAttributes?.[device.id]?.name ?? '-'}</TableCell>
             <TableCell>{device.model}</TableCell>
             <TableCell>
-                {deviceMessages.length ? <Messages deviceId={device.id} data={deviceMessages} /> : null}&nbsp;
+                {deviceMessages.length ? <Messages deviceId={device.id} sortedMessages={deviceMessages} /> : null}&nbsp;
                 {lastMessage ? moment(lastMessage.timestamp).fromNow() : 'no data'}
             </TableCell>
             <TableCell>{device.host}:{device.port}</TableCell>

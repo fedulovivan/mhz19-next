@@ -6,10 +6,10 @@ import {
     insertIntoYeelightDeviceMessages,
     insertIntoYeelightDevices,
 } from 'src/db';
-import log from 'src/logger';
-import { IYeelightDevice } from 'src/typings/index.d';
+import log, { withDebug } from 'src/logger';
 
-const debug = Debug('mhz19-yeelight-devices');
+const debug = withDebug('mhz19-yeelight-devices');
+// const debug = Debug('mhz19-yeelight-devices');
 
 const yeelightDevices: Map<string, Device> = new Map();
 
@@ -22,7 +22,7 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
     debug('yeelight-platform didDiscoverDevice:', device);
 
     const {
-        id,
+        id: deviceId,
         Location: location,
         model,
         support,
@@ -32,8 +32,8 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
         ...json
     } = device;
 
-    if (yeelightDevices.has(id)) {
-        log.warn(`yeelight device ${id} already registered`);
+    if (yeelightDevices.has(deviceId)) {
+        log.warn(`"didDiscoverDevice" event received for device ${deviceId} which is already registered`);
         return;
     }
 
@@ -44,29 +44,52 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
         tracked_attrs: ['power', 'bright'],
         debug: true,
     });
-    yeelightDevices.set(id, deviceClient);
+    yeelightDevices.set(deviceId, deviceClient);
     deviceClient.connect();
     deviceClient.on('connected', () => {
-        log.info(`yeelight device ${id} "connected" event received`);
+        debug(`yeelight device ${deviceId} "connected" event received`);
     });
-    deviceClient.on('disconnected', () => {
-        // log.info(`yeelight device ${id} "disconnected" event received`);
-        deleteYeelightDevice(id);
+    deviceClient.on('disconnected', async () => {
+        if (!yeelightDevices.has(deviceId)) {
+            log.warn(`"disconnected" event received for device ${deviceId} which is already deleted`);
+
+            // hack to fix internal yeelight-platform bug with endless reconnects
+            // clearTimeout(deviceClient.retry_timer);
+            // deviceClient.retry_timer = null;
+            // deviceClient.socket.destroy();
+            // deviceClient.socket = null;
+
+            return;
+        }
+        try {
+            await deleteYeelightDevice(deviceId);
+            yeelightDevices.delete(deviceId);
+            debug(`yeelight device ${deviceId} is deleted`);
+        } catch (e) {
+            log.error(`error in deleteYeelightDevice: `, e);
+        }
     });
     // deviceClient.on('socketEnd', () => log.info('socketEnd'));
     // deviceClient.on('socketError', (err) => log.error('socketError: ', err));
-    deviceClient.on('deviceUpdate', (newProps: any) => {
-        insertIntoYeelightDeviceMessages(
-            id,
-            Date.now(),
-            newProps
-        );
+    deviceClient.on('deviceUpdate', async (newProps: any) => {
+        if (!yeelightDevices.has(deviceId)) {
+            log.warn(`"deviceUpdate" event received for device ${deviceId} which is already deleted`);
+            return;
+        }
+        try {
+            await insertIntoYeelightDeviceMessages(
+                deviceId,
+                Date.now(),
+                newProps
+            );
+        } catch (e) {
+            log.error(`error in insertIntoYeelightDeviceMessages: `, e);
+        }
     });
 
     try {
-
         await insertIntoYeelightDevices(
-            id,
+            deviceId,
             location,
             model,
             support,
@@ -75,7 +98,7 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
             power,
             json,
         );
-
+        debug(`yeelight device ${deviceId} is registered`);
     } catch (e) {
         log.error(`error in insertIntoYeelightDevices: `, e);
     }

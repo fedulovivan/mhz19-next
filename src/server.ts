@@ -25,8 +25,6 @@ import {
 } from 'src/db';
 import log from 'src/logger';
 import mqttClient from 'src/mqttClient';
-import { IMqttMessageDispatcherHandler } from 'src/typings';
-import { IYeelightDevice, IZigbee2mqttBridgeConfigDevice } from 'src/typings/index.d';
 import { asyncTimeout, mqttMessageDispatcher } from 'src/utils';
 import yeelightDevices from 'src/yeelightDevices';
 
@@ -207,7 +205,7 @@ mqttMessageDispatcher(mqttClient, [
             if (!bedroomCeilingLight) {
                 bot.sendMessage(
                     config.telegram.chatId,
-                    `yeelightDevice ${bedroomCeilingLightDeviceId} (${BEDROOM_CEILING_LIGHT}) is not discovered`
+                    `yeelightDevice ${bedroomCeilingLightDeviceId} (${BEDROOM_CEILING_LIGHT}) is not registered`
                 );
                 return;
             }
