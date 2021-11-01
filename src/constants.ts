@@ -3,7 +3,6 @@ import path from 'path';
 export const ROOT = path.join(__dirname, '..');
 
 export const APP_HOST = 'localhost';
-export const APP_PORT = 8888;
 
 export const DIST_PATH = `${ROOT}/dist`;
 export const IMAGES_PATH = `${ROOT}/images`;
@@ -39,9 +38,11 @@ export const LEAKAGE_SENSOR_BATHROOM = 'leakage-sensor-bathroom'; // 1
 export const LEAKAGE_SENSOR_KITCHEN = 'leakage-sensor-kitchen'; // 3
 export const LEAKAGE_SENSOR_TOILET = 'leakage-sensor-toilet'; // 2
 export const SWITCH_1 = 'switch-1';
+export const SWITCH_2 = 'switch-2';
 export const TOILET_CEILING_LIGHT = 'toilet-ceiling-light';
 export const TV_POWER_PLUG = 'tv-power-plug';
 export const TEMPERATURE_SENSOR = 'temperature-sensor';
+export const KITCHEN_UNDERCABINET_LIGHT = 'kitchen-undercabinet-light';
 
 export const DEVICE_NAME_TO_ID: Record<string, string> = {
     [AUDIOENGINE_POWER_PLUG]: '0x00158d000391f252',
@@ -49,12 +50,11 @@ export const DEVICE_NAME_TO_ID: Record<string, string> = {
     [LEAKAGE_SENSOR_KITCHEN]: '0x00158d0004035e3e',
     [LEAKAGE_SENSOR_TOILET]: '0x00158d00040356af',
     [SWITCH_1]: '0x00158d00042446ec',
+    [SWITCH_2]: '0x00158d0004244bda',
     [TV_POWER_PLUG]: '0x00158d0003a010a5',
     [TEMPERATURE_SENSOR]: '0x00158d00067cb0c9',
     [BEDROOM_CEILING_LIGHT]: '0x00000000064c5293',
-    // [BEDROOM_CEILING_LIGHT]: '192.168.88.204',
-    // [BATHROOM_CEILING_LIGHT]: '192.168.88.203',
-    // [TOILET_CEILING_LIGHT]: '192.168.88.217',
+    [KITCHEN_UNDERCABINET_LIGHT]: '192.168.88.178:8081',
 };
 
 export const LAST_SEEN_OUTDATION = 90 * 60 * 1000; // 1h 30m

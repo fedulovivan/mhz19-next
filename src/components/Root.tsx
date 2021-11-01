@@ -26,7 +26,12 @@ import ValveButtons from 'src/components/ValveButtons';
 import WindowSizePicker from 'src/components/WindowSizePicker';
 import YeelightDevices from 'src/components/YeelightDevices';
 import ZigbeeDevices from 'src/components/ZigbeeDevices';
-import { HISTORY_WINDOW_7DAYS } from 'src/constants';
+import {
+    DEVICE_NAME_TO_ID,
+    HISTORY_WINDOW_7DAYS,
+    NO_DATA_GAP,
+    TEMPERATURE_SENSOR,
+} from 'src/constants';
 import { useBooleanState } from 'src/hooks';
 
 require('normalize.css');
@@ -60,7 +65,7 @@ const Root: React.FC = () => {
     deviceMessagesGroupped['valves-manipulator-box'] = [valvesLastState];
 
     const temperatureSensorMessages = (
-        deviceMessagesGroupped['0x00158d00067cb0c9'] as Array<IAqaraTemperatureSensorMessage & TDeviceIdAndTimestamp>
+        deviceMessagesGroupped[DEVICE_NAME_TO_ID[TEMPERATURE_SENSOR]] as Array<IAqaraTemperatureSensorMessage & TDeviceIdAndTimestamp>
     );
     const lastTemperatureMessage = first(temperatureSensorMessages);
 
@@ -75,14 +80,22 @@ const Root: React.FC = () => {
         const doFetchTick = async () => {
             try {
                 setFetchInProgress();
-                const responses = await fetchAll(historyWindowSize);
-                setDeviceMessagesUnified(responses[0].data.concat(responses[1].data));
-                setValvesLastState(responses[2].data);
-                setZigbeeDevices(responses[3].data);
-                setStats(responses[4].data);
-                setYeelightDevices(responses[5].data);
-                setYeelightDeviceMessages(responses[6].data);
-                setDeviceCustomAttributes(responses[7].data);
+                const {
+                    deviceMessagesUnified,
+                    valvesLastState,
+                    zigbeeDevices,
+                    stats,
+                    yeelightDevices,
+                    yeelightDeviceMessages,
+                    deviceCustomAttributes,
+                } = await fetchAll(historyWindowSize);
+                setDeviceMessagesUnified(deviceMessagesUnified.data);
+                setValvesLastState(valvesLastState.data);
+                setZigbeeDevices(zigbeeDevices.data);
+                setStats(stats.data);
+                setYeelightDevices(yeelightDevices.data);
+                setYeelightDeviceMessages(yeelightDeviceMessages.data);
+                setDeviceCustomAttributes(deviceCustomAttributes.data);
             } finally {
                 unsetFetchInProgress();
             }

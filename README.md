@@ -27,6 +27,7 @@ Server side code is written in nodejs + typescript, babel as bundler/loader.
 - [sqlite3](https://www.sqlite.org/) databese with nodejs [sqlite3 client](https://www.npmjs.com/package/sqlite3)
 - [import-sorter](https://github.com/SoominHan/import-sorter) for VS Code
 - [axios](https://github.com/axios/axios) as http client
+- [pm2](https://pm2.keymetrics.io/) as daemon process manger (backend watchdog)
 - no redux, no create-react-app
 - relative paths for imports
 <!-- - RPC layer implemented over [socket.io](https://socket.io/) -->

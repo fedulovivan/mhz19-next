@@ -7,7 +7,6 @@ import db, {
     fetchDeviceCustomAttributes,
     fetchDeviceMessagesUnified,
     fetchStats,
-    fetchTemperatureSensorMessages,
     fetchYeelightDeviceMessages,
     fetchYeelightDevices,
     fetchZigbeeDevices,
@@ -66,16 +65,16 @@ router.get('/yeelight-device-messages', async (req, res) => {
     }
 });
 
-router.get('/temperature-sensor-messages', async (req, res) => {
-    try {
-        const rows = await fetchTemperatureSensorMessages(
-            getOptInt(<string>req.query.historyWindowSize)
-        );
-        res.json(rows);
-    } catch (e) {
-        sendError(res, e);
-    }
-});
+// router.get('/temperature-sensor-messages', async (req, res) => {
+//     try {
+//         const rows = await fetchTemperatureSensorMessages(
+//             getOptInt(<string>req.query.historyWindowSize)
+//         );
+//         res.json(rows);
+//     } catch (e) {
+//         sendError(res, e);
+//     }
+// });
 
 router.get('/zigbee-devices', async (req, res) => {
     try {

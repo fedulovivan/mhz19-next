@@ -19,18 +19,47 @@ export const sendYeelightDeviceCommand = async (
 };
 
 export const fetchAll = async (historyWindowSize: number | undefined) => {
-    return Promise.all([
+    const [
+        deviceMessagesUnified,
+        valvesLastState,
+        zigbeeDevices,
+        stats,
+        yeelightDevices,
+        yeelightDeviceMessages,
+        deviceCustomAttributes,
+    ] = await Promise.all([
+
         axios.get<Array<IRootDeviceUnifiedMessage>>(oneLineTrim`
             /device-messages-unified?historyWindowSize=${historyWindowSize}
         `),
-        axios.get<Array<IRootDeviceUnifiedMessage>>(oneLineTrim`
-            /temperature-sensor-messages?historyWindowSize=${historyWindowSize}
-        `),
+
         axios.get<IValveStateMessage>('/valve-state/get-last'),
+
         axios.get<Array<IZigbee2mqttBridgeConfigDevice>>('/zigbee-devices'),
+
         axios.get<Record<string, number>>('/stats'),
+
         axios.get<Array<IYeelightDevice>>('/yeelight-devices'),
-        axios.get<Array<IYeelightDeviceMessage>>(`/yeelight-device-messages?historyWindowSize=${historyWindowSize}`),
+
+        axios.get<Array<IYeelightDeviceMessage>>(oneLineTrim`
+            /yeelight-device-messages?historyWindowSize=${historyWindowSize}
+        `),
+
         axios.get<IDeviceCustomAttributes>(`/device-custom-attributes`),
+
     ]);
+
+    return {
+        deviceMessagesUnified,
+        valvesLastState,
+        zigbeeDevices,
+        stats,
+        yeelightDevices,
+        yeelightDeviceMessages,
+        deviceCustomAttributes,
+    };
 };
+
+// axios.get<Array<IRootDeviceUnifiedMessage>>(oneLineTrim`
+//     /temperature-sensor-messages?historyWindowSize=${historyWindowSize}
+// `),

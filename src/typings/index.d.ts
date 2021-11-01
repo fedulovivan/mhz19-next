@@ -2,7 +2,7 @@
 // eslint-disable-next-line no-unused-vars
 // import { SerializedStyles } from '@emotion/core';
 
-import * as TYPE from 'src/deprecated/react/actionTypes';
+import * as TYPE from 'src/actionTypes';
 
 declare global {
 

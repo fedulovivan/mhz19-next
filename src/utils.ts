@@ -1,6 +1,8 @@
+import config from 'config';
 import Debug from 'debug';
 import { Response } from 'express';
 import { MqttClient } from 'mqtt';
+import os from 'os';
 
 import { DEVICE_NAME_TO_ID } from 'src/constants';
 import { insertIntoDeviceMessagesUnified } from 'src/db';
@@ -71,4 +73,23 @@ export function getOptInt(input?: string): number | undefined {
     if (input) {
         return parseInt(input, 10);
     }
+}
+
+export function getServerIps(): Array<string> {
+    const interfaces = os.networkInterfaces();
+    const result: Array<string> = [];
+    Object.keys(interfaces).forEach(ikey => {
+        const interfaceIps = interfaces[ikey];
+        interfaceIps?.forEach(iface => {
+            if (!iface.internal && iface.family === 'IPv4') {
+                result.push(iface.address);
+            }
+        });
+    });
+    return result;
+}
+
+export function getAppUrl(): string {
+    const ips = getServerIps();
+    return `http://${ips[0]}:${config.app.port}`;
 }

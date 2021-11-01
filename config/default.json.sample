@@ -1,4 +1,7 @@
 {
+    "app": {
+        "port": 8888
+    },
     "telegram": {
         "token": "token",
         "chatId": 123

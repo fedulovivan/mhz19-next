@@ -1,36 +1,41 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-await-in-loop */
 /* eslint-disable no-lonely-if */
 
 import 'src/http';
 
+import axios from 'axios';
 import { exec } from 'child_process';
 import config from 'config';
 import Debug from 'debug';
-import TelegramBot from 'node-telegram-bot-api';
 
+import bot, { botSendButtons } from 'src/bot';
 import {
     BEDROOM_CEILING_LIGHT,
     DEVICE_CUSTOM_ATTRIBUTE_NAME,
     DEVICE_NAME_TO_ID,
+    KITCHEN_UNDERCABINET_LIGHT,
     LEAKAGE_SENSOR_BATHROOM,
     LEAKAGE_SENSOR_KITCHEN,
     LEAKAGE_SENSOR_TOILET,
     SWITCH_1,
+    SWITCH_2,
 } from 'src/constants';
 import {
     insertIntoDeviceCustomAttributes,
     insertIntoValveStatusMessages,
-    insertIntoYeelightDevices,
     insertIntoZigbeeDevices,
 } from 'src/db';
 import log from 'src/logger';
 import mqttClient from 'src/mqttClient';
-import { asyncTimeout, mqttMessageDispatcher } from 'src/utils';
+import {
+    asyncTimeout,
+    getAppUrl,
+    mqttMessageDispatcher,
+} from 'src/utils';
 import yeelightDevices from 'src/yeelightDevices';
 
 const debug = Debug('mhz19-server');
-
-const bot = new TelegramBot(config.telegram.token);
 
 const deviceCustomAttributes: Array<[string, string, string]> = [
 
@@ -42,6 +47,9 @@ const deviceCustomAttributes: Array<[string, string, string]> = [
     ['0x00158d000405811b', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Bathroom'],
     ['0x00158d0004035e3e', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Kitchen'],
     ['0x00158d00040356af', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Toilet'],
+
+    ['0x00158d00042446ec', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Switch'],
+    ['0x00158d0004244bda', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Switch'],
 ];
 
 deviceCustomAttributes.forEach(row => {
@@ -95,7 +103,7 @@ class Fifo {
         return this.#queue;
     }
     length(): number {
-        return this.#queue.length
+        return this.#queue.length;
     }
     reset(): void {
         this.#queue = [];
@@ -114,15 +122,24 @@ function playAlertSigle() {
     });
 }
 
+function saveGraphvizNetworkmap(data: string, format: 'svg' | 'png' = 'svg') {
+    return new Promise((resolve, reject) => {
+        exec(`echo '${data}' | circo -T${format} > ./images/networkmap.${format}`, (error, stdout, stderr) => {
+            if (error) reject(error);
+            resolve([stdout, stderr]);
+        });
+    });
+}
+
 class Alerter {
     static repeats = 0;
     static maxRepeats = 15;
-    static enabled: boolean;
+    static raised: boolean;
     static playing: boolean;
     static async on() {
         Alerter.repeats = 0;
-        Alerter.enabled = true;
-        while (Alerter.enabled && !Alerter.playing && Alerter.repeats < Alerter.maxRepeats) {
+        Alerter.raised = true;
+        while (Alerter.raised && !Alerter.playing && Alerter.repeats < Alerter.maxRepeats) {
             Alerter.playing = true;
             try {
                 log.info(`Playing alert sound, repeat #${Alerter.repeats + 1}...`);
@@ -140,35 +157,51 @@ class Alerter {
             await asyncTimeout(1000);
         }
     }
-    static state() {
-        return this.enabled;
+    static isRaised() {
+        return this.raised;
     }
     static off() {
         Alerter.repeats = 0;
-        Alerter.enabled = false;
+        Alerter.raised = false;
     }
 }
 
 const leakageSensorHandler: IMqttMessageDispatcherHandler = ({
     deviceId, timestamp, json, deviceName
 }) => {
+    const appUrl = getAppUrl();
     if (json?.water_leak) {
         mqttClient.publish(`/VALVE/STATE/SET`, "on");
-        if (!Alerter.state()) {
+        if (!Alerter.isRaised()) {
             Alerter.on();
-            const msg = `Leakage detected for "${deviceName}"! Alert on.`;
+            const msg = `Leakage detected for "${deviceName}"! Alert on.\n${appUrl}`;
             bot.sendMessage(config.telegram.chatId, msg);
+            botSendButtons(config.telegram.chatId);
             log.info(msg);
         }
     } else {
-        if (Alerter.state()) {
+        if (Alerter.isRaised()) {
             Alerter.off();
-            const msg = `Leakage warning ceased for "${deviceName}". Alert off.`;
+            const msg = `Leakage warning ceased for "${deviceName}". Alert off.\n${appUrl}`;
             bot.sendMessage(config.telegram.chatId, msg);
+            botSendButtons(config.telegram.chatId);
             log.info(msg);
         }
     }
 };
+
+async function postSonoffSwitchMessage(cmd: 'on' | 'off', device: string) {
+    log.info(`switching kitchen working light "${cmd}" ...`);
+    try {
+        const result = await axios.post(
+            `http://${DEVICE_NAME_TO_ID[device]}/zeroconf/switch`,
+            { "data": { "switch": cmd } }
+        );
+        log.info('relay response ', result.data);
+    } catch (e) {
+        log.error(e);
+    }
+}
 
 mqttMessageDispatcher(mqttClient, [
 
@@ -187,6 +220,14 @@ mqttMessageDispatcher(mqttClient, [
                     insertIntoZigbeeDevices(device);
                 });
             }
+        }
+    ],
+
+    [
+        'zigbee2mqtt/bridge/networkmap/graphviz', async ({ rawMessage }) => {
+            log.info("saving network map...");
+            const result = await saveGraphvizNetworkmap(rawMessage);
+            log.info("network map saved");
         }
     ],
 
@@ -227,7 +268,20 @@ mqttMessageDispatcher(mqttClient, [
                 });
             }
         }
-    ]
+    ],
+
+    // switch kitchen working lights on/off
+    [
+        SWITCH_2, async ({ json }) => {
+            if (json?.action === 'single_left') {
+                postSonoffSwitchMessage("on", KITCHEN_UNDERCABINET_LIGHT);
+            }
+            if (json?.action === 'single_right') {
+                postSonoffSwitchMessage("off", KITCHEN_UNDERCABINET_LIGHT);
+            }
+        }
+    ],
+
 ]);
 
 // [

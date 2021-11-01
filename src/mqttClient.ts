@@ -28,6 +28,13 @@ mqttClient.on('connect', function () {
     ]);
     // ask zigbee2mqtt coordinator to send list of connected devices
     mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
+    // ask zigbee2mqtt coordinator to send networkmap to be renderred by graphviz
+    // (each hour)
+    const requestNetworkMap = () => {
+        mqttClient.publish('zigbee2mqtt/bridge/networkmap', 'graphviz');
+    };
+    requestNetworkMap();
+    setInterval(requestNetworkMap, 60 * 60 * 1000);
 });
 mqttClient.on('error', (...args) => debug('error', ...args));
 mqttClient.on('offline', (...args) => debug('offline', ...args));

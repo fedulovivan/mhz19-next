@@ -2,13 +2,13 @@
  * Http server
  */
 
+import config from 'config';
 import Debug from 'debug';
 import Express from 'express';
 import http from 'http';
 
 import {
     APP_HOST,
-    APP_PORT,
     DIST_PATH,
     IMAGES_PATH,
 } from 'src/constants';
@@ -25,9 +25,11 @@ app.use(Express.json());
 
 app.use(restAPI);
 
-httpServer.listen(APP_PORT, () => {
-    debug(`listening on ${APP_HOST}:${APP_PORT}`);
-    const browserLink = `http://${APP_HOST}:${APP_PORT}/`;
+const { port: appPort } = config.app;
+
+httpServer.listen(appPort, () => {
+    debug(`listening on ${APP_HOST}:${appPort}`);
+    const browserLink = `http://${APP_HOST}:${appPort}/`;
     debug(`open browser at ${browserLink}`);
 });
 

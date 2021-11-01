@@ -1,4 +1,7 @@
 declare module 'config' {
+    const app: {
+        port: number;
+    };
     const telegram: {
         token: string;
         chatId: number;

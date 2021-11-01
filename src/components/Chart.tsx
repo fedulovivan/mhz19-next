@@ -17,7 +17,11 @@ import HighchartsReact from 'highcharts-react-official';
 import brokenAxis from 'highcharts/modules/broken-axis';
 import sortBy from 'lodash/sortBy';
 
-import { NO_DATA_GAP } from 'src/constants';
+import {
+    DEVICE_NAME_TO_ID,
+    NO_DATA_GAP,
+    TEMPERATURE_SENSOR,
+} from 'src/constants';
 
 brokenAxis(Highcharts);
 

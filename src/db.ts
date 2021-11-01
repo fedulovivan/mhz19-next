@@ -4,6 +4,8 @@ import { oneLine } from 'common-tags';
 import Debug from 'debug';
 import sqlite3, { Statement } from 'sqlite3';
 
+import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
+
 const debug = Debug('mhz19-db');
 
 const db = new sqlite3.Database('database.bin');
@@ -230,6 +232,16 @@ export function unwrapJson(rows: Array<Record<string, any> | { json: string }>) 
     }));
 }
 
+export async function fetchLastTemperatureSensorMessage() {
+    const rows = await select(oneLine`
+        SELECT * FROM device_messages_unified
+        WHERE device_id = '${DEVICE_NAME_TO_ID[TEMPERATURE_SENSOR]}'
+        ORDER BY timestamp DESC
+        LIMIT 1
+    `);
+    return unwrapJson(rows);
+}
+
 export async function fetchYeelightDevices() {
     const rows = await select(`SELECT * FROM yeelight_devices`);
     return unwrapJson(rows);
@@ -279,21 +291,11 @@ export async function fetchYeelightDeviceMessages(
     return unwrapJson(rows);
 }
 
-export async function fetchTemperatureSensorMessages(historyWindowSize?: number) {
-    const where = historyWindowSize ? `WHERE timestamp > ${Date.now() - historyWindowSize}` : "";
-    return select(oneLine`
-        SELECT * FROM temperature_sensor_messages
-        ${where}
-        ORDER BY timestamp DESC
-    `);
-}
-
 export async function fetchStats() {
     const results = await Promise.all([
         select(`SELECT COUNT(*) AS zigbee_devices FROM zigbee_devices`),
         select(`SELECT COUNT(*) AS valve_status_messages FROM valve_status_messages`),
         select(`SELECT COUNT(*) AS device_messages_unified FROM device_messages_unified`),
-        select(`SELECT COUNT(*) AS temperature_sensor_messages FROM temperature_sensor_messages`),
         select(`SELECT COUNT(*) AS yeelight_devices FROM yeelight_devices`),
         select(`SELECT COUNT(*) AS yeelight_device_messages FROM yeelight_device_messages`),
     ]);
@@ -321,6 +323,17 @@ export function insertIntoZigbeeDevices(
 }
 
 export default db;
+
+// select(`SELECT COUNT(*) AS temperature_sensor_messages FROM temperature_sensor_messages`),
+
+// export async function fetchTemperatureSensorMessages(historyWindowSize?: number) {
+//     const where = historyWindowSize ? `WHERE timestamp > ${Date.now() - historyWindowSize}` : "";
+//     return select(oneLine`
+//         SELECT * FROM temperature_sensor_messages
+//         ${where}
+//         ORDER BY timestamp DESC
+//     `);
+// }
 
 // export function insertIntoTemperatureSensorMessages(
 //     deviceId: undefined | string,
@@ -385,3 +398,5 @@ export default db;
 //         voltage REAL
 //     )
 // `);
+
+// db.run(`DROP TABLE temperature_sensor_messages`);

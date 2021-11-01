@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "license": "MIT",
   "scripts": {
-    "build": "parcel build index.html",
+    "build": "parcel build --no-cache index.html",
     "list": "pm2 list server-entrypoint.js",
     "start": "pm2 start server-entrypoint.js",
     "stop": "pm2 stop server-entrypoint.js",
@@ -52,7 +52,7 @@
     "lodash": "^4.17.15",
     "moment": "^2.24.0",
     "mqtt": "^4.2.5",
-    "node-telegram-bot-api": "^0.50.0",
+    "node-telegram-bot-api": "^0.54.0",
     "normalize.css": "^8.0.1",
     "react": "^17.0.2",
     "react-cool-onclickoutside": "^1.6.2",
@@ -66,12 +66,14 @@
     "sqlite3": "^5.0.2",
     "typescript": "4.3",
     "uuid": "^8.3.1",
-    "yeelight-platform": "^1.0.9"
+    "yeelight-platform": "^1.0.9",
+    "parcel": "^2.0.0"
   },
   "browserslist": [
     "last 5 Chrome versions"
   ],
   "devDependencies": {
+    "@types/node-telegram-bot-api": "0.53.0",
     "babel-plugin-module-resolver": "^4.0.0",
     "concurrently": "^5.0.2",
     "eslint": "^7.14.0",
@@ -79,8 +81,7 @@
     "eslint-import-resolver-alias": "^1.1.2",
     "eslint-plugin-import": "^2.19.1",
     "eslint-plugin-jsx-a11y": "^6.2.3",
-    "eslint-plugin-react": "^7.17.0",
-    "parcel": "2.0.0-beta.3.1"
+    "eslint-plugin-react": "^7.17.0"
   },
   "alias": {
     "react-dom": "@hot-loader/react-dom",
