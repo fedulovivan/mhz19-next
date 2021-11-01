@@ -39,7 +39,7 @@ const ZigbeeDevices: React.FC<{
         return (
             <TableContainer component={Paper}>
                 <Table aria-label="simple table" size="small">
-                    <caption>Zigbee Devices</caption>
+                    <caption>Zigbee Devices, <a target="_blank" href="/images/networkmap.svg">Open Zigbee Network Map</a></caption>
                     <TableHead>
                         <TableRow>
                             <TableCell>Name</TableCell>

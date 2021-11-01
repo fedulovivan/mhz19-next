@@ -6,3 +6,4 @@ nohup.out
 config/*.json
 database.bin
 .parcel-cache
+images/networkmap.svg

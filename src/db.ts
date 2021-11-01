@@ -248,7 +248,7 @@ export async function fetchYeelightDevices() {
 }
 
 export async function fetchZigbeeDevices() {
-    return select(`SELECT * FROM zigbee_devices`);
+    return select(`SELECT * FROM zigbee_devices ORDER BY model, friendly_name`);
 }
 
 export async function fetchDeviceCustomAttributes() {
