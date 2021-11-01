@@ -35,7 +35,7 @@ Server side code is written in nodejs + typescript, babel as bundler/loader.
 
 ### UI screen
 
-![ui screen](images/screen03.png)
+![ui screen](images/screen04.png)
 
 ### Scripts
 
