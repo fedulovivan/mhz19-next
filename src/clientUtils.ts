@@ -30,3 +30,12 @@ export const timeFormatter = new Intl.DateTimeFormat('en-GB', {
     minute: 'numeric',
     second: 'numeric',
 });
+
+export const durationFormatter = (rawMillis: number) => {
+    const millis = Math.abs(rawMillis);
+    const MS_IN_HOUR = 1000 * 3600;
+    const MS_IN_MINUTE = 1000 * 60;
+    const hours = Math.floor(millis / MS_IN_HOUR);
+    const minutes = Math.floor((millis - hours * MS_IN_HOUR) / MS_IN_MINUTE);
+    return `${hours}h ${minutes}m`;
+};

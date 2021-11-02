@@ -5,7 +5,11 @@ import { green, red } from '@material-ui/core/colors';
 import { oneLine } from 'common-tags';
 import round from 'lodash/round';
 
-import { dateFormatter, timeFormatter } from 'src/clientUtils';
+import {
+    dateFormatter,
+    durationFormatter,
+    timeFormatter,
+} from 'src/clientUtils';
 import { NO_DATA_GAP } from 'src/constants';
 
 const toPercent = (tick: number, min: number, max: number) => {
@@ -45,28 +49,29 @@ const LastSeenBar: React.FC<{
 
     const ticks: Array<[number, number]> = [];
 
-    let lastTimestamp: number = /* Date.now() */0;
-    let max: number = 0;
-    let min: number = 0;
+    const NOW = Date.now();
+    const MINUS_24_HOURS = NOW - /* 3 * */ 24 * 3600 * 1000;
+    const min: number = MINUS_24_HOURS;
+    const max: number = NOW;
 
-    const MINUS_24_HOURS = Date.now() - 3600 * 24 * 1000;
-
+    // render bar only for the last 24 hours
     const filteredMessages = sortedMessages
         .filter(message => message && message.timestamp > MINUS_24_HOURS);
 
+    let prevMessage: IRootDeviceUnifiedMessage;
+
     filteredMessages.forEach((message, index) => {
-
-        const { timestamp } = message;
-
-        if (!max) max = timestamp;
-        if (index === filteredMessages.length - 1) min = timestamp;
-
-        if (lastTimestamp - timestamp > NO_DATA_GAP) {
-            ticks.push([timestamp, lastTimestamp]);
+        const diff = prevMessage ? prevMessage.timestamp - message.timestamp : undefined;
+        if (diff && diff > NO_DATA_GAP) {
+            ticks.push([message.timestamp, prevMessage.timestamp]);
         }
-
-        lastTimestamp = timestamp;
+        prevMessage = message;
     });
+
+    const mostRecentMessage = filteredMessages[0];
+    if (mostRecentMessage?.timestamp + NO_DATA_GAP < NOW) {
+        ticks.push([mostRecentMessage.timestamp, NOW]);
+    }
 
     return (
         <div className={rootStyles}>
@@ -78,8 +83,8 @@ const LastSeenBar: React.FC<{
                 return <div
                     title={oneLine`
                         Offline period:
-                        ${round((to - from) / 1000 / 3600, 2)} hours.
-                        From ${timeFormatter.format(from)} till ${timeFormatter.format(to)}
+                        ${durationFormatter(to - from)}
+                        (from ${timeFormatter.format(from)} till ${to === NOW ? 'now' : timeFormatter.format(to)})
                     `}
                     key={from}
                     className="tick"
