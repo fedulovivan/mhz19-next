@@ -4,13 +4,15 @@ import React, {
     useState,
 } from 'react';
 
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import {
     green,
     grey,
     red,
 } from '@material-ui/core/colors';
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Paper from '@material-ui/core/Paper';
+import Switch from '@material-ui/core/Switch';
 import Table from '@material-ui/core/Table';
 import TableBody from '@material-ui/core/TableBody';
 import TableCell from '@material-ui/core/TableCell';
@@ -26,20 +28,41 @@ import {
 import ZigbeeDeviceRow from 'src/components/ZigbeeDeviceRow';
 
 const ZigbeeDevices: React.FC<{
-    zigbeeDevices: any;
-    valvesLastState: IValveStateMessage;
+    zigbeeDevices: Array<IZigbee2mqttBridgeConfigDevice>;
     deviceMessagesGroupped: any;
     deviceCustomAttributes: any;
+    className?: string;
 }> = ({
     zigbeeDevices,
-    valvesLastState,
     deviceMessagesGroupped,
     deviceCustomAttributes,
+    className
 }) => {
+
+        const [showHidden, setShowHidden] = useState(false);
+
         return (
-            <TableContainer component={Paper}>
+            <TableContainer
+                component={Paper}
+                className={cx(className, /* rootStyles */)}
+            >
                 <Table aria-label="simple table" size="small">
-                    <caption>Zigbee Devices, <a target="_blank" href="/images/networkmap.svg">Open Zigbee Network Map</a></caption>
+                    <caption>
+                        Zigbee Devices,
+                        <a target="_blank" href="/images/networkmap.svg">Open Zigbee Network Map</a>
+                        <FormControlLabel
+                            control={
+                                <Switch
+                                    checked={showHidden}
+                                    color="primary"
+                                    onChange={(e, checked) => {
+                                        setShowHidden(checked);
+                                    }}
+                                />
+                            }
+                            label="Show hidden"
+                        />
+                    </caption>
                     <TableHead>
                         <TableRow>
                             <TableCell>Name</TableCell>
@@ -50,13 +73,14 @@ const ZigbeeDevices: React.FC<{
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {[...zigbeeDevices, toZigbeeDeviceFormat(valvesLastState)].map(device => {
+                        {zigbeeDevices.map(device => {
                             return (
                                 <ZigbeeDeviceRow
                                     key={device.friendly_name}
                                     device={device}
                                     deviceMessagesGroupped={deviceMessagesGroupped}
-                                    deviceCustomAttributes={deviceCustomAttributes}
+                                    deviceCustomAttributes={deviceCustomAttributes[device.friendly_name]}
+                                    showHidden={showHidden}
                                 />
                             );
                         })}
@@ -67,3 +91,5 @@ const ZigbeeDevices: React.FC<{
     };
 
 export default ZigbeeDevices;
+
+/* [...zigbeeDevices, toZigbeeDeviceFormat(valvesLastState)] */

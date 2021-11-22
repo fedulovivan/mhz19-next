@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 
+import FormControlLabel from '@material-ui/core/FormControlLabel';
 import Paper from '@material-ui/core/Paper';
 // import { css } from '@emotion/css';
 import Switch from '@material-ui/core/Switch';
@@ -30,8 +31,12 @@ const YeelightDeviceRow: React.FC<{
     onDeviceFeedback,
 }) => {
 
-    const [lastSendState, setLastSendState] = useState<IYeelightDeviceState | null>(null);
+    const [lastSendState, setLastSendState] = useState<TOnOff | null>(null);
     const [lastCommandId, setLastCommandId] = useState<number | null>(null);
+
+    if (deviceCustomAttributes?.isHidden === 'true') {
+        return null;
+    }
 
     const lastMessage = deviceMessages?.[0];
     const state = lastMessage?.result?.[0];
@@ -39,8 +44,8 @@ const YeelightDeviceRow: React.FC<{
     const lastCommandIsOk = lastCommandFeedbackMessage?.result?.[0] === 'ok';
     const isOn = state === 'on' || (lastCommandIsOk && lastSendState === 'on');
 
-    const handleSwitchChange = (e) => {
-        const newState = e.target.checked ? 'on' : 'off';
+    const handleSwitchChange = (e: React.ChangeEvent<HTMLInputElement>, checked: boolean) => {
+        const newState = checked ? 'on' : 'off';
         const commandId = sentCommandIdSequence++;
         setLastSendState(newState);
         setLastCommandId(commandId);
@@ -52,19 +57,9 @@ const YeelightDeviceRow: React.FC<{
         );
     };
 
-    // <TableRow key={row.name}>
-    //     <TableCell component="th" scope="row">
-    //         {row.name}
-    //     </TableCell>
-    //     <TableCell align="right">{row.calories}</TableCell>
-    //     <TableCell align="right">{row.fat}</TableCell>
-    //     <TableCell align="right">{row.carbs}</TableCell>
-    //     <TableCell align="right">{row.protein}</TableCell>
-    // </TableRow>
-
     return (
         <TableRow hover>
-            <TableCell>{deviceCustomAttributes?.[device.id]?.name ?? '-'}</TableCell>
+            <TableCell>{deviceCustomAttributes?.name ?? '-'}</TableCell>
             <TableCell>{device.model}</TableCell>
             <TableCell>
                 {deviceMessages.length ? <Messages deviceId={device.id} sortedMessages={deviceMessages} /> : null}&nbsp;
@@ -82,6 +77,8 @@ const YeelightDeviceRow: React.FC<{
         </TableRow>
     );
 };
+
+YeelightDeviceRow.displayName = 'YeelightDeviceRow';
 
 export default YeelightDeviceRow;
 

@@ -4,7 +4,7 @@
 
 import React from 'react';
 
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import {
     blue,
     green,
@@ -82,9 +82,11 @@ const rootStyles = css`
 const Chart: React.FC<{
     messages: Array<IAqaraTemperatureSensorMessage & TDeviceIdAndTimestamp>;
     title?: string;
+    className?: string;
 }> = ({
     messages,
     title,
+    className,
 }) => {
 
     let temperatureSeries: Highcharts.SeriesLineOptions["data"] = [];
@@ -168,7 +170,7 @@ const Chart: React.FC<{
     };
 
     return (
-        <Paper elevation={2} className={rootStyles}>
+        <Paper elevation={2} className={cx(className, rootStyles)}>
             <HighchartsReact
                 highcharts={Highcharts}
                 options={options}
@@ -176,5 +178,7 @@ const Chart: React.FC<{
         </Paper>
     );
 };
+
+Chart.displayName = 'Chart';
 
 export default Chart;

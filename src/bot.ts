@@ -1,13 +1,7 @@
 import config from 'config';
 import TelegramBot from 'node-telegram-bot-api';
 
-import {
-    fetchLastTemperatureSensorMessage,
-    insertIntoDeviceCustomAttributes,
-    insertIntoValveStatusMessages,
-    insertIntoYeelightDevices,
-    insertIntoZigbeeDevices,
-} from 'src/db';
+import { fetchLastTemperatureSensorMessage } from 'src/db';
 import mqttClient from 'src/mqttClient';
 
 const bot = new TelegramBot(config.telegram.token, { polling: true });

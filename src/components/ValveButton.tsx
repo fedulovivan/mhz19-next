@@ -1,21 +1,23 @@
 import React, { useCallback, useState } from 'react';
 
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { grey } from '@material-ui/core/colors';
 
 const ValveButton: React.FC<{
     onClick: React.DOMAttributes<HTMLButtonElement>['onClick'];
     color: string;
     autoDisableFor: number;
+    className?: string;
 }> = ({
     children,
     onClick,
     color,
     autoDisableFor,
+    className,
 }) => {
     const [timer, setTimer] = useState(0);
     const loading = timer > 0;
-    const styling = css`
+    const rootStyles = css`
         color: ${loading ? null : 'white'};
         background-color: ${loading ? grey[200] : color};
         border: 0;
@@ -36,7 +38,7 @@ const ValveButton: React.FC<{
         <button
             type="button"
             disabled={loading}
-            className={styling}
+            className={cx(rootStyles, className)}
             onClick={handleClick}
         >
             {loading ? `Wait ${timer / 1000} seconds` : children}

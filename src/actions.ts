@@ -7,7 +7,7 @@ export const toggleValves = (state: 'on' | 'off') => {
 
 export const sendYeelightDeviceCommand = async (
     deviceId: string,
-    state: IYeelightDeviceState,
+    state: TOnOff,
     commandId: number,
     callback: (data: Array<IYeelightDeviceMessage>) => void
 ) => {
@@ -18,22 +18,40 @@ export const sendYeelightDeviceCommand = async (
     callback(result.data);
 };
 
+export const sendSonoffDeviceSwitchCmd = async (
+    deviceId: string,
+    state: TOnOff,
+    callback: (data: { deviceId: string; switch: TOnOff; seq: number; error: number }) => void
+) => {
+    const result = await axios.put(`/sonoff-device/${deviceId}/switch`, { state });
+    callback({
+        ...result.data,
+        deviceId,
+        switch: state,
+    });
+};
+
+export const powerOff = async() => {
+    return axios.post('/poweroff');
+};
+
 export const fetchAll = async (historyWindowSize: number | undefined) => {
     const [
         deviceMessagesUnified,
-        valvesLastState,
+        valvesStateMessages,
         zigbeeDevices,
         stats,
         yeelightDevices,
         yeelightDeviceMessages,
         deviceCustomAttributes,
+        sonoffDevices,
     ] = await Promise.all([
 
         axios.get<Array<IRootDeviceUnifiedMessage>>(oneLineTrim`
             /device-messages-unified?historyWindowSize=${historyWindowSize}
         `),
 
-        axios.get<IValveStateMessage>('/valve-state/get-last'),
+        axios.get<Array<IValveStateMessage>>(`/valve-state?historyWindowSize=${historyWindowSize}`),
 
         axios.get<Array<IZigbee2mqttBridgeConfigDevice>>('/zigbee-devices'),
 
@@ -45,18 +63,21 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
             /yeelight-device-messages?historyWindowSize=${historyWindowSize}
         `),
 
-        axios.get<IDeviceCustomAttributes>(`/device-custom-attributes`),
+        axios.get<IDeviceCustomAttributesIndexed>(`/device-custom-attributes`),
+
+        axios.get<Array<ISonoffDeviceUnwrapped>>(`/sonoff-devices`),
 
     ]);
 
     return {
         deviceMessagesUnified,
-        valvesLastState,
+        valvesStateMessages,
         zigbeeDevices,
         stats,
         yeelightDevices,
         yeelightDeviceMessages,
         deviceCustomAttributes,
+        sonoffDevices,
     };
 };
 

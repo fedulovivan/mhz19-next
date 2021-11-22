@@ -7,3 +7,4 @@ config/*.json
 database.bin
 .parcel-cache
 images/networkmap.svg
+src/components/SonoffDevices.tsx

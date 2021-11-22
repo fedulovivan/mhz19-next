@@ -1,9 +1,3 @@
-// import {
-//     MQTT_USERNAME,
-//     MQTT_PASSWORD,
-//     MQTT_HOST,
-//     MQTT_PORT,
-// } from 'src/constants';
 import config from 'config';
 import Debug from 'debug';
 import mqtt from 'mqtt';
@@ -17,33 +11,40 @@ const mqttClient = mqtt.connect(`mqtt://${config.mqttBroker.host}:${config.mqttB
 });
 
 mqttClient.on('connect', function () {
+
     mqttClient.subscribe([
         'zigbee2mqtt/#',
         '/VALVE/STATE/STATUS'
-        // 'homeassistant/#',
-        // '/ESP/MH/DATA',
-        // '/ESP/MH/CO2',
-        // '/ESP/MH/CO2',
-        // '/ESP/MH/DEBUG',
     ]);
+
     // ask zigbee2mqtt coordinator to send list of connected devices
-    mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
+    const requestConnectedDevices = () => {
+        mqttClient.publish('zigbee2mqtt/bridge/config/devices/get', '');
+    };
     // ask zigbee2mqtt coordinator to send networkmap to be renderred by graphviz
-    // (each hour)
     const requestNetworkMap = () => {
         mqttClient.publish('zigbee2mqtt/bridge/networkmap', 'graphviz');
     };
+
+    requestConnectedDevices();
     requestNetworkMap();
     setInterval(requestNetworkMap, 60 * 60 * 1000);
+    setInterval(requestConnectedDevices, 60 * 60 * 1000);
+
 });
 mqttClient.on('error', (...args) => debug('error', ...args));
-mqttClient.on('offline', (...args) => debug('offline', ...args));
-mqttClient.on('disconnect', (...args) => debug('disconnect', ...args));
-mqttClient.on('close', (...args) => debug('close', ...args));
-mqttClient.on('reconnect', (...args) => debug('reconnect', ...args));
+mqttClient.on('offline', (...args: any) => debug('offline', ...args));
+mqttClient.on('disconnect', (...args: any) => debug('disconnect', ...args));
+mqttClient.on('close', (...args: any) => debug('close', ...args));
+mqttClient.on('reconnect', (...args: any) => debug('reconnect', ...args));
+
+export default mqttClient;
 
 // extra debug
 // mqttClient.on('packetsend', (...args) => debug('packetsend', ...args));
 // mqttClient.on('packetreceive', (...args) => debug('packetreceive', ...args));
-
-export default mqttClient;
+// 'homeassistant/#',
+// '/ESP/MH/DATA',
+// '/ESP/MH/CO2',
+// '/ESP/MH/CO2',
+// '/ESP/MH/DEBUG',

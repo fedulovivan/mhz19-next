@@ -1,0 +1,31 @@
+ mhz19-dispatcher json: {
+  message: { friendly_name: '0x000d6ffffefc0f29' },
+  type: 'device_connected'
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/bridge/log +1ms
+  mhz19-dispatcher json: {
+  message: 'interview_started',
+  meta: { friendly_name: '0x000d6ffffefc0f29' },
+  type: 'pairing'
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/bridge/log +6s
+  mhz19-dispatcher json: {
+  message: 'announce',
+  meta: { friendly_name: '0x000d6ffffefc0f29' },
+  type: 'device_announced'
+} +0ms
+  mhz19-dispatcher
+  mhz19-dispatcher topic: zigbee2mqtt/bridge/log +8s
+  mhz19-dispatcher json: {
+  message: 'interview_successful',
+  meta: {
+    description: 'TRADFRI LED bulb E12/E14/E17 400 lumen, dimmable warm white, chandelier opal',
+    friendly_name: '0x000d6ffffefc0f29',
+    model: 'LED1649C5',
+    supported: true,
+    vendor: 'IKEA'
+  },
+  type: 'pairing'
+} +0ms

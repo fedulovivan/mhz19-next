@@ -31,30 +31,36 @@ export const HISTORY_OPTIONS = [
 export const ZIGBEE_DEVICE_MODEL_LUMI_WATER_LEAK = 'SJCGQ11LM';
 export const ZIGBEE_DEVICE_MODEL_LUMI_POWER_PLUG = 'ZNCZ02LM';
 
-export const AUDIOENGINE_POWER_PLUG = 'audioengine-power-plug';
+// export const AUDIOENGINE_POWER_PLUG = 'audioengine-power-plug';
+// export const TV_POWER_PLUG = 'tv-power-plug';
 export const BATHROOM_CEILING_LIGHT = 'bathroom-ceiling-light';
 export const BEDROOM_CEILING_LIGHT = 'bedroom-ceiling-light';
 export const LEAKAGE_SENSOR_BATHROOM = 'leakage-sensor-bathroom'; // 1
-export const LEAKAGE_SENSOR_KITCHEN = 'leakage-sensor-kitchen'; // 3
 export const LEAKAGE_SENSOR_TOILET = 'leakage-sensor-toilet'; // 2
+export const LEAKAGE_SENSOR_KITCHEN = 'leakage-sensor-kitchen'; // 3
 export const SWITCH_1 = 'switch-1';
 export const SWITCH_2 = 'switch-2';
 export const TOILET_CEILING_LIGHT = 'toilet-ceiling-light';
-export const TV_POWER_PLUG = 'tv-power-plug';
 export const TEMPERATURE_SENSOR = 'temperature-sensor';
 export const KITCHEN_UNDERCABINET_LIGHT = 'kitchen-undercabinet-light';
+export const KITCHEN_CEILING_LIGHT = 'kitchen-ceiling-light';
+export const IKEA_ONOFF_SWITCH = 'ikea-onoff-switch';
+export const IKEA_400LM_LED_BULB = 'ikea-400lm-led-bulb';
 
 export const DEVICE_NAME_TO_ID: Record<string, string> = {
-    [AUDIOENGINE_POWER_PLUG]: '0x00158d000391f252',
+    // [AUDIOENGINE_POWER_PLUG]: '0x00158d000391f252',
+    // [TV_POWER_PLUG]: '0x00158d0003a010a5',
     [LEAKAGE_SENSOR_BATHROOM]: '0x00158d000405811b',
     [LEAKAGE_SENSOR_KITCHEN]: '0x00158d0004035e3e',
     [LEAKAGE_SENSOR_TOILET]: '0x00158d00040356af',
     [SWITCH_1]: '0x00158d00042446ec',
     [SWITCH_2]: '0x00158d0004244bda',
-    [TV_POWER_PLUG]: '0x00158d0003a010a5',
     [TEMPERATURE_SENSOR]: '0x00158d00067cb0c9',
     [BEDROOM_CEILING_LIGHT]: '0x00000000064c5293',
-    [KITCHEN_UNDERCABINET_LIGHT]: '192.168.88.178:8081',
+    [KITCHEN_UNDERCABINET_LIGHT]: '10011cec96',
+    [KITCHEN_CEILING_LIGHT]: '10011c1eeb',
+    [IKEA_ONOFF_SWITCH]: '0x50325ffffe6ca5da',
+    [IKEA_400LM_LED_BULB]: '0x000d6ffffefc0f29',
 };
 
 export const LAST_SEEN_OUTDATION = 90 * 60 * 1000; // 1h 30m
@@ -66,5 +72,6 @@ export const HISTORY_WINDOW_14DAYS = 1000 * 3600 * 24 * 14;
 export const HISTORY_WINDOW_30DAYS = 1000 * 3600 * 24 * 30;
 
 export const DEVICE_CUSTOM_ATTRIBUTE_NAME = 'name';
+export const DEVICE_CUSTOM_ATTRIBUTE_IS_HIDDEN = 'isHidden';
 
 export const NO_DATA_GAP = 1000 * 3600 * 1; // 1 hour

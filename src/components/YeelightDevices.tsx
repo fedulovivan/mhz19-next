@@ -4,7 +4,7 @@ import React, {
     useState,
 } from 'react';
 
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import {
     green,
     grey,
@@ -21,7 +21,7 @@ import TableRow from '@material-ui/core/TableRow';
 import YeelightDeviceRow from 'src/components/YeelightDeviceRow';
 
 // import {
-//     IDeviceCustomAttributes,
+//     IDeviceCustomAttributesIndexed,
 //     IYeelightDevice,
 //     IYeelightDeviceMessage,
 // } from 'src/typings/index.d';
@@ -35,13 +35,15 @@ import YeelightDeviceRow from 'src/components/YeelightDeviceRow';
 const YeelightDevices: React.FC<{
     yeelightDevices: Array<IYeelightDevice>;
     yeelightDeviceMessages: Array<IYeelightDeviceMessage>;
-    deviceCustomAttributes: IDeviceCustomAttributes;
+    deviceCustomAttributes: IDeviceCustomAttributesIndexed;
     onDeviceFeedback: (data: Array<IYeelightDeviceMessage>) => void;
+    className?: string;
 }> = ({
     yeelightDevices,
     yeelightDeviceMessages,
     deviceCustomAttributes,
     onDeviceFeedback,
+    className
 }) => {
         if (!yeelightDevices.length) {
             return (
@@ -50,7 +52,10 @@ const YeelightDevices: React.FC<{
         }
 
         return (
-            <TableContainer component={Paper}>
+            <TableContainer
+                component={Paper}
+                className={cx(className, /* rootStyles */)}
+            >
                 <Table aria-label="simple table" size="small">
                 <caption>Yeelight Devices</caption>
                     <TableHead>
@@ -73,7 +78,7 @@ const YeelightDevices: React.FC<{
                                     key={device.id}
                                     device={device}
                                     deviceMessages={deviceMessages}
-                                    deviceCustomAttributes={deviceCustomAttributes}
+                                    deviceCustomAttributes={deviceCustomAttributes[device.id]}
                                     onDeviceFeedback={onDeviceFeedback}
                                 />
                             );

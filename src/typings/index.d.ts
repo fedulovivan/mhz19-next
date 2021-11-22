@@ -6,9 +6,9 @@ import * as TYPE from 'src/actionTypes';
 
 declare global {
 
-    type IMqttMessageDispatcherHandler = (params: {
+    type IMqttMessageDispatcherHandler<T = any> = (params: {
         fullTopic: string;
-        json: IZigbeeDeviceMessage | null;
+        json: T | null;
         timestamp: number;
         rawMessage: string;
         deviceId: string | undefined;
@@ -60,11 +60,20 @@ declare global {
     }
 
     interface IWallSwitchMessage {
-        action: 'single_left' | 'single_right' | 'double_left' | 'double_right';
+        action: 'single_left' | 'single_right' | 'double_left' | 'double_right' | 'hold_left' | 'hold_right';
         battery: number;
         click: 'left' | 'right';
         linkquality: number;
         voltage: number;
+    }
+
+    interface IIkeaOnoffSwitchMessage {
+        action: 'on' | 'brightness_move_up' | 'brightness_stop' | 'brightness_move_down';
+        click: 'on' | 'off' | 'brightness_up' | 'brightness_stop' | 'brightness_down';
+        battery: number;
+        action_rate: number;
+        linkquality: number;
+        update_available: boolean;
     }
 
     type IZigbeeDeviceMessage = (
@@ -73,6 +82,7 @@ declare global {
         | IWallSwitchMessage
         | IAqaraTemperatureSensorMessage
         | Array<IZigbee2mqttBridgeConfigDevice>
+        | IIkeaOnoffSwitchMessage
     );
 
     type TDeviceIdAndTimestamp = { deviceId: string; timestamp: number };
@@ -82,9 +92,8 @@ declare global {
         & TDeviceIdAndTimestamp
     );
 
-    type IDeviceCustomAttributes = Record<string, { name?: string }>;
-
-    type IYeelightDeviceState = 'on' | 'off';
+    type IDeviceCustomAttributes = { name?: string; isHidden?: 'true' | 'false' };
+    type IDeviceCustomAttributesIndexed = Record<string, IDeviceCustomAttributes>;
 
     interface IYeelightDevice {
         id: string;
@@ -228,4 +237,33 @@ declare global {
         | GetMhzDocsSucceed
         | GetMhzDocsFailed
     );
+    export type TDeviceCustomAttribute = 'name' | 'isHidden';
+    export interface IDeviceCustomAttribute {
+        deviceId: string;
+        attributeType: TDeviceCustomAttribute;
+        value: string;
+    }
+    export type TOnOff = 'on' | 'off';
+    export interface ISonoffDeviceAttributes {
+        switch: TOnOff;
+        startup: TOnOff;
+        pulse: TOnOff;
+        sledOnline: TOnOff;
+        fwVersion: string;
+        pulseWidth: number;
+        rssi: number;
+    }
+    export interface ISonoffDevice {
+        timestamp: number;
+        id: string;
+        ip: string;
+        port: number;
+        attributes: ISonoffDeviceAttributes;
+        rawData1?: string;
+    }
+    export type ISonoffDeviceUnwrapped =
+        & ISonoffDeviceAttributes
+        & Pick<ISonoffDevice, 'ip' | 'port'>
+        & { device_id: string; timestamp: number };
+    export type TSonoffDevicesMap = Map<string, ISonoffDevice>;
 }

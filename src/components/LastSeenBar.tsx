@@ -1,6 +1,6 @@
 import React from 'react';
 
-import { css } from '@emotion/css';
+import { css, cx } from '@emotion/css';
 import { green, red } from '@material-ui/core/colors';
 import { oneLine } from 'common-tags';
 import round from 'lodash/round';
@@ -19,31 +19,46 @@ const toPercent = (tick: number, min: number, max: number) => {
 };
 
 const HEIGHT = 8;
-const POZ_COLOR = green[100];
+const POZ_COLOR = '#a8e063';
+// const POZ_COLOR = green[100];
+const TICK_COLOR = '#f64f59';
+// const TICK_COLOR = red[300];
 
 const rootStyles = css`
-    display: block;
-    width: 100%;
-    height: ${HEIGHT}px;
-    border-radius: ${HEIGHT}px;
-    background-color: ${POZ_COLOR};
-    position: relative;
-    .tick {
+    .label {
+
+    }
+    .container {
+        display: block;
+        width: 100%;
+        height: ${HEIGHT}px;
         border-radius: ${HEIGHT}px;
-        border: 1px solid ${POZ_COLOR};
-        position: absolute;
-        height: ${HEIGHT - 2}px;
-        background-color: ${red[300]};
-        transition: transform .2s;
-        &:hover {
-            transform: scale(1.2);
+        /* background-color: ${POZ_COLOR}; */
+        background: linear-gradient(to right, #56ab2f, #a8e063);
+        position: relative;
+        .tick {
+            border-radius: ${HEIGHT}px;
+            border: 1px solid ${POZ_COLOR};
+            position: absolute;
+            height: ${HEIGHT - 2}px;
+            background-color: ${TICK_COLOR};
+            transition: transform .2s;
+            &:hover {
+                transform: scale(1.2);
+            }
         }
     }
 `;
 
 const LastSeenBar: React.FC<{
-    sortedMessages: Array<IRootDeviceUnifiedMessage>;
-}> = ({ sortedMessages }) => {
+    sortedMessages: Array<{ timestamp: number }>;
+    className?: string;
+    label?: string;
+}> = ({
+    sortedMessages,
+    className,
+    label,
+}) => {
 
     if (!sortedMessages?.length) return null;
 
@@ -58,7 +73,7 @@ const LastSeenBar: React.FC<{
     const filteredMessages = sortedMessages
         .filter(message => message && message.timestamp > MINUS_24_HOURS);
 
-    let prevMessage: IRootDeviceUnifiedMessage;
+    let prevMessage: { timestamp: number };
 
     filteredMessages.forEach((message, index) => {
         const diff = prevMessage ? prevMessage.timestamp - message.timestamp : undefined;
@@ -74,26 +89,31 @@ const LastSeenBar: React.FC<{
     }
 
     return (
-        <div className={rootStyles}>
-            {ticks.map((tickTuple) => {
-                const [from, to] = tickTuple;
-                const left = toPercent(from, min, max);
-                const right = toPercent(to, min, max);
-                const width = right - left;
-                return <div
-                    title={oneLine`
-                        Offline period:
-                        ${durationFormatter(to - from)}
-                        (from ${timeFormatter.format(from)} till ${to === NOW ? 'now' : timeFormatter.format(to)})
-                    `}
-                    key={from}
-                    className="tick"
-                    style={{ left: `${left}%`, width: `${width}%` }}
-                />;
-            })}
+        <div className={cx(rootStyles, className)}>
+            {label && <div className="label">{label}</div>}
+            <div className="container">
+                {ticks.map((tickTuple) => {
+                    const [from, to] = tickTuple;
+                    const left = toPercent(from, min, max);
+                    const right = toPercent(to, min, max);
+                    const width = right - left;
+                    return <div
+                        title={oneLine`
+                            Offline period:
+                            ${durationFormatter(to - from)}
+                            (from ${timeFormatter.format(from)} till ${to === NOW ? 'now' : timeFormatter.format(to)})
+                        `}
+                        key={from}
+                        className="tick"
+                        style={{ left: `${left}%`, width: `${width}%` }}
+                    />;
+                })}
+            </div>
         </div>
     );
 
 };
+
+LastSeenBar.displayName = 'LastSeenBar';
 
 export default LastSeenBar;

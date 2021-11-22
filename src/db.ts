@@ -16,9 +16,14 @@ let insert_into_device_messages_unified: Statement;
 let insert_into_yeelight_devices: Statement;
 let insert_into_yeelight_device_messages: Statement;
 let insert_into_device_custom_attributes: Statement;
+let update_device_custom_attributes: Statement;
 let delete_from_yeelight_devices: Statement;
+let insert_into_sonoff_devices: Statement;
+let update_sonoff_devices: Statement;
 
 db.serialize(function() {
+
+    // db.run(`DROP TABLE sonoff_devices`);
 
     db.run(`PRAGMA foreign_keys = ON`);
     db.run(`
@@ -55,7 +60,8 @@ db.serialize(function() {
             vendor STRING,
             voltage REAL,
             battery REAL,
-            custom_description STRING
+            custom_description STRING,
+            UNIQUE(friendly_name, model)
         )
     `);
     db.run(`
@@ -79,18 +85,33 @@ db.serialize(function() {
             UNIQUE(device_id, attribute_type)
         )
     `);
+    db.run(`
+        CREATE TABLE IF NOT EXISTS sonoff_devices (
+            timestamp INTEGER,
+            device_id STRING,
+            ip STRING,
+            port INTEGER,
+            json STRING,
+            UNIQUE(device_id)
+        )
+    `);
 
     db.run(`DELETE FROM zigbee_devices`);
     db.run(`DELETE FROM yeelight_devices`);
     db.run(`DELETE FROM yeelight_device_messages`);
-    db.run(`DELETE FROM device_custom_attributes`);
+    db.run(`DELETE FROM sonoff_devices`);
+
+    // db.run(`DELETE FROM valve_status_messages`);
+
+    // deletion replaced with INSERT OR IGNORE
+    // db.run(`DELETE FROM device_custom_attributes`);
 
     // prepare insert/update/delete statements
     insert_into_valve_status_messages = db.prepare(`
         INSERT INTO valve_status_messages VALUES(?, ?)
     `);
     insert_into_zigbee_devices = db.prepare(`
-        INSERT INTO zigbee_devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO zigbee_devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     insert_into_device_messages_unified = db.prepare(`
         INSERT INTO device_messages_unified VALUES(?, ?, ?)
@@ -102,13 +123,34 @@ db.serialize(function() {
         INSERT INTO yeelight_devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
     insert_into_device_custom_attributes = db.prepare(`
-        INSERT INTO device_custom_attributes VALUES(?, ?, ?)
+        INSERT OR IGNORE INTO device_custom_attributes VALUES(?, ?, ?)
+    `);
+    update_device_custom_attributes = db.prepare(`
+        UPDATE device_custom_attributes SET value = ? WHERE device_id = ? AND attribute_type = ?
     `);
     delete_from_yeelight_devices = db.prepare(`
         DELETE FROM yeelight_devices WHERE id = ?
     `);
-
+    insert_into_sonoff_devices = db.prepare(`
+        INSERT OR IGNORE INTO sonoff_devices VALUES(
+            $timestamp,
+            $device_id,
+            $ip,
+            $port,
+            $json
+        )
+    `);
+    update_sonoff_devices = db.prepare(`
+        UPDATE sonoff_devices SET timestamp = $timestamp, json = $json WHERE device_id = $device_id
+    `);
 });
+
+export function unwrapJson(rows: Array<Record<string, any> | { json: string }>) {
+    return rows.map(({ json, ...rest }) => ({
+        ...rest,
+        ...JSON.parse(json),
+    }));
+}
 
 /**
  * (!) usage of promisify crashes nodejs, so using custom wrapper
@@ -188,17 +230,103 @@ export async function insertIntoValveStatusMessages(
     );
 }
 
-export async function insertIntoDeviceCustomAttributes(
-    deviceId: string,
-    attributeType: string,
-    value: string,
+export async function fetchDeviceCustomAttributes(
+    params: Partial<IDeviceCustomAttribute> = {}
 ) {
+    const where: Array<string> = [];
+    const { deviceId, attributeType } = params;
+    if (deviceId) where.push(`device_id = '${deviceId}'`);
+    if (attributeType) where.push(`attribute_type = '${attributeType}'`);
+    return select(`SELECT * FROM device_custom_attributes ${where.length ? "WHERE" : ""} ${where.join(" AND ")}`);
+}
+
+export async function insertIntoDeviceCustomAttributes({
+    deviceId,
+    attributeType,
+    value,
+}: IDeviceCustomAttribute) {
     return runStatement(
         insert_into_device_custom_attributes,
         deviceId,
         attributeType,
         value,
     );
+}
+
+export async function updateDeviceCustomAttributes({
+    deviceId,
+    attributeType,
+    value,
+}: IDeviceCustomAttribute) {
+    return runStatement(
+        update_device_custom_attributes,
+        value,
+        deviceId,
+        attributeType,
+    );
+}
+
+export async function createOrUpdateDeviceCustomAttribute({
+    deviceId,
+    attributeType,
+    value,
+}: IDeviceCustomAttribute) {
+    const existing = await fetchDeviceCustomAttributes({ deviceId, attributeType });
+    if (existing.length === 1) {
+        return updateDeviceCustomAttributes({
+            deviceId,
+            attributeType,
+            value,
+        });
+    }
+    if (existing.length === 0) {
+        return insertIntoDeviceCustomAttributes({
+            deviceId,
+            attributeType,
+            value,
+        });
+    }
+    throw new Error(
+        oneLine`
+            Unexpected conditions: ${existing.length} existing attributes
+            for ${JSON.stringify({ deviceId, attributeType })},
+            while expected zero or 1
+        `
+    );
+}
+
+export async function fetchSonoffDevices(params: Partial<Pick<ISonoffDevice, 'id'>> = {}) {
+    const where: Array<string> = [];
+    const { id } = params;
+    if (id) where.push(`device_id = '${id}'`);
+    const rows = await select(`SELECT * FROM sonoff_devices ${where.length ? "WHERE" : ""} ${where.join(" AND ")}`);
+    return unwrapJson(rows);
+}
+
+export async function createOrUpdateSonoffDevice(device: ISonoffDevice) {
+    const { id, timestamp } = device;
+    const existing = await fetchSonoffDevices({ id });
+    if (existing.length === 1) {
+        return runStatement(
+            update_sonoff_devices, {
+                $timestamp: timestamp,
+                $json: JSON.stringify(device.attributes),
+                $device_id: device.id,
+            }
+        );
+    }
+    if (existing.length === 0) {
+        return runStatement(
+            insert_into_sonoff_devices, {
+                $timestamp: timestamp,
+                $device_id: device.id,
+                $ip: device.ip,
+                $port: device.port,
+                $json: JSON.stringify(device.attributes),
+            }
+        );
+    }
+    throw new Error(`Unexpected conditions`);
 }
 
 export async function insertIntoYeelightDevices(
@@ -225,13 +353,6 @@ export async function insertIntoYeelightDevices(
     );
 }
 
-export function unwrapJson(rows: Array<Record<string, any> | { json: string }>) {
-    return rows.map(({ json, ...rest }) => ({
-        ...rest,
-        ...JSON.parse(json),
-    }));
-}
-
 export async function fetchLastTemperatureSensorMessage() {
     const rows = await select(oneLine`
         SELECT * FROM device_messages_unified
@@ -251,8 +372,13 @@ export async function fetchZigbeeDevices() {
     return select(`SELECT * FROM zigbee_devices ORDER BY model, friendly_name`);
 }
 
-export async function fetchDeviceCustomAttributes() {
-    return select(`SELECT * FROM device_custom_attributes`);
+export async function fetchValveStatusMessages(historyWindowSize?: number) {
+    const where = historyWindowSize ? `WHERE timestamp > ${Date.now() - historyWindowSize}` : "";
+    return select(oneLine`
+        SELECT * FROM valve_status_messages
+        ${where}
+        ORDER BY timestamp DESC
+    `);
 }
 
 export async function fetchDeviceMessagesUnified(historyWindowSize?: number) {
@@ -298,6 +424,7 @@ export async function fetchStats() {
         select(`SELECT COUNT(*) AS device_messages_unified FROM device_messages_unified`),
         select(`SELECT COUNT(*) AS yeelight_devices FROM yeelight_devices`),
         select(`SELECT COUNT(*) AS yeelight_device_messages FROM yeelight_device_messages`),
+        select(`SELECT COUNT(*) AS sonoff_devices FROM sonoff_devices`),
     ]);
     return results.reduce((memo, result) => ({ ...memo, ...result[0] }), {});
 }
