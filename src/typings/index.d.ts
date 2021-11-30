@@ -48,6 +48,7 @@ declare global {
         tamper: boolean;
         voltage: number;
         water_leak: boolean;
+        temperature: number;
     }
 
     interface IAqaraTemperatureSensorMessage {
@@ -68,7 +69,7 @@ declare global {
     }
 
     interface IIkeaOnoffSwitchMessage {
-        action: 'on' | 'brightness_move_up' | 'brightness_stop' | 'brightness_move_down';
+        action: 'on' | 'off' | 'brightness_move_up' | 'brightness_stop' | 'brightness_move_down';
         click: 'on' | 'off' | 'brightness_up' | 'brightness_stop' | 'brightness_down';
         battery: number;
         action_rate: number;

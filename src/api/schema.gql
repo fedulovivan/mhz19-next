@@ -1,0 +1,30 @@
+type RootQuery {
+    ping: String
+    deviceMessagesUnified(
+        historyWindowSize: Int!,
+        deviceId: String,
+    ): [ZigbeeDeviceMessage]
+    zigbeeDevices: [ZigbeeDevice]
+    zigbeeDevice(deviceId: String!): ZigbeeDevice
+}
+type ZigbeeDeviceMessage {
+    device_id: String
+    timestamp: Float
+}
+type ZigbeeDevice {
+    friendly_name: String!
+    last_seen: Float!
+    type: String!
+    network_address: Int!
+    description: String
+    model: String
+    model_id: String
+    power_source: String
+    vendor: String
+    voltage: Int
+    battery: Int
+    custom_description: String
+}
+schema {
+  query: RootQuery
+}

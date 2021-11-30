@@ -24,6 +24,7 @@ let update_sonoff_devices: Statement;
 db.serialize(function() {
 
     // db.run(`DROP TABLE sonoff_devices`);
+    // db.run(`DROP TABLE zigbee_devices`);
 
     db.run(`PRAGMA foreign_keys = ON`);
     db.run(`
@@ -111,7 +112,9 @@ db.serialize(function() {
         INSERT INTO valve_status_messages VALUES(?, ?)
     `);
     insert_into_zigbee_devices = db.prepare(`
-        INSERT OR IGNORE INTO zigbee_devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO zigbee_devices VALUES(
+            ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
+        )
     `);
     insert_into_device_messages_unified = db.prepare(`
         INSERT INTO device_messages_unified VALUES(?, ?, ?)
@@ -160,7 +163,7 @@ function select(
     qstring: string,
     params: any = undefined,
 ): Promise<Array<Record<string, any>>> {
-    // debug(`executing query: `, qstring, params);
+    debug(`executing query: `, qstring, params);
     return new Promise((resolve, reject) => {
         db.all(qstring, params, (error, rows) => {
             if (error) {
@@ -368,8 +371,18 @@ export async function fetchYeelightDevices() {
     return unwrapJson(rows);
 }
 
-export async function fetchZigbeeDevices() {
-    return select(`SELECT * FROM zigbee_devices ORDER BY model, friendly_name`);
+export async function fetchZigbeeDevices(deviceId?: string) {
+    const where = [];
+    const params: any = {};
+    if (deviceId) {
+        where.push(`friendly_name = $deviceId`);
+        params.$deviceId = deviceId;
+    }
+    return select(oneLine`
+        SELECT * FROM zigbee_devices
+        ${where.length ? "WHERE" : ""} ${where.join(" AND ")}
+        ORDER BY model, friendly_name
+    `, params);
 }
 
 export async function fetchValveStatusMessages(historyWindowSize?: number) {
@@ -381,13 +394,25 @@ export async function fetchValveStatusMessages(historyWindowSize?: number) {
     `);
 }
 
-export async function fetchDeviceMessagesUnified(historyWindowSize?: number) {
-    const where = historyWindowSize ? `WHERE timestamp > ${Date.now() - historyWindowSize}` : "";
+export async function fetchDeviceMessagesUnified(
+    historyWindowSize?: number,
+    deviceId?: string,
+) {
+    const where = [];
+    const params: any = {};
+    if (historyWindowSize) {
+        where.push(`timestamp > $timestamp`);
+        params.$timestamp = Date.now() - historyWindowSize;
+    }
+    if (deviceId) {
+        where.push(`device_id = $deviceId`);
+        params.$deviceId = deviceId;
+    }
     const rows = await select(oneLine`
         SELECT * FROM device_messages_unified
-        ${where}
+        WHERE ${where.join(' AND ')}
         ORDER BY timestamp DESC
-    `);
+    `, params);
     return unwrapJson(rows);
 }
 

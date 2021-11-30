@@ -4,6 +4,13 @@ import React, {
     useState,
 } from 'react';
 
+import {
+    ApolloClient,
+    ApolloProvider,
+    gql,
+    InMemoryCache,
+    useQuery,
+} from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import {
     green,
@@ -40,6 +47,14 @@ const ZigbeeDevices: React.FC<{
 }) => {
 
         const [showHidden, setShowHidden] = useState(false);
+        const { loading, error, data } = useQuery(gql`
+            {
+                zigbeeDevices {
+                    friendly_name
+                    description
+                }
+            }
+        `);
 
         return (
             <TableContainer

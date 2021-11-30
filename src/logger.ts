@@ -1,4 +1,5 @@
 import Debug, { Debugger } from 'debug';
+//  @ts-ignore
 import SimpleNodeLogger from 'simple-node-logger';
 
 const log = SimpleNodeLogger.createSimpleFileLogger({
@@ -7,7 +8,7 @@ const log = SimpleNodeLogger.createSimpleFileLogger({
     level: 'DEBUG',
 });
 
-export function withDebug(namespace: string)/* : Debugger */ {
+export function withDebug(namespace: string) {
     const debug = Debug(namespace);
     return (first: any, ...args: any[]): void => {
         debug(first, ...args);

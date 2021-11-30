@@ -1,5 +1,12 @@
 import React, { useEffect, useState } from 'react';
 
+import {
+    ApolloClient,
+    ApolloProvider,
+    gql,
+    InMemoryCache,
+    useQuery,
+} from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import Button from '@material-ui/core/Button';
 import { grey } from '@material-ui/core/colors';
@@ -22,6 +29,7 @@ import YeelightDevices from 'src/components/YeelightDevices';
 import ZigbeeDevices from 'src/components/ZigbeeDevices';
 import {
     DEVICE_NAME_TO_ID,
+    GRAPHQL_URI,
     HISTORY_WINDOW_7DAYS,
     NO_DATA_GAP,
     TEMPERATURE_SENSOR,
@@ -29,6 +37,11 @@ import {
 import { useBooleanState } from 'src/hooks';
 
 require('normalize.css');
+
+const apolloClient = new ApolloClient({
+    uri: GRAPHQL_URI,
+    cache: new InMemoryCache(),
+});
 
 const rootStyles = css`
     /* background-color: ${grey[100]}; */
@@ -48,6 +61,15 @@ const rootStyles = css`
         grid-column: 1/13;
     }
 `;
+
+const ApolloPoweredComponent = () => {
+    const { loading, error, data } = useQuery(gql`{ ping }`);
+    return (
+        <>
+            {JSON.stringify({ loading, error, data })}
+        </>
+    );
+};
 
 const Root: React.FC = () => {
 
@@ -113,7 +135,9 @@ const Root: React.FC = () => {
     }, [historyWindowSize, setFetchInProgress, unsetFetchInProgress]);
 
     return (
+        <ApolloProvider client={apolloClient}>
         <>
+            <ApolloPoweredComponent />
             { fetchInProgress && <LinearProgress style={{ width: '100%', position: "fixed", zIndex: 999 }} /> }
             <div className={rootStyles}>
 
@@ -216,6 +240,7 @@ const Root: React.FC = () => {
 
             </div>
         </>
+        </ApolloProvider>
     );
 
 };

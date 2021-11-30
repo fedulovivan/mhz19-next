@@ -2,10 +2,12 @@
 ### PENDING
 - finish implementation of poweroff button
 - discover and fix yeelight devices reconnection problem
+- indicate on temterature message card, whether shown data is outdated
 - try golang on server side (!)
-- try graphql
+- find solution for stucked parcel:dev builds
 
 ### DONE
+- (+) try graphql
 - (+) send zigbee2mqtt/bridge/config/devices/get periodically
 - (+) LastSeenBar message=undefined figure this out
 - (+) show spinner/loader on page first open

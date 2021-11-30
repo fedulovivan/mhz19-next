@@ -1,4 +1,5 @@
 import Debug from 'debug';
+// @ts-ignore
 import { Device, Discovery } from 'yeelight-platform';
 
 import {

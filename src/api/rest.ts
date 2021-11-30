@@ -94,17 +94,6 @@ router.get('/yeelight-device-messages', async (req, res) => {
     }
 });
 
-// router.get('/temperature-sensor-messages', async (req, res) => {
-//     try {
-//         const rows = await fetchTemperatureSensorMessages(
-//             getOptInt(<string>req.query.historyWindowSize)
-//         );
-//         res.json(rows);
-//     } catch (e: any) {
-//         sendError(res, e);
-//     }
-// });
-
 router.get('/zigbee-devices', async (req, res) => {
     try {
         const rows = await fetchZigbeeDevices();
@@ -160,10 +149,8 @@ router.post('/device-custom-attributes/:deviceId/:attributeType', async (req, re
     }
 });
 
-// let sentCommandIdSequence = 1000;
-
 router.put('/sonoff-device/:deviceId/switch', async (req, res) => {
-    const { deviceId, switchState } = req.params;
+    const { deviceId } = req.params;
     const { state } = req.body;
     try {
         const result = await postSonoffSwitchMessage(
@@ -212,3 +199,14 @@ router.get('/stats', async (req, res) => {
 });
 
 export default router;
+
+// router.get('/temperature-sensor-messages', async (req, res) => {
+//     try {
+//         const rows = await fetchTemperatureSensorMessages(
+//             getOptInt(<string>req.query.historyWindowSize)
+//         );
+//         res.json(rows);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });

@@ -8,13 +8,20 @@ import { Response } from 'express';
 import { MqttClient } from 'mqtt';
 import os from 'os';
 
-import { DEVICE_NAME_TO_ID } from 'src/constants';
+import {
+    BEDROOM_CEILING_LIGHT,
+    DEVICE_NAME_TO_ID,
+    IKEA_400LM_LED_BULB,
+} from 'src/constants';
 import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
 import log, { withDebug } from 'src/logger';
+import mqttClient from 'src/mqttClient';
+import yeelightDevices from 'src/yeelightDevices';
 
 // import { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
-const debug = Debug('mhz19-dispatcher');
+// const debug = Debug('mhz19-dispatcher');
+const debug = withDebug('mhz19-utils');
 
 /**
  * AKA delayAsync
@@ -151,14 +158,31 @@ export async function postSonoffSwitchMessage(cmd: 'on' | 'off', deviceId: strin
     const hostPort = [devices[0].ip, devices[0].port].join(':');
     const url = `http://${hostPort}/zeroconf/switch`;
     const payload = { "data": { "switch": cmd } };
-    log.info(`posting to sonoff relay. url="${url}" payload="${JSON.stringify(payload)}" ...`);
+    debug(`sending to sonoff relay. url="${url}" payload="${JSON.stringify(payload)}" ...`);
     try {
         const result = await axios.post(url, payload);
-        log.info('relay response ', result.data);
+        debug('relay response ', result.data);
         return result.data;
     } catch (e) {
         log.error(e);
     }
+}
+
+export async function postBedroomCeilingLightMessage(state: 'on' | 'off') {
+    debug(`sending state=${state} to ${BEDROOM_CEILING_LIGHT}...`);
+    const bedroomCeilingLight = yeelightDevices.get(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT]);
+    bedroomCeilingLight.sendCommand({
+        id: -1,
+        method: 'set_power',
+        params: [state, 'smooth', 0],
+    });
+}
+
+export async function postIkeaLedBulb(state: 'on' | 'off') {
+    debug(`sending state=${state} to ${IKEA_400LM_LED_BULB}...`);
+    mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
+    // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
+    // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100
 }
 
 export function playAlertSigle() {
