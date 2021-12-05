@@ -22,10 +22,10 @@ bot.onText(/\/start/, (msg) => {
     botSendButtons(msg.chat.id);
 });
 bot.onText(/\/open/, (msg) => {
-    mqttClient.publish(`/VALVE/STATE/SET`, "off");
+    mqttClient.publish(`/VALVE/STATE/SET`, "open");
 });
 bot.onText(/\/close/, (msg) => {
-    mqttClient.publish(`/VALVE/STATE/SET`, "on");
+    mqttClient.publish(`/VALVE/STATE/SET`, "close");
 });
 bot.onText(/\/temp/, async (msg) => {
     const rows = await fetchLastTemperatureSensorMessage();

@@ -72,12 +72,10 @@ deviceCustomAttributes.forEach(([deviceId, attributeType, value]) => {
     insertIntoDeviceCustomAttributes({ deviceId, attributeType, value });
 });
 
-const leakageSensorHandler: IMqttMessageDispatcherHandler<IAqaraWaterSensorMessage> = ({
-    deviceId, timestamp, json, deviceName
-}) => {
+function handleLeakage(leakage?: boolean, deviceName?: string): void {
     const appUrl = getAppUrl();
-    if (json?.water_leak) {
-        mqttClient.publish(`/VALVE/STATE/SET`, "on");
+    if (leakage) {
+        mqttClient.publish(`/VALVE/STATE/SET`, "close");
         if (!Alerter.isRaised()) {
             Alerter.on();
             const msg = `Leakage detected for "${deviceName}"! Alert on.\n${appUrl}`;
@@ -94,6 +92,12 @@ const leakageSensorHandler: IMqttMessageDispatcherHandler<IAqaraWaterSensorMessa
             log.info(msg);
         }
     }
+}
+
+const leakageSensorHandler: IMqttMessageDispatcherHandler<IAqaraWaterSensorMessage> = ({
+    deviceId, timestamp, json, deviceName
+}) => {
+    handleLeakage(json?.water_leak, deviceName);
 };
 
 const kitchenSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = async ({ json }) => {
@@ -160,8 +164,12 @@ const bridgeNetworkmapGraphvizHandler: IMqttMessageDispatcherHandler = async ({ 
 };
 
 const valveStateStatusHandler: IMqttMessageDispatcherHandler = (payload) => {
-    const { rawMessage, timestamp } = payload;
-    insertIntoValveStatusMessages(rawMessage, timestamp);
+    const { timestamp, json } = payload;
+    handleLeakage(json.leakage, 'valves-manipulator-box');
+    insertIntoValveStatusMessages(
+        timestamp,
+        json,
+    );
 };
 
 mqttMessageDispatcher(mqttClient, [

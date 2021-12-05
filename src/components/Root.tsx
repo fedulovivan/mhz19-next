@@ -80,7 +80,7 @@ const Root: React.FC = () => {
     const [historyWindowSize, setHistoryWindowSize] = useState<number | undefined>(
         defaultHistoryWindowSize
     );
-    const [valvesStateMessages, setValvesStateMessages] = useState<Array<IValveStateMessage>>([]);
+    // const [valvesStateMessages, setValvesStateMessages] = useState<Array<IValveStateMessage>>([]);
     const [zigbeeDevices, setZigbeeDevices] = useState<Array<IZigbee2mqttBridgeConfigDevice>>([]);
     const [sonoffDevices, setSonoffDevices] = useState<Array<ISonoffDeviceUnwrapped>>([]);
     const [deviceMessagesUnified, setDeviceMessagesUnified] = useState<Array<IRootDeviceUnifiedMessage>>([]);
@@ -109,7 +109,7 @@ const Root: React.FC = () => {
                 setFetchInProgress();
                 const {
                     deviceMessagesUnified,
-                    valvesStateMessages,
+                    // valvesStateMessages,
                     zigbeeDevices,
                     stats,
                     yeelightDevices,
@@ -118,7 +118,7 @@ const Root: React.FC = () => {
                     sonoffDevices,
                 } = await fetchAll(historyWindowSize);
                 setDeviceMessagesUnified(deviceMessagesUnified.data);
-                setValvesStateMessages(valvesStateMessages.data);
+                // setValvesStateMessages(valvesStateMessages.data);
                 setZigbeeDevices(zigbeeDevices.data);
                 setStats(stats.data);
                 setYeelightDevices(yeelightDevices.data);
@@ -137,7 +137,7 @@ const Root: React.FC = () => {
     return (
         <ApolloProvider client={apolloClient}>
         <>
-            <ApolloPoweredComponent />
+            {/* <ApolloPoweredComponent /> */}
             { fetchInProgress && <LinearProgress style={{ width: '100%', position: "fixed", zIndex: 999 }} /> }
             <div className={rootStyles}>
 
@@ -183,7 +183,7 @@ const Root: React.FC = () => {
 
                 <ValveButtons
                     className="col-12"
-                    valvesStateMessages={valvesStateMessages}
+                    // valvesStateMessages={valvesStateMessages}
                 />
 
                 <ZigbeeDevices

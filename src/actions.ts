@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { oneLineTrim } from 'common-tags';
 
-export const toggleValves = (state: 'on' | 'off') => {
+export const toggleValves = (state: 'open' | 'close') => {
     axios.put(`/valve-state/${state}`);
 };
 
@@ -38,7 +38,7 @@ export const powerOff = async() => {
 export const fetchAll = async (historyWindowSize: number | undefined) => {
     const [
         deviceMessagesUnified,
-        valvesStateMessages,
+        // valvesStateMessages,
         zigbeeDevices,
         stats,
         yeelightDevices,
@@ -51,7 +51,7 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
             /device-messages-unified?historyWindowSize=${historyWindowSize}
         `),
 
-        axios.get<Array<IValveStateMessage>>(`/valve-state?historyWindowSize=${historyWindowSize}`),
+        // axios.get<Array<IValveStateMessage>>(`/valve-state?historyWindowSize=${historyWindowSize}`),
 
         axios.get<Array<IZigbee2mqttBridgeConfigDevice>>('/zigbee-devices'),
 
@@ -71,7 +71,7 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
 
     return {
         deviceMessagesUnified,
-        valvesStateMessages,
+        // valvesStateMessages,
         zigbeeDevices,
         stats,
         yeelightDevices,

@@ -52,13 +52,6 @@ router.put('/valve-state/:state', async (req, res) => {
     res.json();
 });
 
-router.get('/valve-state/get-last', async (req, res) => {
-    db.all(`SELECT * FROM valve_status_messages ORDER BY timestamp DESC LIMIT 1`, (error, rows) => {
-        if (error) return sendError(res, error);
-        res.json(first(rows));
-    });
-});
-
 router.get('/valve-state', async (req, res) => {
     try {
         const rows = await fetchValveStatusMessages(

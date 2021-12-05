@@ -23,9 +23,6 @@ let update_sonoff_devices: Statement;
 
 db.serialize(function() {
 
-    // db.run(`DROP TABLE sonoff_devices`);
-    // db.run(`DROP TABLE zigbee_devices`);
-
     db.run(`PRAGMA foreign_keys = ON`);
     db.run(`
         CREATE TABLE IF NOT EXISTS yeelight_devices (
@@ -67,8 +64,8 @@ db.serialize(function() {
     `);
     db.run(`
         CREATE TABLE IF NOT EXISTS valve_status_messages (
-            data TEXT,
-            timestamp INTEGER
+            timestamp INTEGER,
+            json STRING
         )
     `);
     db.run(`
@@ -104,12 +101,12 @@ db.serialize(function() {
 
     // db.run(`DELETE FROM valve_status_messages`);
 
-    // deletion replaced with INSERT OR IGNORE
-    // db.run(`DELETE FROM device_custom_attributes`);
-
     // prepare insert/update/delete statements
     insert_into_valve_status_messages = db.prepare(`
-        INSERT INTO valve_status_messages VALUES(?, ?)
+        INSERT INTO valve_status_messages VALUES(
+            $timestamp,
+            $json
+        )
     `);
     insert_into_zigbee_devices = db.prepare(`
         INSERT OR IGNORE INTO zigbee_devices VALUES(
@@ -223,13 +220,14 @@ export async function insertIntoYeelightDeviceMessages(
 }
 
 export async function insertIntoValveStatusMessages(
-    data: string,
-    timestamp: number
+    timestamp: number,
+    json: any,
 ) {
     return runStatement(
-        insert_into_valve_status_messages,
-        data,
-        timestamp
+        insert_into_valve_status_messages, {
+            $timestamp: timestamp,
+            $json: json ? JSON.stringify(json) : null,
+        }
     );
 }
 
@@ -385,13 +383,16 @@ export async function fetchZigbeeDevices(deviceId?: string) {
     `, params);
 }
 
-export async function fetchValveStatusMessages(historyWindowSize?: number) {
+export async function fetchValveStatusMessages(
+    historyWindowSize?: number
+) {
     const where = historyWindowSize ? `WHERE timestamp > ${Date.now() - historyWindowSize}` : "";
-    return select(oneLine`
+    const rows = await select(oneLine`
         SELECT * FROM valve_status_messages
         ${where}
         ORDER BY timestamp DESC
     `);
+    return unwrapJson(rows);
 }
 
 export async function fetchDeviceMessagesUnified(
@@ -552,3 +553,14 @@ export default db;
 // `);
 
 // db.run(`DROP TABLE temperature_sensor_messages`);
+
+// deletion replaced with INSERT OR IGNORE
+// db.run(`DELETE FROM device_custom_attributes`);
+// db.run(`
+//     ALTER TABLE valve_status_messages
+//     RENAME COLUMN data TO json
+// `);
+
+// db.run(`DROP TABLE sonoff_devices`);
+// db.run(`DROP TABLE zigbee_devices`);
+// db.run(`DROP TABLE valve_status_messages`);

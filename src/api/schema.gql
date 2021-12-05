@@ -6,6 +6,9 @@ type RootQuery {
     ): [ZigbeeDeviceMessage]
     zigbeeDevices: [ZigbeeDevice]
     zigbeeDevice(deviceId: String!): ZigbeeDevice
+    valveStatusMessages(
+        historyWindowSize: Int
+    ): [ValveStatusMessage]
 }
 type ZigbeeDeviceMessage {
     device_id: String
@@ -24,6 +27,12 @@ type ZigbeeDevice {
     voltage: Int
     battery: Int
     custom_description: String
+}
+type ValveStatusMessage {
+    timestamp: Float!
+    tick: Int!
+    leakage: Boolean!
+    valve: String!
 }
 schema {
   query: RootQuery

@@ -7,12 +7,17 @@ import { readFileSync } from 'fs';
 import { buildSchema } from 'graphql';
 import first from 'lodash';
 
-import { fetchDeviceMessagesUnified, fetchZigbeeDevices } from 'src/db';
+import {
+    fetchDeviceMessagesUnified,
+    fetchValveStatusMessages,
+    fetchZigbeeDevices,
+} from 'src/db';
 
 const schemaFileString = readFileSync('src/api/schema.gql').toString('utf8');
 const graphqlSchema = buildSchema(schemaFileString);
 
 const rootReslover = {
+    valveStatusMessages: (args: any) => fetchValveStatusMessages(args.historyWindowSize),
     deviceMessagesUnified: (args: any) => fetchDeviceMessagesUnified(args.historyWindowSize, args.deviceId),
     zigbeeDevices: () => fetchZigbeeDevices(),
     zigbeeDevice: (args: any) => fetchZigbeeDevices(args.deviceId).then(rows => first(rows)),

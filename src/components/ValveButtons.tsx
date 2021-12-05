@@ -1,8 +1,10 @@
 import React, { useCallback } from 'react';
 
+import { gql, useQuery } from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import { green, red } from '@material-ui/core/colors';
 import Paper from '@material-ui/core/Paper';
+import first from 'lodash/first';
 import sortBy from 'lodash/sortBy';
 
 import { toggleValves } from 'src/actions';
@@ -33,9 +35,22 @@ const ValveButtons: React.FC<{
 }> = ({
     valvesStateMessages,
     className
-}) => {
-    const handleOpen = useCallback(() => toggleValves('off'), []);
-    const handleClose = useCallback(() => toggleValves('on'), []);
+}): JSX.Element => {
+    const handleOpen = useCallback(() => toggleValves('open'), []);
+    const handleClose = useCallback(() => toggleValves('close'), []);
+    const { loading, error, data } = useQuery(gql`
+        {
+            valveStatusMessages {
+                timestamp
+                tick
+                leakage
+                valve
+            }
+        }
+    `);
+    if (loading) return <>Loading...</>;
+    if (error) return <>{error.message}</>;
+    const lastStatusMessage = first(data.valveStatusMessages);
     return (
         <Paper
             className={cx(className, rootStyles)}
@@ -58,9 +73,10 @@ const ValveButtons: React.FC<{
             </ValveButton>
             <LastSeenBar
                 className="lastSeenBar"
-                sortedMessages={valvesStateMessages}
+                sortedMessages={data.valveStatusMessages}
                 label="Last seen history"
             />
+            {JSON.stringify(lastStatusMessage)}
         </Paper>
     );
 };
