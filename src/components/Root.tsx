@@ -81,7 +81,7 @@ const Root: React.FC = () => {
         defaultHistoryWindowSize
     );
     // const [valvesStateMessages, setValvesStateMessages] = useState<Array<IValveStateMessage>>([]);
-    const [zigbeeDevices, setZigbeeDevices] = useState<Array<IZigbee2mqttBridgeConfigDevice>>([]);
+    // const [zigbeeDevices, setZigbeeDevices] = useState<Array<IZigbee2mqttBridgeConfigDevice>>([]);
     const [sonoffDevices, setSonoffDevices] = useState<Array<ISonoffDeviceUnwrapped>>([]);
     const [deviceMessagesUnified, setDeviceMessagesUnified] = useState<Array<IRootDeviceUnifiedMessage>>([]);
     const [stats, setStats] = useState<any>({});
@@ -110,7 +110,7 @@ const Root: React.FC = () => {
                 const {
                     deviceMessagesUnified,
                     // valvesStateMessages,
-                    zigbeeDevices,
+                    // zigbeeDevices,
                     stats,
                     yeelightDevices,
                     yeelightDeviceMessages,
@@ -119,7 +119,7 @@ const Root: React.FC = () => {
                 } = await fetchAll(historyWindowSize);
                 setDeviceMessagesUnified(deviceMessagesUnified.data);
                 // setValvesStateMessages(valvesStateMessages.data);
-                setZigbeeDevices(zigbeeDevices.data);
+                // setZigbeeDevices(zigbeeDevices.data);
                 setStats(stats.data);
                 setYeelightDevices(yeelightDevices.data);
                 setYeelightDeviceMessages(yeelightDeviceMessages.data);
@@ -183,15 +183,14 @@ const Root: React.FC = () => {
 
                 <ValveButtons
                     className="col-12"
-                    // valvesStateMessages={valvesStateMessages}
+                    historyWindowSize={historyWindowSize}
                 />
 
                 <ZigbeeDevices
-                    // valvesLastState={valvesLastState}
                     className="col-12"
-                    zigbeeDevices={zigbeeDevices}
                     deviceMessagesGroupped={deviceMessagesGroupped}
                     deviceCustomAttributes={deviceCustomAttributes}
+                    // zigbeeDevices={zigbeeDevices}
                 />
 
                 <YeelightDevices

@@ -1,14 +1,15 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useEffect } from 'react';
 
 import { gql, useQuery } from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import { green, red } from '@material-ui/core/colors';
 import Paper from '@material-ui/core/Paper';
 import first from 'lodash/first';
-import sortBy from 'lodash/sortBy';
+import moment from 'moment';
 
 import { toggleValves } from 'src/actions';
 import LastSeenBar from 'src/components/LastSeenBar';
+import Meter from 'src/components/Meter';
 import ValveButton from 'src/components/ValveButton';
 
 const rootStyles = css`
@@ -24,33 +25,80 @@ const rootStyles = css`
     .rightBtn {
         grid-column: 2/3;
     }
+    .stats,
     .lastSeenBar {
         grid-column: 1/3;
+    }
+    .meters {
+        font-size: 18px;
+        display: flex;
+        column-gap: 24px;
+        align-items: center;
+    }
+    &.withError {
+        color: red;
+    }
+`;
+
+const GET_VALVE_STATUS_MESSAGES = gql`
+    query GetValveStatusMessages($historyWindowSize: Int) {
+        valveStatusMessages(historyWindowSize: $historyWindowSize) {
+            timestamp
+            time
+            leakage
+            valve
+            hotMeterTicks
+            coldMeterTicks
+        }
     }
 `;
 
 const ValveButtons: React.FC<{
-    valvesStateMessages: Array<IValveStateMessage>;
+    historyWindowSize?: number;
     className?: string;
 }> = ({
-    valvesStateMessages,
-    className
+    className,
+    historyWindowSize,
 }): JSX.Element => {
-    const handleOpen = useCallback(() => toggleValves('open'), []);
-    const handleClose = useCallback(() => toggleValves('close'), []);
-    const { loading, error, data } = useQuery(gql`
-        {
-            valveStatusMessages {
-                timestamp
-                tick
-                leakage
-                valve
+
+    // graphql
+    const {
+        loading,
+        error,
+        data,
+        startPolling,
+        stopPolling
+    } = useQuery(
+        GET_VALVE_STATUS_MESSAGES, {
+            pollInterval: 5000,
+            variables: {
+                historyWindowSize,
             }
         }
-    `);
-    if (loading) return <>Loading...</>;
-    if (error) return <>{error.message}</>;
-    const lastStatusMessage = first(data.valveStatusMessages);
+    );
+
+    // handlers
+    const handleOpen = useCallback(() => toggleValves('open'), []);
+    const handleClose = useCallback(() => toggleValves('close'), []);
+
+    // effects
+    useEffect(() => () => stopPolling(), [stopPolling]);
+
+    // derived
+    const lastStatusMessage: any = first(data?.valveStatusMessages);
+
+    // if (error) {
+    //     return (
+    //         <Paper
+    //             className={cx(className, rootStyles, "withError")}
+    //         >
+    //             {error.message}
+    //         </Paper>
+    //     );
+    // }
+    // if (loading) return <>Loading...</>;
+    // if (!lastStatusMessage) return <>No data...</>;
+
     return (
         <Paper
             className={cx(className, rootStyles)}
@@ -73,10 +121,30 @@ const ValveButtons: React.FC<{
             </ValveButton>
             <LastSeenBar
                 className="lastSeenBar"
-                sortedMessages={data.valveStatusMessages}
+                sortedMessages={data?.valveStatusMessages}
                 label="Last seen history"
             />
-            {JSON.stringify(lastStatusMessage)}
+            <div className="stats">
+                Valves state: {
+                    lastStatusMessage?.valve === 'closed'
+                        ? <span style={{ color: 'red' }}>Closed</span>
+                        : <span style={{ color: 'green' }}>Opened</span>
+                },&nbsp;
+                leakage detected: {
+                    lastStatusMessage?.leakage
+                        ? <span style={{ color: 'red' }}>Yes</span>
+                        : <span style={{ color: 'green' }}>No</span>
+                },&nbsp;
+                seen {moment(lastStatusMessage?.timestamp).fromNow()},&nbsp;
+                {data?.valveStatusMessages?.length} messages loaded.
+            </div>
+            <div className="meters">
+                <div className="group-name">
+                    Toilet:
+                </div>
+                <Meter hot value={lastStatusMessage?.hotMeterTicks} />
+                <Meter cold value={lastStatusMessage?.coldMeterTicks} />
+            </div>
         </Paper>
     );
 };
@@ -84,3 +152,10 @@ const ValveButtons: React.FC<{
 ValveButtons.displayName = 'ValveButtons';
 
 export default ValveButtons;
+
+// useEffect(() => {
+//     startPolling(5000);
+//     return () => {
+//         stopPolling();
+//     };
+// }, [startPolling, stopPolling]);

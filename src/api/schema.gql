@@ -14,6 +14,10 @@ type ZigbeeDeviceMessage {
     device_id: String
     timestamp: Float
 }
+type DeviceCustomAttribute {
+    name: String
+    isHidden: Boolean
+}
 type ZigbeeDevice {
     friendly_name: String!
     last_seen: Float!
@@ -27,12 +31,17 @@ type ZigbeeDevice {
     voltage: Int
     battery: Int
     custom_description: String
+    messages: [ZigbeeDeviceMessage]
+    attributes: [DeviceCustomAttribute]
 }
 type ValveStatusMessage {
-    timestamp: Float!
-    tick: Int!
-    leakage: Boolean!
-    valve: String!
+    timestamp: Float
+    time: Int
+    leakage: Boolean
+    valve: String
+    hotMeterTicks: Int
+    coldMeterTicks: Int
+    origin: String
 }
 schema {
   query: RootQuery

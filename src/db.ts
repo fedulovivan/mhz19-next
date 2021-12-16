@@ -23,6 +23,8 @@ let update_sonoff_devices: Statement;
 
 db.serialize(function() {
 
+    // db.run(`DROP TABLE valve_status_messages`);
+
     db.run(`PRAGMA foreign_keys = ON`);
     db.run(`
         CREATE TABLE IF NOT EXISTS yeelight_devices (
@@ -154,7 +156,7 @@ export function unwrapJson(rows: Array<Record<string, any> | { json: string }>) 
 
 /**
  * (!) usage of promisify crashes nodejs, so using custom wrapper
- * const query = promisify(db.all);
+ * promisify(db.all) -> crash...
  */
 function select(
     qstring: string,
@@ -369,7 +371,7 @@ export async function fetchYeelightDevices() {
     return unwrapJson(rows);
 }
 
-export async function fetchZigbeeDevices(deviceId?: string) {
+export async function fetchZigbeeDevices(deviceId?: string, historyWindowSize?: number) {
     const where = [];
     const params: any = {};
     if (deviceId) {

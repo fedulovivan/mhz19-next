@@ -152,7 +152,9 @@ const bridgeConfigDevicesHandler: IMqttMessageDispatcherHandler<Array<IZigbee2mq
     const devices = json;
     if (devices?.length) {
         devices.forEach(device => {
-            insertIntoZigbeeDevices(device);
+            if (device.friendly_name !== 'Coordinator') {
+                insertIntoZigbeeDevices(device);
+            }
         });
     }
 };
@@ -165,11 +167,13 @@ const bridgeNetworkmapGraphvizHandler: IMqttMessageDispatcherHandler = async ({ 
 
 const valveStateStatusHandler: IMqttMessageDispatcherHandler = (payload) => {
     const { timestamp, json } = payload;
-    handleLeakage(json.leakage, 'valves-manipulator-box');
-    insertIntoValveStatusMessages(
-        timestamp,
-        json,
-    );
+    if (json) {
+        handleLeakage(json.leakage, 'valves-manipulator-box');
+        insertIntoValveStatusMessages(
+            timestamp,
+            json,
+        );
+    }
 };
 
 mqttMessageDispatcher(mqttClient, [

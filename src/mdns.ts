@@ -14,6 +14,7 @@ mdns.on('response', function (response) {
     const { answers } = response;
     let sonoffDeviceId: string | null = null;
     const sonoffDeviceData: Partial<ISonoffDevice> = {};
+    // console.log("response:answers", JSON.stringify(answers));
     answers.forEach(answer => {
         if (answer.type === 'A') {
             sonoffDeviceData.ip = answer.data;

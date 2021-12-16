@@ -27,34 +27,48 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
-import {
-    localStorageGetNumber,
-    localStorageSet,
-    toZigbeeDeviceFormat,
-} from 'src/clientUtils';
+// import {
+//     localStorageGetNumber,
+//     localStorageSet,
+//     toZigbeeDeviceFormat,
+// } from 'src/clientUtils';
 import ZigbeeDeviceRow from 'src/components/ZigbeeDeviceRow';
 
+const GET_ZIGBEE_DEVICES = gql`
+    query GetZigbeeDevices {
+        zigbeeDevices {
+            description
+            friendly_name
+            last_seen
+            model
+            model_id
+            network_address
+            power_source
+            type
+            vendor
+            voltage
+            battery
+            custom_description
+            # messages
+        }
+    }
+`;
+
 const ZigbeeDevices: React.FC<{
-    zigbeeDevices: Array<IZigbee2mqttBridgeConfigDevice>;
     deviceMessagesGroupped: any;
     deviceCustomAttributes: any;
     className?: string;
 }> = ({
-    zigbeeDevices,
     deviceMessagesGroupped,
     deviceCustomAttributes,
     className
 }) => {
 
         const [showHidden, setShowHidden] = useState(false);
-        const { loading, error, data } = useQuery(gql`
-            {
-                zigbeeDevices {
-                    friendly_name
-                    description
-                }
-            }
-        `);
+        const { loading, error, data } = useQuery(GET_ZIGBEE_DEVICES);
+
+        if (loading) return <>Loading...</>;
+        if (error) return <>{error.message}</>;
 
         return (
             <TableContainer
@@ -88,7 +102,8 @@ const ZigbeeDevices: React.FC<{
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {zigbeeDevices.map(device => {
+                        {data.zigbeeDevices.map((device) => {
+                            if (device.friendly_name === 'Coordinator') return null;
                             return (
                                 <ZigbeeDeviceRow
                                     key={device.friendly_name}
@@ -106,5 +121,3 @@ const ZigbeeDevices: React.FC<{
     };
 
 export default ZigbeeDevices;
-
-/* [...zigbeeDevices, toZigbeeDeviceFormat(valvesLastState)] */

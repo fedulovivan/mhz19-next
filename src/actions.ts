@@ -39,7 +39,7 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
     const [
         deviceMessagesUnified,
         // valvesStateMessages,
-        zigbeeDevices,
+        // zigbeeDevices,
         stats,
         yeelightDevices,
         yeelightDeviceMessages,
@@ -53,7 +53,7 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
 
         // axios.get<Array<IValveStateMessage>>(`/valve-state?historyWindowSize=${historyWindowSize}`),
 
-        axios.get<Array<IZigbee2mqttBridgeConfigDevice>>('/zigbee-devices'),
+        // axios.get<Array<IZigbee2mqttBridgeConfigDevice>>('/zigbee-devices'),
 
         axios.get<Record<string, number>>('/stats'),
 
@@ -72,7 +72,7 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
     return {
         deviceMessagesUnified,
         // valvesStateMessages,
-        zigbeeDevices,
+        // zigbeeDevices,
         stats,
         yeelightDevices,
         yeelightDeviceMessages,
