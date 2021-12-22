@@ -4,6 +4,7 @@ import React, {
     useState,
 } from 'react';
 
+import { useQuery } from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import {
     green,
@@ -19,6 +20,8 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
 import YeelightDeviceRow from 'src/components/YeelightDeviceRow';
+import { QUERY_OPTIONS } from 'src/constants';
+import * as queries from 'src/queries';
 
 // import {
 //     IDeviceCustomAttributesIndexed,
@@ -33,18 +36,36 @@ import YeelightDeviceRow from 'src/components/YeelightDeviceRow';
 // `;
 
 const YeelightDevices: React.FC<{
-    yeelightDevices: Array<IYeelightDevice>;
-    yeelightDeviceMessages: Array<IYeelightDeviceMessage>;
-    deviceCustomAttributes: IDeviceCustomAttributesIndexed;
+    // yeelightDevices: Array<IYeelightDevice>;
+    // yeelightDeviceMessages: Array<IYeelightDeviceMessage>;
+    // deviceCustomAttributes: IDeviceCustomAttributesIndexed;
+    historyWindowSize?: number;
     onDeviceFeedback: (data: Array<IYeelightDeviceMessage>) => void;
     className?: string;
 }> = ({
-    yeelightDevices,
-    yeelightDeviceMessages,
-    deviceCustomAttributes,
+    // yeelightDevices,
+    // yeelightDeviceMessages,
+    // deviceCustomAttributes,
     onDeviceFeedback,
-    className
+    className,
+    historyWindowSize,
 }) => {
+
+        // query
+        const { loading, error, data } = useQuery(
+            queries.GET_YEELIGHT_DEVICES, {
+                variables: {
+                    historyWindowSize,
+                },
+                ...QUERY_OPTIONS,
+            }
+        );
+
+        if (loading) return <>Loading...</>;
+        if (error) return <>{error.message}</>;
+
+        const { yeelightDevices } = data;
+
         if (!yeelightDevices.length) {
             return (
                 <div>No single yeelight device is discovered yet...</div>
@@ -70,15 +91,15 @@ const YeelightDevices: React.FC<{
                     </TableHead>
                     <TableBody>
                         {yeelightDevices.map(device => {
-                            const deviceMessages = yeelightDeviceMessages.filter(
-                                ({ device_id }) => device_id === device.id
-                            );
+                            // const deviceMessages = device.messages.filter(
+                            //     ({ device_id }) => device_id === device.id
+                            // );
                             return (
                                 <YeelightDeviceRow
                                     key={device.id}
                                     device={device}
-                                    deviceMessages={deviceMessages}
-                                    deviceCustomAttributes={deviceCustomAttributes[device.id]}
+                                    deviceMessages={device.messages}
+                                    deviceCustomAttributes={device.customAttributes}
                                     onDeviceFeedback={onDeviceFeedback}
                                 />
                             );

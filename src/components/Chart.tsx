@@ -4,6 +4,13 @@
 
 import React from 'react';
 
+import {
+    ApolloClient,
+    ApolloProvider,
+    gql,
+    InMemoryCache,
+    useQuery,
+} from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import {
     blue,
@@ -17,11 +24,14 @@ import HighchartsReact from 'highcharts-react-official';
 import brokenAxis from 'highcharts/modules/broken-axis';
 import sortBy from 'lodash/sortBy';
 
+// import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
 import {
     DEVICE_NAME_TO_ID,
     NO_DATA_GAP,
+    QUERY_OPTIONS,
     TEMPERATURE_SENSOR,
 } from 'src/constants';
+import * as queries from 'src/queries';
 
 brokenAxis(Highcharts);
 
@@ -80,22 +90,38 @@ const rootStyles = css`
 `;
 
 const Chart: React.FC<{
-    messages: Array<IAqaraTemperatureSensorMessage & TDeviceIdAndTimestamp>;
     title?: string;
     className?: string;
+    historyWindowSize?: number;
 }> = ({
-    messages,
+    // messages,
     title,
     className,
+    historyWindowSize,
 }) => {
+
+    const { loading, error, data } = useQuery(
+        queries.GET_TEMPERATURE_SENSOR_MESSAGES, {
+            variables: {
+                historyWindowSize,
+                deviceId: DEVICE_NAME_TO_ID[TEMPERATURE_SENSOR],
+            },
+            ...QUERY_OPTIONS,
+        }
+    );
+
+    if (loading) return <>Loading...</>;
+    if (error) return <>{error.message}</>;
+
+    const messages = data.deviceMessagesUnified;
 
     let temperatureSeries: Highcharts.SeriesLineOptions["data"] = [];
     let pressureSeries: Highcharts.SeriesLineOptions["data"] = [];
     const humiditySeries: Highcharts.SeriesLineOptions["data"] = [];
 
-    const sortedMessages = sortBy(messages, 'timestamp');
+    // const sortedMessages = sortBy(messages, 'timestamp');
 
-    sortedMessages.forEach(({
+    messages.forEach(({
         timestamp, temperature, pressure, humidity
     }) => {
         temperatureSeries.push([timestamp, temperature]);

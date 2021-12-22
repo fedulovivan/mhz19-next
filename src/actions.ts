@@ -37,7 +37,7 @@ export const powerOff = async() => {
 
 export const fetchAll = async (historyWindowSize: number | undefined) => {
     const [
-        deviceMessagesUnified,
+        // deviceMessagesUnified,
         // valvesStateMessages,
         // zigbeeDevices,
         stats,
@@ -47,9 +47,9 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
         sonoffDevices,
     ] = await Promise.all([
 
-        axios.get<Array<IRootDeviceUnifiedMessage>>(oneLineTrim`
-            /device-messages-unified?historyWindowSize=${historyWindowSize}
-        `),
+        // axios.get<Array<IRootDeviceUnifiedMessage>>(oneLineTrim`
+        //     /device-messages-unified?historyWindowSize=${historyWindowSize}
+        // `),
 
         // axios.get<Array<IValveStateMessage>>(`/valve-state?historyWindowSize=${historyWindowSize}`),
 
@@ -70,7 +70,7 @@ export const fetchAll = async (historyWindowSize: number | undefined) => {
     ]);
 
     return {
-        deviceMessagesUnified,
+        // deviceMessagesUnified,
         // valvesStateMessages,
         // zigbeeDevices,
         stats,

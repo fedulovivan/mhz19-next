@@ -11,6 +11,8 @@ import { toggleValves } from 'src/actions';
 import LastSeenBar from 'src/components/LastSeenBar';
 import Meter from 'src/components/Meter';
 import ValveButton from 'src/components/ValveButton';
+import { QUERY_OPTIONS } from 'src/constants';
+import * as queries from 'src/queries';
 
 const rootStyles = css`
     display: grid;
@@ -40,19 +42,6 @@ const rootStyles = css`
     }
 `;
 
-const GET_VALVE_STATUS_MESSAGES = gql`
-    query GetValveStatusMessages($historyWindowSize: Int) {
-        valveStatusMessages(historyWindowSize: $historyWindowSize) {
-            timestamp
-            time
-            leakage
-            valve
-            hotMeterTicks
-            coldMeterTicks
-        }
-    }
-`;
-
 const ValveButtons: React.FC<{
     historyWindowSize?: number;
     className?: string;
@@ -69,11 +58,12 @@ const ValveButtons: React.FC<{
         startPolling,
         stopPolling
     } = useQuery(
-        GET_VALVE_STATUS_MESSAGES, {
-            pollInterval: 5000,
+        queries.GET_VALVE_STATUS_MESSAGES, {
+            // pollInterval: 5000,
             variables: {
                 historyWindowSize,
-            }
+            },
+            ...QUERY_OPTIONS,
         }
     );
 
@@ -86,18 +76,6 @@ const ValveButtons: React.FC<{
 
     // derived
     const lastStatusMessage: any = first(data?.valveStatusMessages);
-
-    // if (error) {
-    //     return (
-    //         <Paper
-    //             className={cx(className, rootStyles, "withError")}
-    //         >
-    //             {error.message}
-    //         </Paper>
-    //     );
-    // }
-    // if (loading) return <>Loading...</>;
-    // if (!lastStatusMessage) return <>No data...</>;
 
     return (
         <Paper

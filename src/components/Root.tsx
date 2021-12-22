@@ -1,28 +1,21 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 
 import {
     ApolloClient,
     ApolloProvider,
-    gql,
     InMemoryCache,
-    useQuery,
 } from '@apollo/client';
-import { css, cx } from '@emotion/css';
-import Button from '@material-ui/core/Button';
+import { css } from '@emotion/css';
 import { grey } from '@material-ui/core/colors';
-import LinearProgress from '@material-ui/core/LinearProgress';
-import Paper from '@material-ui/core/Paper';
-import PowerIcon from '@material-ui/icons/PowerSettingsNew';
-import { produce } from 'immer';
-import first from 'lodash/first';
-import groupBy from 'lodash/groupBy';
 import { hot } from 'react-hot-loader';
 
 import { fetchAll, powerOff } from 'src/actions';
 import { localStorageGetNumber, localStorageSet } from 'src/clientUtils';
 import Chart from 'src/components/Chart';
+import FirstRow from 'src/components/FirstRow';
 import KeyValuePaper, { toDataRow } from 'src/components/KeyValuePaper';
 import SonoffDevices from 'src/components/SonoffDevices';
+import Stats from 'src/components/Stats';
 import ValveButtons from 'src/components/ValveButtons';
 import WindowSizePicker from 'src/components/WindowSizePicker';
 import YeelightDevices from 'src/components/YeelightDevices';
@@ -62,39 +55,12 @@ const rootStyles = css`
     }
 `;
 
-const ApolloPoweredComponent = () => {
-    const { loading, error, data } = useQuery(gql`{ ping }`);
-    return (
-        <>
-            {JSON.stringify({ loading, error, data })}
-        </>
-    );
-};
-
 const Root: React.FC = () => {
 
     const defaultHistoryWindowSize = localStorageGetNumber('defaultHistoryWindowSize', HISTORY_WINDOW_7DAYS);
 
     // state
-    const [fetchInProgress, setFetchInProgress, unsetFetchInProgress] = useBooleanState(false);
-    const [historyWindowSize, setHistoryWindowSize] = useState<number | undefined>(
-        defaultHistoryWindowSize
-    );
-    // const [valvesStateMessages, setValvesStateMessages] = useState<Array<IValveStateMessage>>([]);
-    // const [zigbeeDevices, setZigbeeDevices] = useState<Array<IZigbee2mqttBridgeConfigDevice>>([]);
-    const [sonoffDevices, setSonoffDevices] = useState<Array<ISonoffDeviceUnwrapped>>([]);
-    const [deviceMessagesUnified, setDeviceMessagesUnified] = useState<Array<IRootDeviceUnifiedMessage>>([]);
-    const [stats, setStats] = useState<any>({});
-    const [yeelightDevices, setYeelightDevices] = useState<Array<IYeelightDevice>>([]);
-    const [yeelightDeviceMessages, setYeelightDeviceMessages] = useState<Array<IYeelightDeviceMessage>>([]);
-    const [deviceCustomAttributes, setDeviceCustomAttributes] = useState<IDeviceCustomAttributesIndexed>({});
-
-    const deviceMessagesGroupped = groupBy(deviceMessagesUnified, 'device_id');
-
-    const temperatureSensorMessages = (
-        deviceMessagesGroupped[DEVICE_NAME_TO_ID[TEMPERATURE_SENSOR]] as Array<IAqaraTemperatureSensorMessage & TDeviceIdAndTimestamp>
-    );
-    const lastTemperatureMessage = first(temperatureSensorMessages);
+    const [historyWindowSize, setHistoryWindowSize] = useState<number | undefined>(defaultHistoryWindowSize);
 
     const handleHistoryWindowSizeChange = (e: any) => {
         const stringValue = e.target.value;
@@ -102,82 +68,19 @@ const Root: React.FC = () => {
         setHistoryWindowSize(stringValue ? parseInt(stringValue, 10) : undefined);
     };
 
-    // periodically fetch fresh data
-    useEffect(() => {
-        const doFetchTick = async () => {
-            try {
-                setFetchInProgress();
-                const {
-                    deviceMessagesUnified,
-                    // valvesStateMessages,
-                    // zigbeeDevices,
-                    stats,
-                    yeelightDevices,
-                    yeelightDeviceMessages,
-                    deviceCustomAttributes,
-                    sonoffDevices,
-                } = await fetchAll(historyWindowSize);
-                setDeviceMessagesUnified(deviceMessagesUnified.data);
-                // setValvesStateMessages(valvesStateMessages.data);
-                // setZigbeeDevices(zigbeeDevices.data);
-                setStats(stats.data);
-                setYeelightDevices(yeelightDevices.data);
-                setYeelightDeviceMessages(yeelightDeviceMessages.data);
-                setDeviceCustomAttributes(deviceCustomAttributes.data);
-                setSonoffDevices(sonoffDevices.data);
-            } finally {
-                unsetFetchInProgress();
-            }
-        };
-        doFetchTick();
-        const intervalId = setInterval(doFetchTick, 10000);
-        return () => clearInterval(intervalId);
-    }, [historyWindowSize, setFetchInProgress, unsetFetchInProgress]);
-
     return (
         <ApolloProvider client={apolloClient}>
-        <>
-            {/* <ApolloPoweredComponent /> */}
-            { fetchInProgress && <LinearProgress style={{ width: '100%', position: "fixed", zIndex: 999 }} /> }
+            {/* { fetchInProgress && <LinearProgress style={{ width: '100%', position: "fixed", zIndex: 999 }} /> } */}
             <div className={rootStyles}>
 
-                <KeyValuePaper
-                    asCards
-                    data={lastTemperatureMessage ? [
-                        ['Temperature', lastTemperatureMessage.temperature, '℃'],
-                        ['Humidity', lastTemperatureMessage.humidity, '%'],
-                        [
-                            'Pressure',
-                            Math.round(lastTemperatureMessage.pressure / 1.33322),
-                            'mmh'
-                        ],
-                    ] : []}
-                >
-                    <>
-                        <WindowSizePicker
-                            historyWindowSize={historyWindowSize}
-                            handleHistoryWindowSizeChange={handleHistoryWindowSizeChange}
-                        />
-                        <Button
-                            style={{ justifySelf: 'end' }}
-                            // variant="contained"
-                            // color="info"
-                            startIcon={<PowerIcon />}
-                            onClick={() => {
-                                // eslint-disable-next-line no-restricted-globals
-                                if (confirm('Confirm server power off')) {
-                                    powerOff();
-                                }
-                            }}
-                        >
-                            Poweroff
-                        </Button>
-                    </>
-                </KeyValuePaper>
+                <FirstRow
+                    historyWindowSize={historyWindowSize}
+                    handleHistoryWindowSizeChange={handleHistoryWindowSizeChange}
+                />
 
                 <Chart
                     className="col-12"
-                    messages={temperatureSensorMessages}
+                    historyWindowSize={historyWindowSize}
                     title="Temperature and pressure trend"
                 />
 
@@ -188,57 +91,38 @@ const Root: React.FC = () => {
 
                 <ZigbeeDevices
                     className="col-12"
-                    deviceMessagesGroupped={deviceMessagesGroupped}
-                    deviceCustomAttributes={deviceCustomAttributes}
-                    // zigbeeDevices={zigbeeDevices}
+                    historyWindowSize={historyWindowSize}
                 />
 
                 <YeelightDevices
                     className="col-12"
-                    yeelightDevices={yeelightDevices}
-                    yeelightDeviceMessages={yeelightDeviceMessages}
-                    deviceCustomAttributes={deviceCustomAttributes}
+                    historyWindowSize={historyWindowSize}
                     onDeviceFeedback={messages => {
                         if (messages.length) {
-                            setYeelightDeviceMessages(messages.concat(yeelightDeviceMessages));
+                            // setYeelightDeviceMessages(messages.concat(yeelightDeviceMessages));
                         }
                     }}
                 />
 
                 <SonoffDevices
                     className="col-12"
-                    devices={sonoffDevices}
-                    deviceCustomAttributes={deviceCustomAttributes}
                     onDeviceFeedback={(data) => {
                         if (data.error === 0) {
-                            setSonoffDevices(produce(sonoffDevices, devices => {
-                                devices.forEach(device => {
-                                    if (device.device_id === data.deviceId) {
-                                        device.switch = data.switch;
-                                        device.timestamp = Date.now();
-                                    }
-                                });
-                            }));
+                            // setSonoffDevices(produce(sonoffDevices, devices => {
+                            //     devices.forEach(device => {
+                            //         if (device.device_id === data.deviceId) {
+                            //             device.switch = data.switch;
+                            //             device.timestamp = Date.now();
+                            //         }
+                            //     });
+                            // }));
                         }
                     }}
                 />
 
-                <Paper
-                    elevation={2}
-                    className={cx(css`
-                        padding: 20px;
-                    `, 'col-12')}
-                >
-                    {JSON.stringify(stats, null, ' ')}
-                </Paper>
-                {/* <KeyValuePaper
-                    className="col-12"
-                    title="Application Meta"
-                    data={toDataRow(stats)}
-                /> */}
+                <Stats />
 
             </div>
-        </>
         </ApolloProvider>
     );
 

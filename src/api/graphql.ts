@@ -2,50 +2,114 @@
  * graphql server middleware for express
  */
 
-import { graphqlHTTP } from 'express-graphql';
-import { readFileSync } from 'fs';
-import { buildSchema } from 'graphql';
-import first from 'lodash';
+/* eslint-disable no-param-reassign */
 
+import type { IResolvers } from '@graphql-tools/utils';
+import { ApolloServerPluginLandingPageDisabled } from 'apollo-server-core';
+import { ApolloServer } from 'apollo-server-express';
+import { readFileSync } from 'fs';
+
+import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
 import {
+    fetchDeviceCustomAttributes,
     fetchDeviceMessagesUnified,
+    fetchSonoffDevices,
+    fetchStats,
     fetchValveStatusMessages,
+    fetchYeelightDeviceMessages,
+    fetchYeelightDevices,
     fetchZigbeeDevices,
+    toMap,
 } from 'src/db';
 
-const schemaFileString = readFileSync('src/api/schema.gql').toString('utf8');
-const graphqlSchema = buildSchema(schemaFileString);
+const typeDefs = readFileSync('src/api/schema.gql').toString('utf8');
 
-/* https://marmelab.com/blog/2017/09/06/dive-into-graphql-part-iii-building-a-graphql-server-with-nodejs.html */
+interface IMyContext {
+    deviceMessagesUnified: Array<any>;
+    deviceCustomAttributes: Record<string, string>;
+    yeelightDeviceMessages: Array<any>;
+}
 
-const rootReslover = {
-    valveStatusMessages: (args: any) => fetchValveStatusMessages(args.historyWindowSize),
-    deviceMessagesUnified: (args: any) => fetchDeviceMessagesUnified(args.historyWindowSize, args.deviceId),
-    zigbeeDevices: async (args: any) => fetchZigbeeDevices(undefined, args.historyWindowSize),
-    zigbeeDevice: (args: any) => fetchZigbeeDevices(args.deviceId).then(rows => first(rows)),
-    ping: () => `ponged at ${(new Date()).toISOString()}`,
-    // RootQuery: {
-    //     zigbeeDevices: async (args: any) => fetchZigbeeDevices(undefined, args.historyWindowSize),
-    //     zigbeeDevice: (args: any) => fetchZigbeeDevices(args.deviceId).then(rows => first(rows)),
-    // },
-    // ZigbeeDevice: {
-    //     messages: [1, 2, 3]
-    // }
+const rootContext = async () => {
+    const deviceCustomAttributes = toMap(await fetchDeviceCustomAttributes());
+    return { deviceCustomAttributes };
 };
 
-export default graphqlHTTP({
-    schema: graphqlSchema,
-    rootValue: rootReslover,
-    graphiql: true,
+// https://www.apollographql.com/docs/apollo-server/data/resolvers/
+const resolvers: IResolvers<any, IMyContext> = {
+    Query: {
+        ping: () => ('pong'),
+        zigbeeDevices: async (parent, args, context, info) => {
+            context.deviceMessagesUnified = await fetchDeviceMessagesUnified(
+                args.historyWindowSize,
+            );
+            return fetchZigbeeDevices();
+        },
+        deviceMessagesUnified: (parent, args, context, info) => {
+            return fetchDeviceMessagesUnified(
+                args.historyWindowSize,
+                args.deviceId,
+            );
+        },
+        valveStatusMessages: (parent, args, context, info) => {
+            return fetchValveStatusMessages(
+                args.historyWindowSize,
+                args.origin,
+            );
+        },
+        lastTemperatureMessage: async (parent, args, context, info) => {
+            const rows = await fetchDeviceMessagesUnified(
+                undefined,
+                DEVICE_NAME_TO_ID[TEMPERATURE_SENSOR],
+                true
+            );
+            return rows.length ? rows[0] : null;
+        },
+        sonoffDevices: async (parent, args, context, info) => {
+            return fetchSonoffDevices();
+        },
+        yeelightDevices: async (parent, args, context, info) => {
+            context.yeelightDeviceMessages = await fetchYeelightDeviceMessages(
+                args.historyWindowSize
+            );
+            return fetchYeelightDevices();
+        },
+        stats: (parent, args, context, info) => fetchStats(),
+    },
+    ZigbeeDevice: {
+        messages: (parent, args, context, info) => {
+            return context.deviceMessagesUnified.filter(
+                message => message.device_id === parent.friendly_name
+            );
+        },
+        customAttributes: (parent, args, context, info) => {
+            return context.deviceCustomAttributes[parent.friendly_name];
+        },
+    },
+    SonoffDevice: {
+        customAttributes: (parent, args, context, info) => {
+            return context.deviceCustomAttributes[parent.device_id];
+        },
+    },
+    YeelightDevice: {
+        messages: (parent, args, context, info) => {
+            return context.yeelightDeviceMessages.filter(
+                message => message.device_id === parent.id
+            );
+        },
+        customAttributes: (parent, args, context, info) => {
+            return context.deviceCustomAttributes[parent.id];
+        },
+    }
+};
+
+const server = new ApolloServer({
+    typeDefs,
+    resolvers,
+    plugins: [
+        ApolloServerPluginLandingPageDisabled
+    ],
+    context: rootContext
 });
 
-// const graphqlSchema = buildASTSchema(gql`
-//     type Query {
-//         ping: String
-//         deviceMessagesUnified(historyWindowSize: Int!): [DeviceMessageUnified]
-//     }
-//     type DeviceMessageUnified {
-//         device_id: String
-//         timestamp: Float
-//     }
-// `);
+export default server;

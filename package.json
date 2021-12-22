@@ -8,9 +8,10 @@
     "start": "pm2 start server-entrypoint.js",
     "stop": "pm2 stop server-entrypoint.js",
     "parcel:dev": "UV_THREADPOOL_SIZE=16 parcel watch index.html --hmr-port 44587 --no-cache",
-    "server:dev": "DEBUG=\"mhz19*,-mhz19-db\" node server-entrypoint.js",
+    "server:dev": "DEBUG=\"mhz19*,mhz19-db\" node server-entrypoint.js",
     "all:dev": "concurrently --raw \"yarn parcel:dev\" \"yarn server:dev\"",
-    "tsc": "tsc --noEmit"
+    "tsc": "tsc --noEmit",
+    "download-schema": "apollo service:download --endpoint=http://192.168.88.188:8888/graphql graphql-schema.json"
   },
   "dependencies": {
     "@apollo/client": "^3.4.17",
@@ -43,6 +44,8 @@
     "@types/sqlite3": "^3.1.7",
     "@typescript-eslint/eslint-plugin": "^4.8.2",
     "@typescript-eslint/parser": "^4.8.2",
+    "apollo-server-core": "^3.5.0",
+    "apollo-server-express": "^3.5.0",
     "axios": "^0.21.1",
     "classnames": "^2.3.1",
     "common-tags": "^1.8.0",

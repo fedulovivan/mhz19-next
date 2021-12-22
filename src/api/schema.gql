@@ -1,28 +1,94 @@
-type RootQuery {
+type Query {
     ping: String
-    deviceMessagesUnified(
-        historyWindowSize: Int!,
-        deviceId: String,
-    ): [ZigbeeDeviceMessage]
-    zigbeeDevices: [ZigbeeDevice]
-    zigbeeDevice(deviceId: String!): ZigbeeDevice
-    valveStatusMessages(
-        historyWindowSize: Int
-    ): [ValveStatusMessage]
+    deviceMessagesUnified(historyWindowSize: Int, deviceId: String): [DeviceMessageUnified]
+    zigbeeDevices(historyWindowSize: Int): [ZigbeeDevice]
+    zigbeeDevice(deviceId: String): ZigbeeDevice
+    valveStatusMessages(historyWindowSize: Int, origin: String): [ValveStatusMessage]
+    lastTemperatureMessage: DeviceMessageUnified
+    sonoffDevices: [SonoffDevice]
+    yeelightDevices(historyWindowSize: Int): [YeelightDevice]
+    stats: Stats
 }
-type ZigbeeDeviceMessage {
+
+enum OnOff {
+    on
+    off
+}
+
+type Stats {
+    zigbee_devices: Int
+    valve_status_messages: Int
+    device_messages_unified: Int
+    yeelight_devices: Int
+    yeelight_device_messages: Int
+    sonoff_devices: Int
+}
+
+type YeelightDevice {
+    id: String
+    timestamp: Float
+    location: String
+    model: String
+    support: String
+    host: String
+    port: Int
+    power: OnOff
+    bright: String
+    color_mode: String
+    ct: String
+    rgb: String
+    hue: String
+    sat: String
+    messages: [YeelightDeviceMessage]
+    customAttributes: DeviceCustomAttributesMap
+}
+
+type YeelightDeviceMessage {
     device_id: String
     timestamp: Float
+    id: Int
+    result: [String]
 }
-type DeviceCustomAttribute {
+
+type SonoffDevice {
+    timestamp: Float
+    device_id: String
+    ip: String
+    port: Int
+    switch: OnOff
+    startup: OnOff
+    pulse: OnOff
+    sledOnline: OnOff
+    fwVersion: String
+    pulseWidth: Int
+    rssi: Int
+    customAttributes: DeviceCustomAttributesMap
+}
+
+type DeviceMessageUnified {
+    device_id: String!
+    timestamp: Float!
+    battery: Int
+    battery_low: Boolean
+    linkquality: Int
+    tamper: Boolean
+    temperature: Float
+    voltage: Int
+    water_leak: Boolean
+    humidity: Float
+    pressure: Float
+}
+
+type DeviceCustomAttributesMap {
     name: String
     isHidden: Boolean
 }
+
 type ZigbeeDevice {
-    friendly_name: String!
-    last_seen: Float!
-    type: String!
-    network_address: Int!
+    friendly_name: String
+    last_seen: Float
+    type: String
+    network_address: Int
     description: String
     model: String
     model_id: String
@@ -31,9 +97,10 @@ type ZigbeeDevice {
     voltage: Int
     battery: Int
     custom_description: String
-    messages: [ZigbeeDeviceMessage]
-    attributes: [DeviceCustomAttribute]
+    messages: [DeviceMessageUnified]
+    customAttributes: DeviceCustomAttributesMap
 }
+
 type ValveStatusMessage {
     timestamp: Float
     time: Int
@@ -42,7 +109,4 @@ type ValveStatusMessage {
     hotMeterTicks: Int
     coldMeterTicks: Int
     origin: String
-}
-schema {
-  query: RootQuery
 }

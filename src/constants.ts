@@ -1,3 +1,4 @@
+import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
 import path from 'path';
 
 export const APP_HOST = 'localhost';
@@ -65,6 +66,11 @@ export const DEVICE_NAME_TO_ID: Record<string, string> = {
 
 export const DEVICE_CUSTOM_ATTRIBUTE_NAME = 'name';
 export const DEVICE_CUSTOM_ATTRIBUTE_IS_HIDDEN = 'isHidden';
+
+export const QUERY_OPTIONS: QueryHookOptions = {
+    pollInterval: 10000,
+    fetchPolicy: "network-only",
+};
 
 // export const COUCHDB_HOST = 'localhost';
 // export const COUCHDB_PORT = 5984;

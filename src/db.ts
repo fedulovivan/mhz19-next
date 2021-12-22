@@ -2,6 +2,7 @@
 
 import { oneLine } from 'common-tags';
 import Debug from 'debug';
+import set from 'lodash/set';
 import sqlite3, { Statement } from 'sqlite3';
 
 import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
@@ -233,8 +234,16 @@ export async function insertIntoValveStatusMessages(
     );
 }
 
+export function toMap(rows: Array<any>) {
+    const result = {};
+    rows.forEach(row => {
+        set(result, `${row.device_id}.${row.attribute_type}`, row.value);
+    });
+    return result;
+}
+
 export async function fetchDeviceCustomAttributes(
-    params: Partial<IDeviceCustomAttribute> = {}
+    params: Partial<IDeviceCustomAttribute> = {},
 ) {
     const where: Array<string> = [];
     const { deviceId, attributeType } = params;
@@ -371,7 +380,7 @@ export async function fetchYeelightDevices() {
     return unwrapJson(rows);
 }
 
-export async function fetchZigbeeDevices(deviceId?: string, historyWindowSize?: number) {
+export async function fetchZigbeeDevices(deviceId?: string) {
     const where = [];
     const params: any = {};
     if (deviceId) {
@@ -386,20 +395,31 @@ export async function fetchZigbeeDevices(deviceId?: string, historyWindowSize?: 
 }
 
 export async function fetchValveStatusMessages(
-    historyWindowSize?: number
+    historyWindowSize?: number,
+    origin?: string,
 ) {
-    const where = historyWindowSize ? `WHERE timestamp > ${Date.now() - historyWindowSize}` : "";
+    const where = [];
+    const params: any = {};
+    if (historyWindowSize) {
+        where.push(`timestamp > $timestamp`);
+        params.$timestamp = Date.now() - historyWindowSize;
+    }
+    if (origin) {
+        where.push(`json_extract(json, '$.origin') like $origin`);
+        params.$origin = `%${origin}%`;
+    }
     const rows = await select(oneLine`
         SELECT * FROM valve_status_messages
-        ${where}
+        ${where.length ? "WHERE" : ""} ${where.join(" AND ")}
         ORDER BY timestamp DESC
-    `);
+    `, params);
     return unwrapJson(rows);
 }
 
 export async function fetchDeviceMessagesUnified(
     historyWindowSize?: number,
     deviceId?: string,
+    onlyLastMessage = false,
 ) {
     const where = [];
     const params: any = {};
@@ -413,8 +433,9 @@ export async function fetchDeviceMessagesUnified(
     }
     const rows = await select(oneLine`
         SELECT * FROM device_messages_unified
-        WHERE ${where.join(' AND ')}
+        ${where.length ? "WHERE" : ""} ${where.join(" AND ")}
         ORDER BY timestamp DESC
+        ${onlyLastMessage ? " LIMIT 1" : ""}
     `, params);
     return unwrapJson(rows);
 }
@@ -566,3 +587,8 @@ export default db;
 // db.run(`DROP TABLE sonoff_devices`);
 // db.run(`DROP TABLE zigbee_devices`);
 // db.run(`DROP TABLE valve_status_messages`);
+
+// SELECT
+//   datetime(TIMESTAMP/1000, 'unixepoch', 'localtime'),
+//   json_extract(json, '$.time') as time
+// from valve_status_messages where time < 50 ORDER BY timestamp DESC

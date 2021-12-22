@@ -16,6 +16,7 @@ import db, {
     fetchYeelightDeviceMessages,
     fetchYeelightDevices,
     fetchZigbeeDevices,
+    toMap,
 } from 'src/db';
 import log from 'src/logger';
 import mqttClient from 'src/mqttClient';
@@ -116,11 +117,7 @@ router.get('/sonoff-devices', async (req, res) => {
 
 router.get('/device-custom-attributes', async (req, res) => {
     try {
-        const rows = await fetchDeviceCustomAttributes();
-        const result = {};
-        rows.forEach(row => {
-            set(result, `${row.device_id}.${row.attribute_type}`, row.value);
-        });
+        const result = toMap(await fetchDeviceCustomAttributes());
         res.json(result);
     } catch (e: any) {
         sendError(res, e);

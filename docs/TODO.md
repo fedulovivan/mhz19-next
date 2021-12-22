@@ -5,6 +5,7 @@
 - indicate on temterature message card, whether shown data is outdated
 - try golang on server side (!)
 - find solution for stucked parcel:dev builds
+- try https://github.com/dotansimha/graphql-code-generator
 
 ### DONE
 - (+) try graphql

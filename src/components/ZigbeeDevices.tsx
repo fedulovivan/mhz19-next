@@ -4,13 +4,7 @@ import React, {
     useState,
 } from 'react';
 
-import {
-    ApolloClient,
-    ApolloProvider,
-    gql,
-    InMemoryCache,
-    useQuery,
-} from '@apollo/client';
+import { useQuery } from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import {
     green,
@@ -27,45 +21,29 @@ import TableContainer from '@material-ui/core/TableContainer';
 import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 
-// import {
-//     localStorageGetNumber,
-//     localStorageSet,
-//     toZigbeeDeviceFormat,
-// } from 'src/clientUtils';
 import ZigbeeDeviceRow from 'src/components/ZigbeeDeviceRow';
-
-const GET_ZIGBEE_DEVICES = gql`
-    query GetZigbeeDevices {
-        zigbeeDevices {
-            description
-            friendly_name
-            last_seen
-            model
-            model_id
-            network_address
-            power_source
-            type
-            vendor
-            voltage
-            battery
-            custom_description
-            # messages
-        }
-    }
-`;
+import { QUERY_OPTIONS } from 'src/constants';
+import * as queries from 'src/queries';
 
 const ZigbeeDevices: React.FC<{
-    deviceMessagesGroupped: any;
-    deviceCustomAttributes: any;
+    historyWindowSize?: number;
     className?: string;
 }> = ({
-    deviceMessagesGroupped,
-    deviceCustomAttributes,
-    className
+    className,
+    historyWindowSize,
 }) => {
 
         const [showHidden, setShowHidden] = useState(false);
-        const { loading, error, data } = useQuery(GET_ZIGBEE_DEVICES);
+        const { loading, error, data } = useQuery(
+            queries.GET_ZIGBEE_DEVICES, {
+                variables: {
+                    historyWindowSize,
+                },
+                ...QUERY_OPTIONS,
+            }
+        );
+
+        // console.log(queries.GET_ZIGBEE_DEVICES);
 
         if (loading) return <>Loading...</>;
         if (error) return <>{error.message}</>;
@@ -102,14 +80,12 @@ const ZigbeeDevices: React.FC<{
                         </TableRow>
                     </TableHead>
                     <TableBody>
-                        {data.zigbeeDevices.map((device) => {
+                        {data.zigbeeDevices.map((device: any) => {
                             if (device.friendly_name === 'Coordinator') return null;
                             return (
                                 <ZigbeeDeviceRow
                                     key={device.friendly_name}
                                     device={device}
-                                    deviceMessagesGroupped={deviceMessagesGroupped}
-                                    deviceCustomAttributes={deviceCustomAttributes[device.friendly_name]}
                                     showHidden={showHidden}
                                 />
                             );

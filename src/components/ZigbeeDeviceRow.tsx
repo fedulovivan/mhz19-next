@@ -30,24 +30,20 @@ import {
 
 const ZigbeeDeviceRow: React.FC<{
     device: any;
-    deviceMessagesGroupped: any;
-    deviceCustomAttributes: IDeviceCustomAttributes;
     showHidden: boolean;
 }> = ({
     device,
-    deviceMessagesGroupped,
-    deviceCustomAttributes,
     showHidden,
 }) => {
 
-    const isHidden = deviceCustomAttributes?.isHidden === 'true';
+    const isHidden = device.customAttributes?.isHidden === 'true';
 
     // hidden device
     if (isHidden && !showHidden) {
         return null;
     }
 
-    const sortedMessages = sortBy(deviceMessagesGroupped[device.friendly_name], 'timestamp').reverse();
+    const sortedMessages = sortBy(device.messages, 'timestamp').reverse();
 
     const mostRecentMessage = first(sortedMessages);
     const lastSeenMoment = mostRecentMessage ? moment(mostRecentMessage.timestamp) : undefined;
@@ -57,7 +53,7 @@ const ZigbeeDeviceRow: React.FC<{
     return (
         <TableRow hover>
             <TableCell>{device.description ?? '-'}{isHidden ? ' (Hidden)' : ''}</TableCell>
-            <TableCell>{deviceCustomAttributes?.name ?? '-'}</TableCell>
+            <TableCell>{device.customAttributes?.name ?? '-'}</TableCell>
             <TableCell
                 className={outdated ? css`color: ${red[500]} !important` : undefined}
             >
