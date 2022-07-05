@@ -19,6 +19,7 @@ import {
     fetchYeelightDeviceMessages,
     fetchYeelightDevices,
     fetchZigbeeDevices,
+    fetchZigbeeDevicesV2,
     toMap,
 } from 'src/db';
 
@@ -43,7 +44,7 @@ const resolvers: IResolvers<any, IMyContext> = {
             context.deviceMessagesUnified = await fetchDeviceMessagesUnified(
                 args.historyWindowSize,
             );
-            return fetchZigbeeDevices();
+            return fetchZigbeeDevicesV2();
         },
         deviceMessagesUnified: (parent, args, context, info) => {
             return fetchDeviceMessagesUnified(
@@ -76,14 +77,14 @@ const resolvers: IResolvers<any, IMyContext> = {
         },
         stats: (parent, args, context, info) => fetchStats(),
     },
-    ZigbeeDevice: {
+    ZigbeeDeviceV2: {
         messages: (parent, args, context, info) => {
             return context.deviceMessagesUnified.filter(
-                message => message.device_id === parent.friendly_name
+                message => message.device_id === parent.ieee_address
             );
         },
         customAttributes: (parent, args, context, info) => {
-            return context.deviceCustomAttributes[parent.friendly_name];
+            return context.deviceCustomAttributes[parent.ieee_address];
         },
     },
     SonoffDevice: {

@@ -21,11 +21,10 @@ let update_device_custom_attributes: Statement;
 let delete_from_yeelight_devices: Statement;
 let insert_into_sonoff_devices: Statement;
 let update_sonoff_devices: Statement;
+let insert_into_zigbee_devices_v2: Statement;
+let update_zigbee_devices_v2: Statement;
 
 db.serialize(function() {
-
-    // db.run(`DROP TABLE valve_status_messages`);
-
     db.run(`PRAGMA foreign_keys = ON`);
     db.run(`
         CREATE TABLE IF NOT EXISTS yeelight_devices (
@@ -66,6 +65,17 @@ db.serialize(function() {
         )
     `);
     db.run(`
+        CREATE TABLE IF NOT EXISTS zigbee_devices_v2 (
+            ieee_address STRING,
+            friendly_name STRING,
+            model_id STRING,
+            type STRING,
+            timestamp INTEGER,
+            json STRING,
+            UNIQUE(ieee_address)
+        )
+    `);
+    db.run(`
         CREATE TABLE IF NOT EXISTS valve_status_messages (
             timestamp INTEGER,
             json STRING
@@ -98,6 +108,7 @@ db.serialize(function() {
     `);
 
     db.run(`DELETE FROM zigbee_devices`);
+    db.run(`DELETE FROM zigbee_devices_v2`);
     db.run(`DELETE FROM yeelight_devices`);
     db.run(`DELETE FROM yeelight_device_messages`);
     db.run(`DELETE FROM sonoff_devices`);
@@ -146,6 +157,28 @@ db.serialize(function() {
     update_sonoff_devices = db.prepare(`
         UPDATE sonoff_devices SET timestamp = $timestamp, json = $json WHERE device_id = $device_id
     `);
+    insert_into_zigbee_devices_v2 = db.prepare(`
+        INSERT INTO zigbee_devices_v2 VALUES(
+            $ieee_address,
+            $friendly_name,
+            $model_id,
+            $type,
+            $timestamp,
+            $json
+        )
+    `);
+    update_zigbee_devices_v2 = db.prepare(`
+            UPDATE
+                zigbee_devices_v2
+            SET
+                friendly_name = $friendly_name,
+                model_id = $model_id,
+                type = $type,
+                timestamp = $timestamp,
+                json = $json
+            WHERE
+                ieee_address = $ieee_address
+    `);
 });
 
 export function unwrapJson(rows: Array<Record<string, any> | { json: string }>) {
@@ -163,7 +196,7 @@ function select(
     qstring: string,
     params: any = undefined,
 ): Promise<Array<Record<string, any>>> {
-    debug(`executing query: `, qstring, params);
+    // debug(`executing query: `, qstring, params);
     return new Promise((resolve, reject) => {
         db.all(qstring, params, (error, rows) => {
             if (error) {
@@ -341,6 +374,59 @@ export async function createOrUpdateSonoffDevice(device: ISonoffDevice) {
     throw new Error(`Unexpected conditions`);
 }
 
+export async function fetchZigbeeDevicesV2(ieeeAddress?: string) {
+    const where = [];
+    const params: any = {};
+    if (ieeeAddress) {
+        where.push(`ieee_address = $ieeeAddress`);
+        params.$ieeeAddress = ieeeAddress;
+    }
+    const rows = await select(oneLine`
+        SELECT * FROM zigbee_devices_v2
+        ${where.length ? "WHERE" : ""} ${where.join(" AND ")}
+        ORDER BY model_id, ieee_address
+    `, params);
+    return unwrapJson(rows);
+}
+
+export async function createOrUpdateZigbeeDevice(device: IZigbee2MqttBridgeDevice) {
+    const {
+        ieee_address,
+        friendly_name,
+        model_id,
+        type,
+        ...rest
+    } = device;
+    const json = JSON.stringify(rest);
+    const timestamp = Date.now();
+    const existing = await fetchZigbeeDevicesV2(ieee_address);
+    if (existing.length === 1) {
+        return runStatement(
+            update_zigbee_devices_v2, {
+                $friendly_name: friendly_name,
+                $model_id: model_id,
+                $type: type,
+                $timestamp: timestamp,
+                $json: json,
+                $ieee_address: ieee_address,
+            }
+        );
+    }
+    if (existing.length === 0) {
+        return runStatement(
+            insert_into_zigbee_devices_v2, {
+                $ieee_address: ieee_address,
+                $friendly_name: friendly_name,
+                $model_id: model_id,
+                $type: type,
+                $timestamp: timestamp,
+                $json: json,
+            }
+        );
+    }
+    throw new Error(`Unexpected conditions`);
+}
+
 export async function insertIntoYeelightDevices(
     id: string,
     location: string,
@@ -380,6 +466,7 @@ export async function fetchYeelightDevices() {
     return unwrapJson(rows);
 }
 
+/** @deprecated */
 export async function fetchZigbeeDevices(deviceId?: string) {
     const where = [];
     const params: any = {};
@@ -500,6 +587,9 @@ export function insertIntoZigbeeDevices(
 
 export default db;
 
+// db.run(`DROP TABLE valve_status_messages`);
+// db.run(`delete from device_messages_unified where device_id = '0x00158d00067cb0c9' and json is NULL`);
+
 // select(`SELECT COUNT(*) AS temperature_sensor_messages FROM temperature_sensor_messages`),
 
 // export async function fetchTemperatureSensorMessages(historyWindowSize?: number) {
@@ -592,3 +682,5 @@ export default db;
 //   datetime(TIMESTAMP/1000, 'unixepoch', 'localtime'),
 //   json_extract(json, '$.time') as time
 // from valve_status_messages where time < 50 ORDER BY timestamp DESC
+
+// db.run(`DROP TABLE zigbee_devices_v2`);

@@ -19,17 +19,22 @@ import moment from 'moment';
 
 import LastSeenBar from 'src/components/LastSeenBar';
 import Messages from 'src/components/Messages';
-import {
-    HISTORY_WINDOW_14DAYS,
-    HISTORY_WINDOW_30DAYS,
-    HISTORY_WINDOW_3DAYS,
-    HISTORY_WINDOW_7DAYS,
-    HISTORY_WINDOW_DAY,
-    LAST_SEEN_OUTDATION,
-} from 'src/constants';
+import { LAST_SEEN_OUTDATION } from 'src/constants';
 
 const ZigbeeDeviceRow: React.FC<{
-    device: any;
+    device: IZigbee2MqttBridgeDevice & {
+        timestamp: number;
+        customAttributes: {
+            name: string;
+            isHidden: string;
+        };
+        messages: Array<{
+            device_id: string;
+            timestamp: number;
+            battery: number;
+            linkquality: number;
+        }>;
+    };
     showHidden: boolean;
 }> = ({
     device,
@@ -49,10 +54,13 @@ const ZigbeeDeviceRow: React.FC<{
     const lastSeenMoment = mostRecentMessage ? moment(mostRecentMessage.timestamp) : undefined;
     const fromNowMs = lastSeenMoment ? Date.now() - lastSeenMoment.valueOf() : undefined;
     const outdated = fromNowMs ? fromNowMs > LAST_SEEN_OUTDATION : true;
+    const timestampAsMoment = moment(device.timestamp);
 
     return (
         <TableRow hover>
-            <TableCell>{device.description ?? '-'}{isHidden ? ' (Hidden)' : ''}</TableCell>
+            <TableCell>{device.ieee_address}</TableCell>
+            <TableCell title={timestampAsMoment.format()}>{/* device.timestamp */timestampAsMoment.fromNow()}</TableCell>
+            <TableCell>{device.definition?.description ?? '-'}{isHidden ? ' (Hidden)' : ''}</TableCell>
             <TableCell>{device.customAttributes?.name ?? '-'}</TableCell>
             <TableCell
                 className={outdated ? css`color: ${red[500]} !important` : undefined}
@@ -65,7 +73,6 @@ const ZigbeeDeviceRow: React.FC<{
                 <LastSeenBar sortedMessages={sortedMessages} />
             </TableCell>
             <TableCell>{mostRecentMessage?.battery ?? '-'}</TableCell>
-            <TableCell>{device.friendly_name}</TableCell>
         </TableRow>
     );
 };

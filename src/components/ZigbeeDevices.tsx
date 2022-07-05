@@ -43,8 +43,6 @@ const ZigbeeDevices: React.FC<{
             }
         );
 
-        // console.log(queries.GET_ZIGBEE_DEVICES);
-
         if (loading) return <>Loading...</>;
         if (error) return <>{error.message}</>;
 
@@ -72,16 +70,17 @@ const ZigbeeDevices: React.FC<{
                     </caption>
                     <TableHead>
                         <TableRow>
+                            <TableCell>IEEE Address</TableCell>
+                            <TableCell>Updated</TableCell>
                             <TableCell>Name</TableCell>
                             <TableCell>Custom Name</TableCell>
                             <TableCell>Last Message</TableCell>
                             <TableCell>Battery</TableCell>
-                            <TableCell>Device ID</TableCell>
                         </TableRow>
                     </TableHead>
                     <TableBody>
                         {data.zigbeeDevices.map((device: any) => {
-                            if (device.friendly_name === 'Coordinator') return null;
+                            if (device.type === 'Coordinator') return null;
                             return (
                                 <ZigbeeDeviceRow
                                     key={device.friendly_name}

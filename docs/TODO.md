@@ -6,8 +6,12 @@
 - try golang on server side (!)
 - find solution for stucked parcel:dev builds
 - try https://github.com/dotansimha/graphql-code-generator
+- introduce data type field in device_custom_attributes table
+- remove hardcode: yeelightDeviceSetPower from supportedAdapters works only bedroom ceiling light
 
 ### DONE
+- (+) fix saving list of zigbee devices in new format
+- (+) fix saving network map
 - (+) try graphql
 - (+) send zigbee2mqtt/bridge/config/devices/get periodically
 - (+) LastSeenBar message=undefined figure this out

@@ -16,6 +16,7 @@ import db, {
     fetchYeelightDeviceMessages,
     fetchYeelightDevices,
     fetchZigbeeDevices,
+    fetchZigbeeDevicesV2,
     toMap,
 } from 'src/db';
 import log from 'src/logger';
@@ -28,7 +29,8 @@ import {
     postSonoffSwitchMessage,
     sendError,
 } from 'src/utils';
-import yeelightDevices from 'src/yeelightDevices';
+
+// import yeelightDevices from 'src/yeelightDevices';
 
 const router = Express.Router();
 
@@ -90,7 +92,7 @@ router.get('/yeelight-device-messages', async (req, res) => {
 
 router.get('/zigbee-devices', async (req, res) => {
     try {
-        const rows = await fetchZigbeeDevices();
+        const rows = await fetchZigbeeDevicesV2();
         res.json(rows);
     } catch (e: any) {
         sendError(res, e);
@@ -153,31 +155,31 @@ router.put('/sonoff-device/:deviceId/switch', async (req, res) => {
     }
 });
 
-router.put('/yeelight-device/:deviceId/:state', async (req, res) => {
-    try {
-        const { deviceId, state } = req.params;
-        const { commandId } = req.body;
-        const device = yeelightDevices.get(deviceId);
-        if (!device) {
-            return sendError(res, `yeelight device ${deviceId} is not registered\n${new Error().stack}`);
-        }
-        log.info(`calling set_power state=${state} on device ${deviceId}`);
-        device.sendCommand({
-            id: commandId,
-            method: 'set_power',
-            params: [state, 'smooth', 0],
-        });
-        await asyncTimeout(100);
-        const lastMessages = await fetchYeelightDeviceMessages(
-            undefined,
-            deviceId,
-            commandId
-        );
-        res.json(lastMessages);
-    } catch (e: any) {
-        sendError(res, e);
-    }
-});
+// router.put('/yeelight-device/:deviceId/:state', async (req, res) => {
+//     try {
+//         const { deviceId, state } = req.params;
+//         const { commandId } = req.body;
+//         const device = yeelightDevices.get(deviceId);
+//         if (!device) {
+//             return sendError(res, `yeelight device ${deviceId} is not registered\n${new Error().stack}`);
+//         }
+//         log.info(`calling set_power state=${state} on device ${deviceId}`);
+//         device.sendCommand({
+//             id: commandId,
+//             method: 'set_power',
+//             params: [state, 'smooth', 0],
+//         });
+//         await asyncTimeout(100);
+//         const lastMessages = await fetchYeelightDeviceMessages(
+//             undefined,
+//             deviceId,
+//             commandId
+//         );
+//         res.json(lastMessages);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
 
 router.get('/stats', async (req, res) => {
     try {

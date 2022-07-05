@@ -109,18 +109,34 @@ export const GET_ZIGBEE_DEVICES = gql`
     ${ALL_DEVICE_CUSTOM_ATTRIBUTES_FRAGMENT}
     query GetZigbeeDevices($historyWindowSize: Int) {
         zigbeeDevices(historyWindowSize: $historyWindowSize) {
-            description
-            friendly_name
-            last_seen
-            model
-            model_id
-            network_address
-            power_source
+            timestamp
+            ieee_address
             type
-            vendor
-            voltage
-            battery
-            custom_description
+            network_address
+            supported
+            friendly_name
+            definition {
+                model
+                vendor
+                description
+            }
+            power_source
+            date_code
+            model_id
+            interviewing
+            interview_completed
+            # description
+            # friendly_name
+            # last_seen
+            # model
+            # model_id
+            # network_address
+            # power_source
+            # type
+            # vendor
+            # voltage
+            # battery
+            # custom_description
             messages {
                 ...CommonFields
                 ...TemperatureSensor

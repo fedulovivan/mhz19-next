@@ -6,6 +6,11 @@ import 'src/http';
 import config from 'config';
 import Debug from 'debug';
 
+import {
+    ActionsExecutor,
+    mapping,
+    supportedOutputActions,
+} from 'src/automation-engine';
 import bot, { botSendButtons } from 'src/bot';
 import {
     BEDROOM_CEILING_LIGHT,
@@ -23,6 +28,7 @@ import {
 } from 'src/constants';
 import {
     createOrUpdateSonoffDevice,
+    createOrUpdateZigbeeDevice,
     insertIntoDeviceCustomAttributes,
     insertIntoValveStatusMessages,
     insertIntoZigbeeDevices,
@@ -35,14 +41,24 @@ import {
     asyncTimeout,
     getAppUrl,
     mqttMessageDispatcher,
-    postBedroomCeilingLightMessage,
-    postIkeaLedBulb,
     postSonoffSwitchMessage,
     saveGraphvizNetworkmap,
+    yeelightDeviceSetPower,
 } from 'src/utils';
-import yeelightDevices from 'src/yeelightDevices';
+
+// import yeelightDevices from 'src/yeelightDevices';
 
 const debug = Debug('mhz19-server');
+
+const actionsExecutor = new ActionsExecutor({
+    mapping,
+    supportedOutputActions,
+    supportedAdapters: {
+        Mqtt: () => mqttClient,
+        Sonoff: () => postSonoffSwitchMessage,
+        Yeelight: () => yeelightDeviceSetPower,
+    }
+});
 
 updatesChannel.on('update', (devicesMap: TSonoffDevicesMap) => {
     Array.from(devicesMap.values()).forEach(device => {
@@ -50,27 +66,22 @@ updatesChannel.on('update', (devicesMap: TSonoffDevicesMap) => {
     });
 });
 
-const deviceCustomAttributes: Array<[string, TDeviceCustomAttribute, string]> = [
+// const deviceCustomAttributes: Array<[string, TDeviceCustomAttribute, string]> = [
+//     ['0x00000000064c5293', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Ceiling Light'],
+//     ['0x0000000003b6cd80', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Toilet Ceiling Light'],
+//     ['0x0000000003b6cf16', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bathroom Ceiling Light'],
+//     ['0x00158d000405811b', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Bathroom'],
+//     ['0x00158d0004035e3e', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Kitchen'],
+//     ['0x00158d00040356af', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Toilet'],
+//     ['0x00158d00042446ec', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Switch'],
+//     ['0x00158d0004244bda', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Switch'],
+//     ['10011cec96', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Undercabinet Light'],
+//     ['10011c1eeb', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Ceiling Light'],
+// ];
 
-    ['0x00000000064c5293', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Ceiling Light'],
-
-    ['0x0000000003b6cd80', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Toilet Ceiling Light'],
-    ['0x0000000003b6cf16', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bathroom Ceiling Light'],
-
-    ['0x00158d000405811b', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Bathroom'],
-    ['0x00158d0004035e3e', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Kitchen'],
-    ['0x00158d00040356af', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Toilet'],
-
-    ['0x00158d00042446ec', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Switch'],
-    ['0x00158d0004244bda', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Switch'],
-
-    ['10011cec96', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Undercabinet Light'],
-    ['10011c1eeb', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Ceiling Light'],
-];
-
-deviceCustomAttributes.forEach(([deviceId, attributeType, value]) => {
-    insertIntoDeviceCustomAttributes({ deviceId, attributeType, value });
-});
+// deviceCustomAttributes.forEach(([deviceId, attributeType, value]) => {
+//     insertIntoDeviceCustomAttributes({ deviceId, attributeType, value });
+// });
 
 function handleLeakage(leakage?: boolean, deviceName?: string): void {
     const appUrl = getAppUrl();
@@ -100,68 +111,73 @@ const leakageSensorHandler: IMqttMessageDispatcherHandler<IAqaraWaterSensorMessa
     handleLeakage(json?.water_leak, deviceName);
 };
 
-const kitchenSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = async ({ json }) => {
-    // switch all on
-    if (json?.action === 'single_left') {
-        postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
-        postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
-    }
-    // switch all off
-    if (json?.action === 'single_right') {
-        postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
-        postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
-    }
-    // switch ceiling lights off
-    if (json?.action === 'hold_left') {
-        postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
-    }
-    // switch undercabinet lights off
-    if (json?.action === 'hold_right') {
-        postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
-    }
-};
+// const kitchenSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = async ({ json }) => {
+//     // switch all on
+//     if (json?.action === 'single_left') {
+//         postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
+//         postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
+//     }
+//     // switch all off
+//     if (json?.action === 'single_right') {
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
+//     }
+//     // switch ceiling lights off
+//     if (json?.action === 'hold_left') {
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
+//     }
+//     // switch undercabinet lights off
+//     if (json?.action === 'hold_right') {
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
+//     }
+// };
 
-const bedroomSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = ({ timestamp, deviceId, json }) => {
-    if (json?.action === 'single_left') {
-        postBedroomCeilingLightMessage('on');
-        postIkeaLedBulb('on');
-    }
-    if (json?.action === 'single_right') {
-        postBedroomCeilingLightMessage('off');
-        postIkeaLedBulb('off');
-    }
-    // const bedroomCeilingLightDeviceId = DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT];
-    // const bedroomCeilingLight = yeelightDevices.get(bedroomCeilingLightDeviceId);
-    // if (!bedroomCeilingLight) {
-    //     bot.sendMessage(
-    //         config.telegram.chatId,
-    //         `yeelightDevice ${bedroomCeilingLightDeviceId} (${BEDROOM_CEILING_LIGHT}) is not registered`
-    //     );
-    //     return;
-    // }
-};
+// const bedroomSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = ({ timestamp, deviceId, json }) => {
+//     if (json?.action === 'single_left') {
+//         yeelightDeviceSetPower(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT], 'on');
+//     }
+//     if (json?.action === 'single_right') {
+//         yeelightDeviceSetPower(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT], 'off');
+//     }
+//     // postIkeaLedBulb('on');
+//     // postIkeaLedBulb('off');
+//     // const bedroomCeilingLightDeviceId = DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT];
+//     // const bedroomCeilingLight = yeelightDevices.get(bedroomCeilingLightDeviceId);
+//     // if (!bedroomCeilingLight) {
+//     //     bot.sendMessage(
+//     //         config.telegram.chatId,
+//     //         `yeelightDevice ${bedroomCeilingLightDeviceId} (${BEDROOM_CEILING_LIGHT}) is not registered`
+//     //     );
+//     //     return;
+//     // }
+// };
 
-const ikeaOnoffSwitchHandler: IMqttMessageDispatcherHandler<IIkeaOnoffSwitchMessage> = ({ deviceId, json }) => {
-    if (json?.action === 'on' || json?.action === 'off') {
-        postBedroomCeilingLightMessage(json.action);
-        postIkeaLedBulb(json.action);
-    }
-};
+// const ikeaOnoffSwitchHandler: IMqttMessageDispatcherHandler<IIkeaOnoffSwitchMessage> = ({ deviceId, json }) => {
+//     if (json?.action === 'on' || json?.action === 'off') {
+//         mqttClient.publish(`zigbee2mqtt/0x00158d000391f252/set/state`, json.action);
+//         mqttClient.publish(`zigbee2mqtt/0x00158d0003a010a5/set/state`, json.action);
+//         // postBedroomCeilingLightMessage(json.action);
+//         // postIkeaLedBulb(json.action);
+//     }
+// };
 
-const bridgeConfigDevicesHandler: IMqttMessageDispatcherHandler<Array<IZigbee2mqttBridgeConfigDevice>> = ({ json }) => {
+const bridgeDevicesHandler: IMqttMessageDispatcherHandler<Array<IZigbee2MqttBridgeDevice>> = ({ json }) => {
     const devices = json;
     if (devices?.length) {
         devices.forEach(device => {
-            if (device.friendly_name !== 'Coordinator') {
-                insertIntoZigbeeDevices(device);
-            }
+            createOrUpdateZigbeeDevice(device);
+            // if (device.friendly_name !== 'Coordinator') {
+            //     insertIntoZigbeeDevices(device);
+            // }
         });
     }
 };
 
-const bridgeNetworkmapGraphvizHandler: IMqttMessageDispatcherHandler = async ({ rawMessage }) => {
+const zigbee2mqttBridgeResponseNetworkmapHandler: IMqttMessageDispatcherHandler = async ({ json }) => {
     log.info("saving network map...");
-    await saveGraphvizNetworkmap(rawMessage);
+    if (json?.data?.type === 'graphviz') {
+        await saveGraphvizNetworkmap(json.data.value);
+    }
     log.info("network map saved");
 };
 
@@ -176,32 +192,44 @@ const valveStateStatusHandler: IMqttMessageDispatcherHandler = (payload) => {
     }
 };
 
+const zigbee2MqttWildcardHandler: IMqttMessageDispatcherHandler = ({ deviceId, json }) => {
+    if (deviceId) {
+        actionsExecutor.handleZigbeeMessage(deviceId, json);
+    }
+};
+
 mqttMessageDispatcher(mqttClient, [
 
     // handle status messages from valves manipulator box
     [`/VALVE/STATE/STATUS`, valveStateStatusHandler],
 
-    // response to "zigbee2mqtt/bridge/config/devices/get" command
-    ['zigbee2mqtt/bridge/config/devices', bridgeConfigDevicesHandler],
+    // devices connected to the bridge
+    // see https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-bridge-devices
+    ['zigbee2mqtt/bridge/devices', bridgeDevicesHandler],
 
-    // rsponse to "zigbee2mqtt/bridge/networkmap" command
-    ['zigbee2mqtt/bridge/networkmap/graphviz', bridgeNetworkmapGraphvizHandler],
+    // rsponse to "zigbee2mqtt/bridge/request/networkmap" command
+    ['zigbee2mqtt/bridge/response/networkmap', zigbee2mqttBridgeResponseNetworkmapHandler],
 
     // play alert and sent telegram message when leakage sensors turn their water_leak state
     [LEAKAGE_SENSOR_KITCHEN, leakageSensorHandler],
     [LEAKAGE_SENSOR_BATHROOM, leakageSensorHandler],
     [LEAKAGE_SENSOR_TOILET, leakageSensorHandler],
 
-    // switch bedroom ceiling light on/off
-    [WALL_SWITCH_BEDROOM, bedroomSwitchHandler],
+    // connect ActionsExecutor
+    ['zigbee2mqtt', zigbee2MqttWildcardHandler],
 
-    // switch kitchen working lights on/off
-    [WALL_SWITCH_KITCHEN, kitchenSwitchHandler],
-
-    // handle messages from tradfri on/off switch
-    [IKEA_ONOFF_SWITCH, ikeaOnoffSwitchHandler],
-
+], [
+    'zigbee2mqtt/bridge/logging'
 ]);
+
+// switch bedroom ceiling light on/off
+// [WALL_SWITCH_BEDROOM, bedroomSwitchHandler],
+
+// switch kitchen working lights on/off
+// [WALL_SWITCH_KITCHEN, kitchenSwitchHandler],
+
+// handle messages from tradfri on/off switch
+// [IKEA_ONOFF_SWITCH, ikeaOnoffSwitchHandler],
 
 // [
 //     TEMPERATURE_SENSOR, ({ deviceId, json, timestamp }) => {

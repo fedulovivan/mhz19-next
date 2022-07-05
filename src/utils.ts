@@ -7,6 +7,8 @@ import Debug from 'debug';
 import { Response } from 'express';
 import { MqttClient } from 'mqtt';
 import os from 'os';
+// @ts-ignore
+import { Device, Discovery } from 'yeelight-platform';
 
 import {
     BEDROOM_CEILING_LIGHT,
@@ -16,8 +18,13 @@ import {
 import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
 import log, { withDebug } from 'src/logger';
 import mqttClient from 'src/mqttClient';
-import yeelightDevices from 'src/yeelightDevices';
 
+const bedroomCeilingLight = new Device({
+    host: '192.168.88.169', port: 55443
+});
+bedroomCeilingLight.connect();
+
+// import yeelightDevices from 'src/yeelightDevices';
 // import { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
 // const debug = Debug('mhz19-dispatcher');
@@ -45,8 +52,13 @@ export function mqttMessageDispatcher(
         topicPrefixOrDeviceName: string,
         handler: IMqttMessageDispatcherHandler,
     ]>,
+    excludedTopics?: Array<string>
 ) {
     mqttClient.on('message', async function (fullTopic, message) {
+
+        if (excludedTopics?.length && excludedTopics.includes(fullTopic)) {
+            return;
+        }
 
         debug('\ntopic:', fullTopic);
         const rawMessage = message.toString();
@@ -60,22 +72,25 @@ export function mqttMessageDispatcher(
             debug('string:', rawMessage);
         }
 
+        let deviceIdFromTopic: string;
         if (fullTopic.startsWith('zigbee2mqtt/0x')/*  || fullTopic.startsWith('zigbee2mqtt/bridge') */) {
-            const [, deviceId] = fullTopic.split('/');
-            insertIntoDeviceMessagesUnified(deviceId, timestamp, json);
+            [, deviceIdFromTopic] = fullTopic.split('/');
+            insertIntoDeviceMessagesUnified(deviceIdFromTopic, timestamp, json);
         }
 
         handlersMap.forEach(([topicPrefixOrDeviceName, handler]) => {
-            const deviceId = DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
-            const deviceName = deviceId ? topicPrefixOrDeviceName : undefined;
-            if (fullTopic.startsWith(deviceId ? `zigbee2mqtt/${deviceId}` : topicPrefixOrDeviceName)) {
+
+            // const isHandlerForDeviceName = !!DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
+            const deviceIdFromMap = DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
+
+            if (fullTopic.startsWith(deviceIdFromMap ? `zigbee2mqtt/${deviceIdFromMap}` : topicPrefixOrDeviceName)) {
                 handler({
                     fullTopic,
                     json,
                     timestamp,
                     rawMessage,
-                    deviceId,
-                    deviceName
+                    deviceId: deviceIdFromTopic,
+                    deviceName: deviceIdFromMap ? topicPrefixOrDeviceName : undefined,
                 });
             }
         });
@@ -168,9 +183,10 @@ export async function postSonoffSwitchMessage(cmd: 'on' | 'off', deviceId: strin
     }
 }
 
-export async function postBedroomCeilingLightMessage(state: 'on' | 'off') {
-    debug(`sending state=${state} to ${BEDROOM_CEILING_LIGHT}...`);
-    const bedroomCeilingLight = yeelightDevices.get(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT]);
+export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'off') {
+    // const bedroomCeilingLight = yeelightDevices.get(deviceId);
+    // if (bedroomCeilingLight) {
+    // }
     bedroomCeilingLight.sendCommand({
         id: -1,
         method: 'set_power',
@@ -178,6 +194,7 @@ export async function postBedroomCeilingLightMessage(state: 'on' | 'off') {
     });
 }
 
+/** @deprecated */
 export async function postIkeaLedBulb(state: 'on' | 'off') {
     debug(`sending state=${state} to ${IKEA_400LM_LED_BULB}...`);
     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);

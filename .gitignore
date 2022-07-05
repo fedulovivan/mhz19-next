@@ -2,9 +2,10 @@ dist
 node_modules
 .cache
 *.log
+*.log.bak
 nohup.out
 config/*.json
-database.bin
+database.bin*
 .parcel-cache
 images/networkmap.svg
 src/components/SonoffDevices.tsx

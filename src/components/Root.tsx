@@ -94,7 +94,7 @@ const Root: React.FC = () => {
                     historyWindowSize={historyWindowSize}
                 />
 
-                <YeelightDevices
+                {/* <YeelightDevices
                     className="col-12"
                     historyWindowSize={historyWindowSize}
                     onDeviceFeedback={messages => {
@@ -102,7 +102,7 @@ const Root: React.FC = () => {
                             // setYeelightDeviceMessages(messages.concat(yeelightDeviceMessages));
                         }
                     }}
-                />
+                /> */}
 
                 <SonoffDevices
                     className="col-12"

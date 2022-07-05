@@ -76,6 +76,7 @@ module.exports = {
         "no-underscore-dangle": "warn",
         "no-unused-vars": "off",
         "no-var": 1,
+        "no-unused-expressions": "warn",
         "no-warning-comments": 1,
         "no-else-return": "warn",
         "object-curly-spacing": "warn",

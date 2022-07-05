@@ -23,13 +23,14 @@ mqttClient.on('connect', function () {
     };
     // ask zigbee2mqtt coordinator to send networkmap to be renderred by graphviz
     const requestNetworkMap = () => {
-        mqttClient.publish('zigbee2mqtt/bridge/networkmap', 'graphviz');
+        mqttClient.publish('zigbee2mqtt/bridge/request/networkmap', 'graphviz');
     };
 
-    requestConnectedDevices();
+    // requestConnectedDevices();
+    // setInterval(requestConnectedDevices, 60 * 1000);
+
     requestNetworkMap();
     setInterval(requestNetworkMap, 60 * 60 * 1000);
-    setInterval(requestConnectedDevices, 60 * 60 * 1000);
 
 });
 mqttClient.on('error', (...args) => debug('error', ...args));

@@ -1,19 +1,24 @@
 type Query {
     ping: String
     deviceMessagesUnified(historyWindowSize: Int, deviceId: String): [DeviceMessageUnified]
-    zigbeeDevices(historyWindowSize: Int): [ZigbeeDevice]
-    zigbeeDevice(deviceId: String): ZigbeeDevice
+    zigbeeDevices(historyWindowSize: Int): [ZigbeeDeviceV2]
     valveStatusMessages(historyWindowSize: Int, origin: String): [ValveStatusMessage]
     lastTemperatureMessage: DeviceMessageUnified
     sonoffDevices: [SonoffDevice]
     yeelightDevices(historyWindowSize: Int): [YeelightDevice]
     stats: Stats
+    # zigbeeDevice(deviceId: String): ZigbeeDevice
 }
 
 enum OnOff {
     on
     off
 }
+
+# enum TrueFalse {
+#     true
+#     false
+# }
 
 type Stats {
     zigbee_devices: Int
@@ -81,7 +86,7 @@ type DeviceMessageUnified {
 
 type DeviceCustomAttributesMap {
     name: String
-    isHidden: Boolean
+    isHidden: String
 }
 
 type ZigbeeDevice {
@@ -99,6 +104,33 @@ type ZigbeeDevice {
     custom_description: String
     messages: [DeviceMessageUnified]
     customAttributes: DeviceCustomAttributesMap
+}
+
+type ZigbeeDeviceV2 {
+    timestamp: Float
+    ieee_address: String
+    type: String
+    network_address: Int
+    supported: Boolean
+    friendly_name: String
+    definition: ZigbeeDeviceV2Definition
+    power_source: String
+    date_code: String
+    model_id: String
+    interviewing: Boolean
+    interview_completed: Boolean
+    messages: [DeviceMessageUnified]
+    customAttributes: DeviceCustomAttributesMap
+    # endpoints: Record<string, any>
+    # scenes: Array<Record<string, any>>
+}
+
+type ZigbeeDeviceV2Definition {
+    model: String
+    vendor: String
+    description: String
+    # options: Array<Record<string, any>>;
+    # exposes: Array<Record<string, any>>;
 }
 
 type ValveStatusMessage {

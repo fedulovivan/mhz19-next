@@ -20,6 +20,7 @@ declare global {
      * this array element of response to zigbee2mqtt/bridge/config/devices/get request
      * received at zigbee2mqtt/bridge/config/devices topic
      * see src/mqttClient.ts
+     * @deprecated
      */
     interface IZigbee2mqttBridgeConfigDevice {
         dateCode: string;
@@ -39,6 +40,31 @@ declare global {
         vendor: string;
         battery?: number;
         last_seen?: string;
+    }
+
+    /**
+     * since z2m 1.17.0 replaces IZigbee2mqttBridgeConfigDevice
+     */
+    interface IZigbee2MqttBridgeDevice {
+        ieee_address: string;
+        type: string;
+        network_address: number;
+        supported: boolean;
+        friendly_name: string;
+        endpoints: Record<string, any>;
+        definition: {
+            model: string;
+            vendor: string;
+            description: string;
+            options: Array<Record<string, any>>;
+            exposes: Array<Record<string, any>>;
+        };
+        power_source: string;
+        date_code: string;
+        model_id: string;
+        scenes: Array<Record<string, any>>;
+        interviewing: boolean;
+        interview_completed: boolean;
     }
 
     interface IAqaraWaterSensorMessage {
