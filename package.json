@@ -12,7 +12,8 @@
     "all:dev": "concurrently --raw \"yarn parcel:dev\" \"yarn server:dev\"",
     "tsc": "tsc --noEmit",
     "download-schema": "apollo service:download --endpoint=http://192.168.88.188:8888/graphql graphql-schema.json",
-    "test": "DEBUG=mhz19-automation-engine mocha --recursive --extension 'js,ts,tsx' --require test/prepare.js"
+    "test": "DEBUG=mhz19-automation-engine mocha --recursive --extension 'js,ts,tsx' --require test/prepare.js",
+    "logs": "tail -f main.log"
   },
   "dependencies": {
     "@apollo/client": "^3.4.17",

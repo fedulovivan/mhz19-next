@@ -99,6 +99,7 @@ export const GET_VALVE_STATUS_MESSAGES = gql`
             valve
             hotMeterTicks
             coldMeterTicks
+            chipid
         }
     }
 `;

@@ -40,13 +40,13 @@ Server side code is written in nodejs + typescript, babel as bundler/loader.
 
 ### Scripts
 
-- `build` build production client-side bundle
-- `start` launch server in production mode
-- `stop` stop production server
-- `list` list of pm2 processes
-- `parcel:dev` launch parcel in devevelopment mode
-- `server:dev` launch server in device mode (with debug enabled)
-- `all:dev` `parcel:dev` + `server:dev`
+- `yarn build` build production client-side bundle
+- `yarn start` launch server in production mode
+- `yarn stop` stop production server
+- `yarn run list` list of pm2 processes
+- `yarn parcel:dev` launch parcel in devevelopment mode
+- `yarn server:dev` launch server in device mode (with debug enabled)
+- `yarn all:dev` `parcel:dev` + `server:dev`
 
 <!-- ### TODOs
 - why cssinjs? https://medium.com/jobsity/css-in-javascript-with-jss-and-react-54cdd2720222

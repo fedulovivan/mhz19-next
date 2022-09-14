@@ -50,8 +50,8 @@ router.post('/poweroff', async (req, res) => {
     }
 });
 
-router.put('/valve-state/:state', async (req, res) => {
-    mqttClient.publish(`/VALVE/STATE/SET`, req.params.state);
+router.put('/valve-state/:id/:state', async (req, res) => {
+    mqttClient.publish(`/VALVE/${req.params.id}/STATE/SET`, req.params.state);
     res.json();
 });
 

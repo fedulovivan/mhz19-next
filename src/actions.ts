@@ -1,8 +1,8 @@
 import axios from 'axios';
 import { oneLineTrim } from 'common-tags';
 
-export const toggleValves = (state: 'open' | 'close') => {
-    axios.put(`/valve-state/${state}`);
+export const toggleValves = (id: number, state: 'open' | 'close') => {
+    axios.put(`/valve-state/${id}/${state}`);
 };
 
 export const sendYeelightDeviceCommand = async (

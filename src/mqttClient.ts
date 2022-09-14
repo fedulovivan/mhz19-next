@@ -2,6 +2,8 @@ import config from 'config';
 import Debug from 'debug';
 import mqtt from 'mqtt';
 
+import { KITCHEN_VALVES_MANIPULATOR, TOILET_VALVES_MANIPULATOR } from 'src/constants';
+
 const debug = Debug('mhz19-mqtt-client');
 
 const mqttClient = mqtt.connect(`mqtt://${config.mqttBroker.host}:${config.mqttBroker.port}`, {
@@ -14,7 +16,8 @@ mqttClient.on('connect', function () {
 
     mqttClient.subscribe([
         'zigbee2mqtt/#',
-        '/VALVE/STATE/STATUS'
+        `/VALVE/${KITCHEN_VALVES_MANIPULATOR}/STATE/STATUS`,
+        `/VALVE/${TOILET_VALVES_MANIPULATOR}/STATE/STATUS`,
     ]);
 
     // ask zigbee2mqtt coordinator to send list of connected devices

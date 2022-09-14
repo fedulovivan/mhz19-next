@@ -20,9 +20,11 @@ import {
     IKEA_ONOFF_SWITCH,
     KITCHEN_CEILING_LIGHT,
     KITCHEN_UNDERCABINET_LIGHT,
+    KITCHEN_VALVES_MANIPULATOR,
     LEAKAGE_SENSOR_BATHROOM,
     LEAKAGE_SENSOR_KITCHEN,
     LEAKAGE_SENSOR_TOILET,
+    TOILET_VALVES_MANIPULATOR,
     WALL_SWITCH_BEDROOM,
     WALL_SWITCH_KITCHEN,
 } from 'src/constants';
@@ -86,7 +88,8 @@ updatesChannel.on('update', (devicesMap: TSonoffDevicesMap) => {
 function handleLeakage(leakage?: boolean, deviceName?: string): void {
     const appUrl = getAppUrl();
     if (leakage) {
-        mqttClient.publish(`/VALVE/STATE/SET`, "close");
+        mqttClient.publish(`/VALVE/${KITCHEN_VALVES_MANIPULATOR}/STATE/SET`, "close");
+        mqttClient.publish(`/VALVE/${TOILET_VALVES_MANIPULATOR}/STATE/SET`, "close");
         if (!Alerter.isRaised()) {
             Alerter.on();
             const msg = `Leakage detected for "${deviceName}"! Alert on.\n${appUrl}`;
@@ -201,7 +204,8 @@ const zigbee2MqttWildcardHandler: IMqttMessageDispatcherHandler = ({ deviceId, j
 mqttMessageDispatcher(mqttClient, [
 
     // handle status messages from valves manipulator box
-    [`/VALVE/STATE/STATUS`, valveStateStatusHandler],
+    [`/VALVE/${KITCHEN_VALVES_MANIPULATOR}/STATE/STATUS`, valveStateStatusHandler],
+    [`/VALVE/${TOILET_VALVES_MANIPULATOR}/STATE/STATUS`, valveStateStatusHandler],
 
     // devices connected to the bridge
     // see https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-bridge-devices

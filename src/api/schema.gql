@@ -141,4 +141,5 @@ type ValveStatusMessage {
     hotMeterTicks: Int
     coldMeterTicks: Int
     origin: String
+    chipid: Int
 }
