@@ -1,17 +1,11 @@
 /* eslint-disable no-underscore-dangle */
 /* eslint-disable no-lonely-if */
 
-import 'src/http';
+import './http';
 
-import config from 'config';
+// import config from 'config';
 import Debug from 'debug';
 
-import {
-    ActionsExecutor,
-    mapping,
-    supportedOutputActions,
-} from 'src/automation-engine';
-import bot, { botSendButtons } from 'src/bot';
 import {
     BEDROOM_CEILING_LIGHT,
     DEVICE_CUSTOM_ATTRIBUTE_NAME,
@@ -27,17 +21,7 @@ import {
     TOILET_VALVES_MANIPULATOR,
     WALL_SWITCH_BEDROOM,
     WALL_SWITCH_KITCHEN,
-} from 'src/constants';
-import {
-    createOrUpdateSonoffDevice,
-    createOrUpdateZigbeeDevice,
-    insertIntoDeviceCustomAttributes,
-    insertIntoValveStatusMessages,
-    insertIntoZigbeeDevices,
-} from 'src/db';
-import log, { withDebug } from 'src/logger';
-import updatesChannel from 'src/mdns';
-import mqttClient from 'src/mqttClient';
+} from '../lib/constants';
 import {
     Alerter,
     asyncTimeout,
@@ -46,7 +30,23 @@ import {
     postSonoffSwitchMessage,
     saveGraphvizNetworkmap,
     yeelightDeviceSetPower,
-} from 'src/utils';
+} from '../lib/utils';
+import {
+    ActionsExecutor,
+    mapping,
+    supportedOutputActions,
+} from './automation-engine';
+import bot, { botSendButtons } from './bot';
+import {
+    createOrUpdateSonoffDevice,
+    createOrUpdateZigbeeDevice,
+    insertIntoDeviceCustomAttributes,
+    insertIntoValveStatusMessages,
+    insertIntoZigbeeDevices,
+} from './db';
+import log, { withDebug } from './logger';
+import updatesChannel from './mdns';
+import mqttClient from './mqttClient';
 
 // import yeelightDevices from 'src/yeelightDevices';
 
@@ -92,17 +92,19 @@ function handleLeakage(leakage?: boolean, deviceName?: string): void {
         mqttClient.publish(`/VALVE/${TOILET_VALVES_MANIPULATOR}/STATE/SET`, "close");
         if (!Alerter.isRaised()) {
             Alerter.on();
+            const chatId = process.env.TELEGRAM_CHATID;
             const msg = `Leakage detected for "${deviceName}"! Alert on.\n${appUrl}`;
-            bot.sendMessage(config.telegram.chatId, msg);
-            botSendButtons(config.telegram.chatId);
+            bot.sendMessage(/* config.telegram. */chatId, msg);
+            botSendButtons(/* config.telegram. */chatId);
             log.info(msg);
         }
     } else {
         if (Alerter.isRaised()) {
             Alerter.off();
+            const chatId = process.env.TELEGRAM_CHATID;
             const msg = `Leakage warning ceased for "${deviceName}". Alert off.\n${appUrl}`;
-            bot.sendMessage(config.telegram.chatId, msg);
-            botSendButtons(config.telegram.chatId);
+            bot.sendMessage(/* config.telegram. */chatId, msg);
+            botSendButtons(/* config.telegram. */chatId);
             log.info(msg);
         }
     }

@@ -1,9 +1,9 @@
-import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
+// import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
 import path from 'path';
 
 export const APP_HOST = 'localhost';
 
-export const ROOT = path.join(__dirname, '..');
+export const ROOT = path.join(__dirname, '../..');
 export const DIST_FS_PATH = `${ROOT}/dist`;
 export const IMAGES_FS_PATH = `${ROOT}/images`;
 
@@ -70,7 +70,7 @@ export const DEVICE_NAME_TO_ID: Record<string, string> = {
 export const DEVICE_CUSTOM_ATTRIBUTE_NAME = 'name';
 export const DEVICE_CUSTOM_ATTRIBUTE_IS_HIDDEN = 'isHidden';
 
-export const QUERY_OPTIONS: QueryHookOptions = {
+export const QUERY_OPTIONS/* : QueryHookOptions */ = {
     pollInterval: 10000,
     fetchPolicy: "network-only",
 };

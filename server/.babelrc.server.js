@@ -12,16 +12,16 @@ module.exports = {
         ".ts",
     ],
     "plugins": [
-        [
-            // a way to tell babel how to load aliased paths
-            // settings for babel-plugin-module-resolver
-            "module-resolver",
-            {
-                "alias": {
-                    "src": "./src"
-                }
-            }
-        ],
+        // [
+        //     // a way to tell babel how to load aliased paths
+        //     // settings for babel-plugin-module-resolver
+        //     "module-resolver",
+        //     {
+        //         "alias": {
+        //             "src": "./src"
+        //         }
+        //     }
+        // ],
         "@babel/plugin-proposal-class-properties"
     ],
 }

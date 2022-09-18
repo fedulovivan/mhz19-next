@@ -2,26 +2,27 @@
  * Http server
  */
 
-import config from 'config';
+// import config from 'config';
 import Debug from 'debug';
 import Express from 'express';
 import http from 'http';
 
-import graphqlServer from 'src/api/graphql';
-import restApiMiddleware from 'src/api/rest';
 import {
     APP_HOST,
     DIST_FS_PATH,
     GRAPHQL_URI,
     IMAGES_FS_PATH,
     IMAGES_URI,
-} from 'src/constants';
+} from '../lib/constants';
+import graphqlServer from './api/graphql';
+import restApiMiddleware from './api/rest';
 
 const debug = Debug('mhz19-http');
 
 const app = Express();
 const httpServer = new http.Server(app);
-const { port: appPort } = config.app;
+// const { port: appPort } = config.app;
+const appPort = process.env.APP_PORT;
 
 app.use(Express.static(DIST_FS_PATH));
 app.use(IMAGES_URI, Express.static(IMAGES_FS_PATH));
