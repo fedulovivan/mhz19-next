@@ -6,13 +6,13 @@ import {
     KITCHEN_UNDERCABINET_LIGHT,
     WALL_SWITCH_BEDROOM,
     WALL_SWITCH_KITCHEN,
-} from 'src/constants';
+} from 'lib/constants';
 
 import {
     IMappings,
     OutputAction,
     PayloadConditionFunction,
-} from './types.d';
+} from './types';
 
 const mappings: IMappings = [
 

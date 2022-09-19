@@ -1,7 +1,8 @@
 /* eslint-disable no-duplicate-imports */
 
-import log, { withDebug } from 'src/logger';
+import type { IZigbeeDeviceMessage } from 'lib/typings';
 
+import log, { withDebug } from '../logger';
 import mapping from './mapping';
 import * as supportedConditionFunctions from './supportedConditionFunctions';
 import * as supportedOutputActions from './supportedOutputActions';
@@ -16,7 +17,7 @@ import {
     TAdapterImpl,
     TMatcherFunc,
     TOutputActionImpl,
-} from './types.d';
+} from './types';
 
 const debug = withDebug('mhz19-automation-engine');
 
@@ -122,4 +123,4 @@ export {
     supportedOutputActions
 };
 
-export * from './types.d';
+export * from './types';

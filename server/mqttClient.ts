@@ -1,16 +1,18 @@
-import config from 'config';
+// import config from 'config';
 import Debug from 'debug';
 import mqtt from 'mqtt';
 
-import { KITCHEN_VALVES_MANIPULATOR, TOILET_VALVES_MANIPULATOR } from 'src/constants';
+import { KITCHEN_VALVES_MANIPULATOR, TOILET_VALVES_MANIPULATOR } from 'lib/constants';
 
 const debug = Debug('mhz19-mqtt-client');
 
-const mqttClient = mqtt.connect(`mqtt://${config.mqttBroker.host}:${config.mqttBroker.port}`, {
-    username: config.mqttBroker.username,
-    password: config.mqttBroker.password,
-    reconnectPeriod: 10 * 1000,
-});
+const mqttClient = mqtt.connect(
+    `mqtt://${/* config.mqttBroker.host */process.env.MQTT_HOST}:${/* config.mqttBroker.port */process.env.MQTT_PORT}`, {
+        username: /* config.mqttBroker.username */process.env.MQTT_USERNAME,
+        password: /* config.mqttBroker.password */process.env.MQTT_PASSWORD,
+        reconnectPeriod: 10 * 1000,
+    }
+);
 
 mqttClient.on('connect', function () {
 

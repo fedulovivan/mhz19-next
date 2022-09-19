@@ -1,8 +1,7 @@
 // import mqttClient from 'src/mqttClient';
 
-import { withDebug } from 'src/logger';
-
-import { TOutputActionImpl, TPayloadConditionFunctionImpl } from './types.d';
+import { withDebug } from '../logger';
+import { TOutputActionImpl, TPayloadConditionFunctionImpl } from './types';
 
 const debug = withDebug('mhz19-automation-engine');
 

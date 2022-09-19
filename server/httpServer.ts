@@ -13,8 +13,9 @@ import {
     GRAPHQL_URI,
     IMAGES_FS_PATH,
     IMAGES_URI,
-} from '../lib/constants';
-import graphqlServer from './api/graphql';
+} from 'lib/constants';
+
+// import graphqlServer from './api/graphql';
 import restApiMiddleware from './api/rest';
 
 const debug = Debug('mhz19-http');
@@ -29,9 +30,9 @@ app.use(IMAGES_URI, Express.static(IMAGES_FS_PATH));
 app.use(Express.json());
 app.use(restApiMiddleware);
 
-graphqlServer.start().then(() => {
-    graphqlServer.applyMiddleware({ app, path: GRAPHQL_URI });
-});
+// graphqlServer.start().then(() => {
+//     graphqlServer.applyMiddleware({ app, path: GRAPHQL_URI });
+// });
 
 httpServer.listen(appPort, () => {
     debug(`listening on ${APP_HOST}:${appPort}`);

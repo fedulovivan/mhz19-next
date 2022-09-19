@@ -1,0 +1,12 @@
+services:
+    # mosquitto:
+    #     image: eclipse-mosquitto
+    # zigbee2mqtt:
+    #     image: koenkk/zigbee2mqtt
+    #     devices:
+    #         - /dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_d42530dd743bec119dd19c957a0af07f-if00-port0:/dev/ttyACM0
+    app:
+        build: .
+        image: mhz19-next_app
+        env_file: .env
+

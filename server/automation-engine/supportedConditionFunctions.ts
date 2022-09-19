@@ -1,6 +1,5 @@
-import { withDebug } from 'src/logger';
-
-import { TPayloadConditionFunctionImpl } from './types.d';
+import { withDebug } from '../logger';
+import { TPayloadConditionFunctionImpl } from './types';
 
 const debug = withDebug('mhz19-automation-engine');
 

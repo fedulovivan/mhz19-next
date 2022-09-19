@@ -1,7 +1,7 @@
-import Debug, { Debugger } from 'debug';
-//  @ts-ignore
+import Debug from 'debug';
 import SimpleNodeLogger from 'simple-node-logger';
 
+// @ts-ignore
 const log = SimpleNodeLogger.createSimpleFileLogger({
     logFilePath: 'main.log',
     timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS',

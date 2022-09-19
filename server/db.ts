@@ -2,10 +2,18 @@
 
 import { oneLine } from 'common-tags';
 import Debug from 'debug';
-import set from 'lodash/set';
+import { set } from 'lodash-es';
 import sqlite3, { Statement } from 'sqlite3';
 
-import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
+import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'lib/constants';
+import type {
+    IDeviceCustomAttribute,
+    ISonoffDevice,
+    IYeelightDeviceMessage,
+    IZigbee2mqttBridgeConfigDevice,
+    IZigbee2MqttBridgeDevice,
+    IZigbeeDeviceMessage,
+} from 'lib/typings';
 
 const debug = Debug('mhz19-db');
 

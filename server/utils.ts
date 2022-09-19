@@ -2,8 +2,8 @@
 
 import axios from 'axios';
 import { exec } from 'child_process';
-import config from 'config';
-import Debug from 'debug';
+// import config from 'config';
+// import Debug from 'debug';
 import { Response } from 'express';
 import { MqttClient } from 'mqtt';
 import os from 'os';
@@ -14,10 +14,14 @@ import {
     BEDROOM_CEILING_LIGHT,
     DEVICE_NAME_TO_ID,
     IKEA_400LM_LED_BULB,
-} from 'src/constants';
-import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
-import log, { withDebug } from 'src/logger';
-import mqttClient from 'src/mqttClient';
+} from 'lib/constants';
+import type { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'lib/typings';
+
+import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from './db';
+import log, { withDebug } from './logger';
+import mqttClient from './mqttClient';
+
+// const { Device, Discovery } = require('yeelight-platform');
 
 const bedroomCeilingLight = new Device({
     host: '192.168.88.169', port: 55443
@@ -119,7 +123,7 @@ export function getServerIps(): Array<string> {
 
 export function getAppUrl(): string {
     const ips = getServerIps();
-    return `http://${ips[0]}:${config.app.port}`;
+    return `http://${ips[0]}:${/* config.app.port */process.env.APP_PORT}`;
 }
 
 export function mean(values: Array<number>): number {

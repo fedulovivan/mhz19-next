@@ -1,8 +1,10 @@
 import EventEmitter from 'events';
-import isArray from 'lodash';
+import { isArray } from 'lodash-es';
 import mdnsClass from 'multicast-dns';
 
-import log, { withDebug } from 'src/logger';
+import type { ISonoffDevice, TSonoffDevicesMap } from 'lib/typings';
+
+import log, { withDebug } from './logger';
 
 const updatesChannel = new EventEmitter();
 

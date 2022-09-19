@@ -1,9 +1,10 @@
 // import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
-import path from 'path';
+// import path from 'path';
 
 export const APP_HOST = 'localhost';
 
-export const ROOT = path.join(__dirname, '../..');
+export const ROOT = '/Users/ivanf/Desktop/Projects/mhz19-next/server';
+// export const ROOT = path.join(__dirname, '../..');
 export const DIST_FS_PATH = `${ROOT}/dist`;
 export const IMAGES_FS_PATH = `${ROOT}/images`;
 

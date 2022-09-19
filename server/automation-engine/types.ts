@@ -1,5 +1,7 @@
 /* eslint-disable no-shadow */
 
+import type { IZigbeeDeviceMessage } from 'lib/typings';
+
 export enum OutputAction {
     PostSonoffSwitchMessage = 'PostSonoffSwitchMessage',
     YeelightDeviceSetPower = 'YeelightDeviceSetPower',
@@ -75,5 +77,5 @@ export type TOutputActionImpl = (
 
 export type TPayloadConditionFunctionImpl = (
     value: string | undefined,
-    arguments?: Array<string | undefined>,
+    args?: Array<string | undefined>,
 ) => boolean;

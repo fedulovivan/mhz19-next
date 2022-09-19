@@ -2,10 +2,12 @@
 
 import { exec } from 'child_process';
 import Express from 'express';
-import first from 'lodash/first';
-import set from 'lodash/set';
 
-import { KITCHEN_CEILING_LIGHT, KITCHEN_UNDERCABINET_LIGHT } from 'src/constants';
+// import first from 'lodash/first';
+// import set from 'lodash/set';
+import { KITCHEN_CEILING_LIGHT, KITCHEN_UNDERCABINET_LIGHT } from 'lib/constants';
+import type { IDeviceCustomAttribute, TOnOff } from 'lib/typings';
+
 import db, {
     createOrUpdateDeviceCustomAttribute,
     fetchDeviceCustomAttributes,
@@ -18,9 +20,9 @@ import db, {
     fetchZigbeeDevices,
     fetchZigbeeDevicesV2,
     toMap,
-} from 'src/db';
-import log from 'src/logger';
-import mqttClient from 'src/mqttClient';
+} from '../db';
+import log from '../logger';
+import mqttClient from '../mqttClient';
 import {
     asyncTimeout,
     getAppUrl,
@@ -28,7 +30,7 @@ import {
     mqttMessageDispatcher,
     postSonoffSwitchMessage,
     sendError,
-} from 'src/utils';
+} from '../utils';
 
 // import yeelightDevices from 'src/yeelightDevices';
 

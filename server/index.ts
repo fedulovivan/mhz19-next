@@ -1,9 +1,5 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable no-lonely-if */
+import './httpServer';
 
-import './http';
-
-// import config from 'config';
 import Debug from 'debug';
 
 import {
@@ -21,16 +17,14 @@ import {
     TOILET_VALVES_MANIPULATOR,
     WALL_SWITCH_BEDROOM,
     WALL_SWITCH_KITCHEN,
-} from '../lib/constants';
-import {
-    Alerter,
-    asyncTimeout,
-    getAppUrl,
-    mqttMessageDispatcher,
-    postSonoffSwitchMessage,
-    saveGraphvizNetworkmap,
-    yeelightDeviceSetPower,
-} from '../lib/utils';
+} from 'lib/constants';
+import type {
+    IAqaraWaterSensorMessage,
+    IMqttMessageDispatcherHandler,
+    IZigbee2MqttBridgeDevice,
+    TSonoffDevicesMap,
+} from 'lib/typings';
+
 import {
     ActionsExecutor,
     mapping,
@@ -47,8 +41,15 @@ import {
 import log, { withDebug } from './logger';
 import updatesChannel from './mdns';
 import mqttClient from './mqttClient';
-
-// import yeelightDevices from 'src/yeelightDevices';
+import {
+    Alerter,
+    asyncTimeout,
+    getAppUrl,
+    mqttMessageDispatcher,
+    postSonoffSwitchMessage,
+    saveGraphvizNetworkmap,
+    yeelightDeviceSetPower,
+} from './utils';
 
 const debug = Debug('mhz19-server');
 
@@ -68,23 +69,6 @@ updatesChannel.on('update', (devicesMap: TSonoffDevicesMap) => {
     });
 });
 
-// const deviceCustomAttributes: Array<[string, TDeviceCustomAttribute, string]> = [
-//     ['0x00000000064c5293', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Ceiling Light'],
-//     ['0x0000000003b6cd80', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Toilet Ceiling Light'],
-//     ['0x0000000003b6cf16', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bathroom Ceiling Light'],
-//     ['0x00158d000405811b', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Bathroom'],
-//     ['0x00158d0004035e3e', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Kitchen'],
-//     ['0x00158d00040356af', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Toilet'],
-//     ['0x00158d00042446ec', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Switch'],
-//     ['0x00158d0004244bda', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Switch'],
-//     ['10011cec96', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Undercabinet Light'],
-//     ['10011c1eeb', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Ceiling Light'],
-// ];
-
-// deviceCustomAttributes.forEach(([deviceId, attributeType, value]) => {
-//     insertIntoDeviceCustomAttributes({ deviceId, attributeType, value });
-// });
-
 function handleLeakage(leakage?: boolean, deviceName?: string): void {
     const appUrl = getAppUrl();
     if (leakage) {
@@ -92,19 +76,21 @@ function handleLeakage(leakage?: boolean, deviceName?: string): void {
         mqttClient.publish(`/VALVE/${TOILET_VALVES_MANIPULATOR}/STATE/SET`, "close");
         if (!Alerter.isRaised()) {
             Alerter.on();
-            const chatId = process.env.TELEGRAM_CHATID;
+            if (!bot) return;
+            const chatId = process.env.TELEGRAM_CHATID!;
             const msg = `Leakage detected for "${deviceName}"! Alert on.\n${appUrl}`;
             bot.sendMessage(/* config.telegram. */chatId, msg);
-            botSendButtons(/* config.telegram. */chatId);
+            botSendButtons(/* config.telegram. */+chatId);
             log.info(msg);
         }
     } else {
         if (Alerter.isRaised()) {
             Alerter.off();
-            const chatId = process.env.TELEGRAM_CHATID;
+            if (!bot) return;
+            const chatId = process.env.TELEGRAM_CHATID!;
             const msg = `Leakage warning ceased for "${deviceName}". Alert off.\n${appUrl}`;
             bot.sendMessage(/* config.telegram. */chatId, msg);
-            botSendButtons(/* config.telegram. */chatId);
+            botSendButtons(/* config.telegram. */+chatId);
             log.info(msg);
         }
     }
@@ -115,56 +101,6 @@ const leakageSensorHandler: IMqttMessageDispatcherHandler<IAqaraWaterSensorMessa
 }) => {
     handleLeakage(json?.water_leak, deviceName);
 };
-
-// const kitchenSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = async ({ json }) => {
-//     // switch all on
-//     if (json?.action === 'single_left') {
-//         postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
-//         postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
-//     }
-//     // switch all off
-//     if (json?.action === 'single_right') {
-//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
-//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
-//     }
-//     // switch ceiling lights off
-//     if (json?.action === 'hold_left') {
-//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
-//     }
-//     // switch undercabinet lights off
-//     if (json?.action === 'hold_right') {
-//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
-//     }
-// };
-
-// const bedroomSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = ({ timestamp, deviceId, json }) => {
-//     if (json?.action === 'single_left') {
-//         yeelightDeviceSetPower(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT], 'on');
-//     }
-//     if (json?.action === 'single_right') {
-//         yeelightDeviceSetPower(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT], 'off');
-//     }
-//     // postIkeaLedBulb('on');
-//     // postIkeaLedBulb('off');
-//     // const bedroomCeilingLightDeviceId = DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT];
-//     // const bedroomCeilingLight = yeelightDevices.get(bedroomCeilingLightDeviceId);
-//     // if (!bedroomCeilingLight) {
-//     //     bot.sendMessage(
-//     //         config.telegram.chatId,
-//     //         `yeelightDevice ${bedroomCeilingLightDeviceId} (${BEDROOM_CEILING_LIGHT}) is not registered`
-//     //     );
-//     //     return;
-//     // }
-// };
-
-// const ikeaOnoffSwitchHandler: IMqttMessageDispatcherHandler<IIkeaOnoffSwitchMessage> = ({ deviceId, json }) => {
-//     if (json?.action === 'on' || json?.action === 'off') {
-//         mqttClient.publish(`zigbee2mqtt/0x00158d000391f252/set/state`, json.action);
-//         mqttClient.publish(`zigbee2mqtt/0x00158d0003a010a5/set/state`, json.action);
-//         // postBedroomCeilingLightMessage(json.action);
-//         // postIkeaLedBulb(json.action);
-//     }
-// };
 
 const bridgeDevicesHandler: IMqttMessageDispatcherHandler<Array<IZigbee2MqttBridgeDevice>> = ({ json }) => {
     const devices = json;
@@ -322,3 +258,72 @@ mqttMessageDispatcher(mqttClient, [
 // toiletCeilingLight.connect();
 // const bedroomCeilingLight = new Device({ host: DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT], port: 55443 });
 // bedroomCeilingLight.connect();
+
+// const deviceCustomAttributes: Array<[string, TDeviceCustomAttribute, string]> = [
+//     ['0x00000000064c5293', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Ceiling Light'],
+//     ['0x0000000003b6cd80', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Toilet Ceiling Light'],
+//     ['0x0000000003b6cf16', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bathroom Ceiling Light'],
+//     ['0x00158d000405811b', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Bathroom'],
+//     ['0x00158d0004035e3e', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Kitchen'],
+//     ['0x00158d00040356af', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Leakage Sensor Toilet'],
+//     ['0x00158d00042446ec', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Bedroom Switch'],
+//     ['0x00158d0004244bda', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Switch'],
+//     ['10011cec96', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Undercabinet Light'],
+//     ['10011c1eeb', DEVICE_CUSTOM_ATTRIBUTE_NAME, 'Kitchen Ceiling Light'],
+// ];
+
+// deviceCustomAttributes.forEach(([deviceId, attributeType, value]) => {
+//     insertIntoDeviceCustomAttributes({ deviceId, attributeType, value });
+// });
+
+// const kitchenSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = async ({ json }) => {
+//     // switch all on
+//     if (json?.action === 'single_left') {
+//         postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
+//         postSonoffSwitchMessage("on", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
+//     }
+//     // switch all off
+//     if (json?.action === 'single_right') {
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
+//     }
+//     // switch ceiling lights off
+//     if (json?.action === 'hold_left') {
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT]);
+//     }
+//     // switch undercabinet lights off
+//     if (json?.action === 'hold_right') {
+//         postSonoffSwitchMessage("off", DEVICE_NAME_TO_ID[KITCHEN_UNDERCABINET_LIGHT]);
+//     }
+// };
+
+// const bedroomSwitchHandler: IMqttMessageDispatcherHandler<IWallSwitchMessage> = ({ timestamp, deviceId, json }) => {
+//     if (json?.action === 'single_left') {
+//         yeelightDeviceSetPower(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT], 'on');
+//     }
+//     if (json?.action === 'single_right') {
+//         yeelightDeviceSetPower(DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT], 'off');
+//     }
+//     // postIkeaLedBulb('on');
+//     // postIkeaLedBulb('off');
+//     // const bedroomCeilingLightDeviceId = DEVICE_NAME_TO_ID[BEDROOM_CEILING_LIGHT];
+//     // const bedroomCeilingLight = yeelightDevices.get(bedroomCeilingLightDeviceId);
+//     // if (!bedroomCeilingLight) {
+//     //     bot.sendMessage(
+//     //         config.telegram.chatId,
+//     //         `yeelightDevice ${bedroomCeilingLightDeviceId} (${BEDROOM_CEILING_LIGHT}) is not registered`
+//     //     );
+//     //     return;
+//     // }
+// };
+
+// const ikeaOnoffSwitchHandler: IMqttMessageDispatcherHandler<IIkeaOnoffSwitchMessage> = ({ deviceId, json }) => {
+//     if (json?.action === 'on' || json?.action === 'off') {
+//         mqttClient.publish(`zigbee2mqtt/0x00158d000391f252/set/state`, json.action);
+//         mqttClient.publish(`zigbee2mqtt/0x00158d0003a010a5/set/state`, json.action);
+//         // postBedroomCeilingLightMessage(json.action);
+//         // postIkeaLedBulb(json.action);
+//     }
+// };
+
+// import yeelightDevices from './yeelightDevices';
