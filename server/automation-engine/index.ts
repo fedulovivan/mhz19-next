@@ -2,7 +2,7 @@
 
 import type { IZigbeeDeviceMessage } from 'lib/typings';
 
-import log, { withDebug } from '../logger';
+import { withCategory } from '../logger';
 import mapping from './mapping';
 import * as supportedConditionFunctions from './supportedConditionFunctions';
 import * as supportedOutputActions from './supportedOutputActions';
@@ -19,7 +19,7 @@ import {
     TOutputActionImpl,
 } from './types';
 
-const debug = withDebug('mhz19-automation-engine');
+const log = withCategory('mhz19-automation-engine');
 
 const pickValue = (
     message: IZigbeeDeviceMessage,
@@ -71,10 +71,10 @@ class ActionsExecutor {
         this.supportedOutputActions = opts.supportedOutputActions;
         this.mapping = opts.mapping;
         this.supportedAdapters = opts.supportedAdapters;
-        debug(`ActionsExecutor instance was created`);
+        log.debug(`ActionsExecutor instance was created`);
     }
     public handleZigbeeMessage(deviceId: string, message: IZigbeeDeviceMessage) {
-        debug(`Matching new message from deviceId=${deviceId} against ${this.mapping.length} mapping records`);
+        log.debug(`Matching new message from deviceId=${deviceId} against ${this.mapping.length} mapping records`);
         let matchFound = false;
         this.mapping.forEach(({ onZigbeeMessage, actions }, index) => {
             if (!onZigbeeMessage) return;
@@ -87,7 +87,7 @@ class ActionsExecutor {
                 // translation,
             ) : true;
             if (!matches) return;
-            debug(`Match for record with index ${index} found, going to execute ${actions.length} actions`);
+            log.debug(`Match for record with index ${index} found, going to execute ${actions.length} actions`);
             this.executeActions(
                 message,
                 actions,
@@ -95,7 +95,7 @@ class ActionsExecutor {
             );
             matchFound = true;
         });
-        if (!matchFound) debug(`No matching records found`);
+        if (!matchFound) log.debug(`No matching records found`);
     }
     private executeActions(
         message: IZigbeeDeviceMessage,
@@ -106,7 +106,7 @@ class ActionsExecutor {
             type, deviceId, payloadData, translation
         }, index) => {
             const outputActionImpl = this.supportedOutputActions[type];
-            debug(`action index ${index}`);
+            log.debug(`action index ${index}`);
             outputActionImpl(
                 deviceId,
                 payloadData ? translator(pickValue(message, payloadData), translation) : undefined,

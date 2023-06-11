@@ -1,4 +1,3 @@
-import Debug from 'debug';
 // @ts-ignore
 import { Device, Discovery } from 'yeelight-platform';
 
@@ -6,21 +5,21 @@ import {
     deleteYeelightDevice,
     insertIntoYeelightDeviceMessages,
     insertIntoYeelightDevices,
-} from 'src/db';
-import log, { withDebug } from 'src/logger';
+} from './db';
+import { withCategory } from './logger';
 
-const debug = withDebug('mhz19-yeelight-devices');
+const log = withCategory('mhz19-yeelight-devices');
 // const debug = Debug('mhz19-yeelight-devices');
 
 const yeelightDevices: Map<string, Device> = new Map();
 
 const discoveryService = new Discovery();
 discoveryService.on('started', () => {
-    debug('yeelight-platform Discovery Started');
+    log.debug('yeelight-platform Discovery Started');
 });
 discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
 
-    debug('yeelight-platform didDiscoverDevice:', device);
+    log.debug('yeelight-platform didDiscoverDevice:', device);
 
     const {
         id: deviceId,
@@ -48,7 +47,7 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
     yeelightDevices.set(deviceId, deviceClient);
     deviceClient.connect();
     deviceClient.on('connected', () => {
-        debug(`yeelight device ${deviceId} "connected" event received`);
+        log.debug(`yeelight device ${deviceId} "connected" event received`);
     });
     deviceClient.on('disconnected', async () => {
         if (!yeelightDevices.has(deviceId)) {
@@ -65,7 +64,7 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
         try {
             await deleteYeelightDevice(deviceId);
             yeelightDevices.delete(deviceId);
-            debug(`yeelight device ${deviceId} is deleted`);
+            log.debug(`yeelight device ${deviceId} is deleted`);
         } catch (e) {
             log.error(`error in deleteYeelightDevice: `, e);
         }
@@ -99,7 +98,7 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
             power,
             json,
         );
-        debug(`yeelight device ${deviceId} is registered`);
+        log.debug(`yeelight device ${deviceId} is registered`);
     } catch (e) {
         log.error(`error in insertIntoYeelightDevices: `, e);
     }

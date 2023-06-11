@@ -1,7 +1,6 @@
 /* eslint-disable camelcase */
 
 import { oneLine } from 'common-tags';
-import Debug from 'debug';
 import { set } from 'lodash-es';
 import sqlite3, { Statement } from 'sqlite3';
 
@@ -15,22 +14,31 @@ import type {
     IZigbeeDeviceMessage,
 } from 'lib/typings';
 
-const debug = Debug('mhz19-db');
+import { withCategory } from './logger';
+
+const log = withCategory('mhz19-db');
 
 const db = new sqlite3.Database('database.bin');
 
-let insert_into_valve_status_messages: Statement;
-let insert_into_zigbee_devices: Statement;
-let insert_into_device_messages_unified: Statement;
-let insert_into_yeelight_devices: Statement;
-let insert_into_yeelight_device_messages: Statement;
-let insert_into_device_custom_attributes: Statement;
-let update_device_custom_attributes: Statement;
-let delete_from_yeelight_devices: Statement;
-let insert_into_sonoff_devices: Statement;
-let update_sonoff_devices: Statement;
-let insert_into_zigbee_devices_v2: Statement;
-let update_zigbee_devices_v2: Statement;
+interface StatementWrapper {
+    sql: string;
+    statement: Statement;
+}
+
+// let insert_into_valve_status_messages: StatementWrapper;
+// let insert_into_zigbee_devices: StatementWrapper;
+// let insert_into_device_messages_unified: StatementWrapper;
+// let insert_into_yeelight_devices: StatementWrapper;
+// let insert_into_yeelight_device_messages: StatementWrapper;
+// let insert_into_device_custom_attributes: StatementWrapper;
+// let update_device_custom_attributes: StatementWrapper;
+// let delete_from_yeelight_devices: StatementWrapper;
+// let insert_into_sonoff_devices: StatementWrapper;
+// let update_sonoff_devices: StatementWrapper;
+// let insert_into_zigbee_devices_v2: StatementWrapper;
+// let update_zigbee_devices_v2: StatementWrapper;
+
+const stmts: Record<string,StatementWrapper> = {};
 
 db.serialize(function() {
     db.run(`PRAGMA foreign_keys = ON`);
@@ -124,36 +132,40 @@ db.serialize(function() {
     // db.run(`DELETE FROM valve_status_messages`);
 
     // prepare insert/update/delete statements
-    insert_into_valve_status_messages = db.prepare(`
+    stmts.insert_into_valve_status_messages = prepareStatement(`
         INSERT INTO valve_status_messages VALUES(
             $timestamp,
             $json
         )
     `);
-    insert_into_zigbee_devices = db.prepare(`
+    stmts.insert_into_zigbee_devices = prepareStatement(`
         INSERT OR IGNORE INTO zigbee_devices VALUES(
             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?
         )
     `);
-    insert_into_device_messages_unified = db.prepare(`
-        INSERT INTO device_messages_unified VALUES(?, ?, ?)
+    stmts.insert_into_device_messages_unified = prepareStatement(`
+        INSERT INTO device_messages_unified VALUES(
+            $device_id,
+            $timestamp,
+            $json
+        )
     `);
-    insert_into_yeelight_device_messages = db.prepare(`
+    stmts.insert_into_yeelight_device_messages = prepareStatement(`
         INSERT INTO yeelight_device_messages VALUES(?, ?, ?)
     `);
-    insert_into_yeelight_devices = db.prepare(`
+    stmts.insert_into_yeelight_devices = prepareStatement(`
         INSERT INTO yeelight_devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
     `);
-    insert_into_device_custom_attributes = db.prepare(`
+    stmts.insert_into_device_custom_attributes = prepareStatement(`
         INSERT OR IGNORE INTO device_custom_attributes VALUES(?, ?, ?)
     `);
-    update_device_custom_attributes = db.prepare(`
+    stmts.update_device_custom_attributes = prepareStatement(`
         UPDATE device_custom_attributes SET value = ? WHERE device_id = ? AND attribute_type = ?
     `);
-    delete_from_yeelight_devices = db.prepare(`
+    stmts.delete_from_yeelight_devices = prepareStatement(`
         DELETE FROM yeelight_devices WHERE id = ?
     `);
-    insert_into_sonoff_devices = db.prepare(`
+    stmts.insert_into_sonoff_devices = prepareStatement(`
         INSERT OR IGNORE INTO sonoff_devices VALUES(
             $timestamp,
             $device_id,
@@ -162,10 +174,10 @@ db.serialize(function() {
             $json
         )
     `);
-    update_sonoff_devices = db.prepare(`
+    stmts.update_sonoff_devices = prepareStatement(`
         UPDATE sonoff_devices SET timestamp = $timestamp, json = $json WHERE device_id = $device_id
     `);
-    insert_into_zigbee_devices_v2 = db.prepare(`
+    stmts.insert_into_zigbee_devices_v2 = prepareStatement(`
         INSERT INTO zigbee_devices_v2 VALUES(
             $ieee_address,
             $friendly_name,
@@ -175,7 +187,7 @@ db.serialize(function() {
             $json
         )
     `);
-    update_zigbee_devices_v2 = db.prepare(`
+    stmts.update_zigbee_devices_v2 = prepareStatement(`
             UPDATE
                 zigbee_devices_v2
             SET
@@ -204,7 +216,7 @@ function select(
     qstring: string,
     params: any = undefined,
 ): Promise<Array<Record<string, any>>> {
-    // debug(`executing query: `, qstring, params);
+    log.debug(`executing query: `, qstring, params);
     return new Promise((resolve, reject) => {
         db.all(qstring, params, (error, rows) => {
             if (error) {
@@ -215,13 +227,20 @@ function select(
     });
 }
 
+function prepareStatement(sql: string): StatementWrapper {
+    return {
+        sql,
+        statement: db.prepare(sql),
+    };
+}
+
 function runStatement(
-    statement: Statement,
+    wrapper: StatementWrapper,
     ...args: Array<any>
 ): Promise<void> {
-    // debug(`executing statement: `, statement.toString(), args);
+    log.debug(`executing statement: `, oneLine`${wrapper.sql}`, args);
     return new Promise<void>((resolve, reject) => {
-        statement.run(
+        wrapper.statement.run(
             ...args,
             (error: Error) => {
                 if (error) reject(error); else resolve();
@@ -232,7 +251,7 @@ function runStatement(
 
 export async function deleteYeelightDevice(id: string) {
     return runStatement(
-        delete_from_yeelight_devices,
+        stmts.delete_from_yeelight_devices,
         id
     );
 }
@@ -243,10 +262,11 @@ export async function insertIntoDeviceMessagesUnified(
     json: IZigbeeDeviceMessage | null
 ) {
     return runStatement(
-        insert_into_device_messages_unified,
-        deviceId,
-        timestamp,
-        json ? JSON.stringify(json) : null,
+        stmts.insert_into_device_messages_unified, {
+            $device_id: deviceId,
+            $timestamp: timestamp,
+            $json: json ? JSON.stringify(json) : null,
+        }
     );
 }
 
@@ -256,7 +276,7 @@ export async function insertIntoYeelightDeviceMessages(
     json: any
 ) {
     return runStatement(
-        insert_into_yeelight_device_messages,
+        stmts.insert_into_yeelight_device_messages,
         deviceId,
         timestamp,
         json ? JSON.stringify(json) : null,
@@ -268,7 +288,7 @@ export async function insertIntoValveStatusMessages(
     json: any,
 ) {
     return runStatement(
-        insert_into_valve_status_messages, {
+        stmts.insert_into_valve_status_messages, {
             $timestamp: timestamp,
             $json: json ? JSON.stringify(json) : null,
         }
@@ -299,7 +319,7 @@ export async function insertIntoDeviceCustomAttributes({
     value,
 }: IDeviceCustomAttribute) {
     return runStatement(
-        insert_into_device_custom_attributes,
+        stmts.insert_into_device_custom_attributes,
         deviceId,
         attributeType,
         value,
@@ -312,7 +332,7 @@ export async function updateDeviceCustomAttributes({
     value,
 }: IDeviceCustomAttribute) {
     return runStatement(
-        update_device_custom_attributes,
+        stmts.update_device_custom_attributes,
         value,
         deviceId,
         attributeType,
@@ -361,7 +381,7 @@ export async function createOrUpdateSonoffDevice(device: ISonoffDevice) {
     const existing = await fetchSonoffDevices({ id });
     if (existing.length === 1) {
         return runStatement(
-            update_sonoff_devices, {
+            stmts.update_sonoff_devices, {
                 $timestamp: timestamp,
                 $json: JSON.stringify(device.attributes),
                 $device_id: device.id,
@@ -370,7 +390,7 @@ export async function createOrUpdateSonoffDevice(device: ISonoffDevice) {
     }
     if (existing.length === 0) {
         return runStatement(
-            insert_into_sonoff_devices, {
+            stmts.insert_into_sonoff_devices, {
                 $timestamp: timestamp,
                 $device_id: device.id,
                 $ip: device.ip,
@@ -410,7 +430,7 @@ export async function createOrUpdateZigbeeDevice(device: IZigbee2MqttBridgeDevic
     const existing = await fetchZigbeeDevicesV2(ieee_address);
     if (existing.length === 1) {
         return runStatement(
-            update_zigbee_devices_v2, {
+            stmts.update_zigbee_devices_v2, {
                 $friendly_name: friendly_name,
                 $model_id: model_id,
                 $type: type,
@@ -422,7 +442,7 @@ export async function createOrUpdateZigbeeDevice(device: IZigbee2MqttBridgeDevic
     }
     if (existing.length === 0) {
         return runStatement(
-            insert_into_zigbee_devices_v2, {
+            stmts.insert_into_zigbee_devices_v2, {
                 $ieee_address: ieee_address,
                 $friendly_name: friendly_name,
                 $model_id: model_id,
@@ -446,7 +466,7 @@ export async function insertIntoYeelightDevices(
     json: Record<string, any>,
 ): Promise<void> {
     return runStatement(
-        insert_into_yeelight_devices,
+        stmts.insert_into_yeelight_devices,
         Date.now(),
         id,
         location,
@@ -577,7 +597,7 @@ export function insertIntoZigbeeDevices(
     json: IZigbee2mqttBridgeConfigDevice
 ) {
     return runStatement(
-        insert_into_zigbee_devices,
+        stmts.insert_into_zigbee_devices,
         json.description,
         json.friendly_name,
         json.lastSeen,
@@ -631,7 +651,7 @@ export default db;
 //     voltage: number | undefined,
 //     battery: number | undefined
 // ) {
-//     debug('updateLastSeen', friendlyName);
+//     log.debug('updateLastSeen', friendlyName);
 //     update_zigbee_device.run(
 //         lastSeen,
 //         voltage,

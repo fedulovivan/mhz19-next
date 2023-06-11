@@ -1,11 +1,6 @@
-/* eslint-disable no-await-in-loop */
-
 import axios from 'axios';
 import { exec } from 'child_process';
-// import config from 'config';
-// import Debug from 'debug';
 import { Response } from 'express';
-import { MqttClient } from 'mqtt';
 import os from 'os';
 // @ts-ignore
 import { Device, Discovery } from 'yeelight-platform';
@@ -15,10 +10,9 @@ import {
     DEVICE_NAME_TO_ID,
     IKEA_400LM_LED_BULB,
 } from 'lib/constants';
-import type { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'lib/typings';
 
 import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from './db';
-import log, { withDebug } from './logger';
+import { withCategory } from './logger';
 import mqttClient from './mqttClient';
 
 // const { Device, Discovery } = require('yeelight-platform');
@@ -32,7 +26,7 @@ bedroomCeilingLight.connect();
 // import { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
 // const debug = Debug('mhz19-dispatcher');
-const debug = withDebug('mhz19-utils');
+const log = withCategory('mhz19-utils');
 
 /**
  * AKA delayAsync
@@ -47,57 +41,6 @@ export function sendError(res: Response, e: Error | string) {
     res.json({
         error: true,
         message: e instanceof Error ? e.message : e,
-    });
-}
-
-export function mqttMessageDispatcher(
-    mqttClient: MqttClient,
-    handlersMap: Array<[
-        topicPrefixOrDeviceName: string,
-        handler: IMqttMessageDispatcherHandler,
-    ]>,
-    excludedTopics?: Array<string>
-) {
-    mqttClient.on('message', async function (fullTopic, message) {
-
-        if (excludedTopics?.length && excludedTopics.includes(fullTopic)) {
-            return;
-        }
-
-        debug('\ntopic:', fullTopic);
-        const rawMessage = message.toString();
-        let json: IZigbeeDeviceMessage | null = null;
-        const timestamp = (new Date()).valueOf();
-
-        try {
-            json = JSON.parse(rawMessage);
-            debug('json:', json);
-        } catch (e) {
-            debug('string:', rawMessage);
-        }
-
-        let deviceIdFromTopic: string;
-        if (fullTopic.startsWith('zigbee2mqtt/0x')/*  || fullTopic.startsWith('zigbee2mqtt/bridge') */) {
-            [, deviceIdFromTopic] = fullTopic.split('/');
-            insertIntoDeviceMessagesUnified(deviceIdFromTopic, timestamp, json);
-        }
-
-        handlersMap.forEach(([topicPrefixOrDeviceName, handler]) => {
-
-            // const isHandlerForDeviceName = !!DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
-            const deviceIdFromMap = DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
-
-            if (fullTopic.startsWith(deviceIdFromMap ? `zigbee2mqtt/${deviceIdFromMap}` : topicPrefixOrDeviceName)) {
-                handler({
-                    fullTopic,
-                    json,
-                    timestamp,
-                    rawMessage,
-                    deviceId: deviceIdFromTopic,
-                    deviceName: deviceIdFromMap ? topicPrefixOrDeviceName : undefined,
-                });
-            }
-        });
     });
 }
 
@@ -123,7 +66,7 @@ export function getServerIps(): Array<string> {
 
 export function getAppUrl(): string {
     const ips = getServerIps();
-    return `http://${ips[0]}:${/* config.app.port */process.env.APP_PORT}`;
+    return `http://${ips[0]}:${process.env.API_PORT}`;
 }
 
 export function mean(values: Array<number>): number {
@@ -177,10 +120,10 @@ export async function postSonoffSwitchMessage(cmd: 'on' | 'off', deviceId: strin
     const hostPort = [devices[0].ip, devices[0].port].join(':');
     const url = `http://${hostPort}/zeroconf/switch`;
     const payload = { "data": { "switch": cmd } };
-    debug(`sending to sonoff relay. url="${url}" payload="${JSON.stringify(payload)}" ...`);
+    log.debug(`sending to sonoff relay. url="${url}" payload="${JSON.stringify(payload)}" ...`);
     try {
         const result = await axios.post(url, payload);
-        debug('relay response ', result.data);
+        log.debug('relay response ', result.data);
         return result.data;
     } catch (e) {
         log.error(e);
@@ -200,7 +143,7 @@ export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'of
 
 /** @deprecated */
 export async function postIkeaLedBulb(state: 'on' | 'off') {
-    debug(`sending state=${state} to ${IKEA_400LM_LED_BULB}...`);
+    log.debug(`sending state=${state} to ${IKEA_400LM_LED_BULB}...`);
     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
     // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
     // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100

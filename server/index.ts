@@ -1,22 +1,11 @@
 import './httpServer';
 
-import Debug from 'debug';
-
 import {
-    BEDROOM_CEILING_LIGHT,
-    DEVICE_CUSTOM_ATTRIBUTE_NAME,
-    DEVICE_NAME_TO_ID,
-    IKEA_400LM_LED_BULB,
-    IKEA_ONOFF_SWITCH,
-    KITCHEN_CEILING_LIGHT,
-    KITCHEN_UNDERCABINET_LIGHT,
     KITCHEN_VALVES_MANIPULATOR,
     LEAKAGE_SENSOR_BATHROOM,
     LEAKAGE_SENSOR_KITCHEN,
     LEAKAGE_SENSOR_TOILET,
     TOILET_VALVES_MANIPULATOR,
-    WALL_SWITCH_BEDROOM,
-    WALL_SWITCH_KITCHEN,
 } from 'lib/constants';
 import type {
     IAqaraWaterSensorMessage,
@@ -34,24 +23,21 @@ import bot, { botSendButtons } from './bot';
 import {
     createOrUpdateSonoffDevice,
     createOrUpdateZigbeeDevice,
-    insertIntoDeviceCustomAttributes,
     insertIntoValveStatusMessages,
-    insertIntoZigbeeDevices,
 } from './db';
-import log, { withDebug } from './logger';
+import { withCategory } from './logger';
 import updatesChannel from './mdns';
 import mqttClient from './mqttClient';
+import mqttMessageDispatcher from './mqttMessageDispatcher';
 import {
     Alerter,
-    asyncTimeout,
     getAppUrl,
-    mqttMessageDispatcher,
     postSonoffSwitchMessage,
     saveGraphvizNetworkmap,
     yeelightDeviceSetPower,
 } from './utils';
 
-const debug = Debug('mhz19-server');
+const log = withCategory('mhz19-server');
 
 const actionsExecutor = new ActionsExecutor({
     mapping,

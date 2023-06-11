@@ -1,12 +1,16 @@
 // import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
-// import path from 'path';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+export const ROOT = path.join(__dirname, '../..');
 
 export const APP_HOST = 'localhost';
 
-export const ROOT = '/Users/ivanf/Desktop/Projects/mhz19-next/server';
-// export const ROOT = path.join(__dirname, '../..');
-export const DIST_FS_PATH = `${ROOT}/dist`;
-export const IMAGES_FS_PATH = `${ROOT}/images`;
+// export const ROOT = '/Users/ivanf/Desktop/Projects/mhz19-next/server';
+export const DIST_FS_PATH = `${ROOT}/dist-client`;
+// export const IMAGES_FS_PATH = `${ROOT}/images`;
 
 export const GRAPHQL_URI = '/graphql';
 export const IMAGES_URI = '/images';

@@ -1,7 +1,7 @@
-import { withDebug } from '../logger';
+import { withCategory } from '../logger';
 import { TPayloadConditionFunctionImpl } from './types';
 
-const debug = withDebug('mhz19-automation-engine');
+const log = withCategory('mhz19-automation-engine');
 
 export const Equal: TPayloadConditionFunctionImpl = (value, args) => {
     return value === args?.[0];

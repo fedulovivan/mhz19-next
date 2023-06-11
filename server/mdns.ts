@@ -4,11 +4,13 @@ import mdnsClass from 'multicast-dns';
 
 import type { ISonoffDevice, TSonoffDevicesMap } from 'lib/typings';
 
-import log, { withDebug } from './logger';
+import { withCategory } from './logger';
 
 const updatesChannel = new EventEmitter();
 
 const mdns = mdnsClass();
+
+const log = withCategory('mhz19-mdns');
 
 const devices: TSonoffDevicesMap = new Map();
 

@@ -21,16 +21,17 @@ import db, {
     fetchZigbeeDevicesV2,
     toMap,
 } from '../db';
-import log from '../logger';
+import { withCategory } from '../logger';
 import mqttClient from '../mqttClient';
 import {
     asyncTimeout,
     getAppUrl,
     getOptInt,
-    mqttMessageDispatcher,
     postSonoffSwitchMessage,
     sendError,
 } from '../utils';
+
+const log = withCategory('mhz19-api-rest');
 
 // import yeelightDevices from 'src/yeelightDevices';
 
@@ -191,6 +192,8 @@ router.get('/stats', async (req, res) => {
         sendError(res, e);
     }
 });
+
+log.debug(`rest api started, ${router.stack.length} routes`/* , router */);
 
 export default router;
 
