@@ -40,6 +40,8 @@ Server side code is written in nodejs + typescript, babel as bundler/loader.
 
 ### Scripts
 
+Note (!) those scripts below are no more relevant, after refactoring
+
 - `yarn build` build production client-side bundle
 - `yarn start` launch server in production mode
 - `yarn stop` stop production server

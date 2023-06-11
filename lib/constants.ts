@@ -9,7 +9,7 @@ export const ROOT = path.join(__dirname, '../..');
 export const APP_HOST = 'localhost';
 
 // export const ROOT = '/Users/ivanf/Desktop/Projects/mhz19-next/server';
-export const DIST_FS_PATH = `${ROOT}/dist-client`;
+// export const DIST_FS_PATH = `${ROOT}/dist-client`;
 // export const IMAGES_FS_PATH = `${ROOT}/images`;
 
 export const GRAPHQL_URI = '/graphql';

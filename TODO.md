@@ -9,6 +9,7 @@
 
 # Back front split
 
+- need to find better place for images/networkmap.svg
 - remove hardcode from ROOT constant
 - move everything from src to client
 - revive server unit tests
