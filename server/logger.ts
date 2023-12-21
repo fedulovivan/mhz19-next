@@ -2,6 +2,7 @@ import Debug from 'debug';
 import SimpleLogger, { STANDARD_LEVELS } from 'simple-node-logger';
 
 const manager = new SimpleLogger();
+
 manager.createConsoleAppender({
     timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS'
 });

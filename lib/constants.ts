@@ -59,6 +59,7 @@ export const IKEA_400LM_LED_BULB = 'ikea-400lm-led-bulb';
 export const KITCHEN_VALVES_MANIPULATOR = 6613075;
 export const TOILET_VALVES_MANIPULATOR = 18225;
 
+// TODO looks we need to move this into server
 export const DEVICE_NAME_TO_ID: Record<string, string> = {
     [LEAKAGE_SENSOR_BATHROOM]: '0x00158d000405811b',
     [LEAKAGE_SENSOR_KITCHEN]: '0x00158d0004035e3e',

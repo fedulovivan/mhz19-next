@@ -154,7 +154,7 @@ mqttMessageDispatcher(mqttClient, [
 // [WALL_SWITCH_BEDROOM, bedroomSwitchHandler],
 
 // switch kitchen working lights on/off
-// [WALL_SWITCH_KITCHEN, kitchenSwitchHandler],
+// [WALL_SWITCH_VACANT, kitchenSwitchHandler],
 
 // handle messages from tradfri on/off switch
 // [IKEA_ONOFF_SWITCH, ikeaOnoffSwitchHandler],

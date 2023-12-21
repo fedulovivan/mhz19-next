@@ -8,23 +8,26 @@ import {
     ModelStatic,
 } from 'sequelize';
 
-import conn from './';
+import conn from './conn';
 
 export interface MessageAttributes {
     device_id: string;
-    timestamp: string;
-    json: string;
+    timestamp: Date;
+    json: object | null;
 }
 
 export type IMessageModel = Model<
     MessageAttributes
 >;
 
-const model: ModelStatic<IMessageModel> = conn?.define(
+const model: ModelStatic<IMessageModel> = conn.define(
     'Message', {
         device_id: { type: DataTypes.STRING, allowNull: false },
-        timestamp: { type: DataTypes.NUMBER, allowNull: false },
-        json: { type: DataTypes.JSON, allowNull: false },
+        timestamp: { type: DataTypes.DATE, allowNull: false },
+        json: { type: DataTypes.JSON, allowNull: true },
+    }, {
+        timestamps: false,
+        underscored: true,
     }
 );
 

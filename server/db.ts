@@ -222,7 +222,7 @@ function select(
             if (error) {
                 return reject(error);
             }
-            resolve(rows);
+            resolve(rows as any);
         });
     });
 }

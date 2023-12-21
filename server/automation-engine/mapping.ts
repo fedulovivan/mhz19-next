@@ -41,7 +41,7 @@ const mappings: IMappings = [
     // mapping 1
     {
         onZigbeeMessage: {
-            deviceId: DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN],
+            deviceId: /* DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN] */"foo",
             payloadConditions: [{
                 field: "$message.action",
                 function: PayloadConditionFunction.Equal,
@@ -58,7 +58,7 @@ const mappings: IMappings = [
     // mapping 2
     {
         onZigbeeMessage: {
-            deviceId: DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN],
+            deviceId: /* DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN] */"foo",
             payloadConditions: [{
                 field: "$message.action",
                 function: PayloadConditionFunction.Equal,
@@ -75,7 +75,7 @@ const mappings: IMappings = [
     // mapping 3
     {
         onZigbeeMessage: {
-            deviceId: DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN],
+            deviceId: /* DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN] */"foo",
             payloadConditions: [{
                 field: "$message.action",
                 function: PayloadConditionFunction.InList,

@@ -5,7 +5,8 @@ node_modules
 *.log.bak
 nohup.out
 config/*.json
-database.bin*
+server/database.bin
+server/database-next.bin
 .parcel-cache
 images/networkmap.svg
 src/components/SonoffDevices.tsx

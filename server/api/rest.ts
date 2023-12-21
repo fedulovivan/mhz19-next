@@ -23,6 +23,7 @@ import db, {
 } from '../db';
 import { withCategory } from '../logger';
 import mqttClient from '../mqttClient';
+import conn from '../sqlite';
 import {
     asyncTimeout,
     getAppUrl,
@@ -187,6 +188,16 @@ router.put('/sonoff-device/:deviceId/switch', async (req, res) => {
 router.get('/stats', async (req, res) => {
     try {
         const result = await fetchStats();
+        res.json(result);
+    } catch (e: any) {
+        sendError(res, e);
+    }
+});
+
+// TODO this should not be GET
+router.get('/sqlite/force-sync', async (req, res) => {
+    try {
+        const result = await conn.sync({ force: true });
         res.json(result);
     } catch (e: any) {
         sendError(res, e);

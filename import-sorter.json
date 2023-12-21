@@ -15,5 +15,6 @@
     "trailingComma": "multiLine",
     "formatExports": false,
     "keepUnused": [".*"],
-    "maxLineLength": 0
+    "maxLineLength": 0,
+    "autoFormat": "onSave"
 }
