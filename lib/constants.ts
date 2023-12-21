@@ -52,6 +52,7 @@ export const TOILET_CEILING_LIGHT = 'toilet-ceiling-light';
 export const TEMPERATURE_SENSOR = 'temperature-sensor';
 export const KITCHEN_UNDERCABINET_LIGHT = 'kitchen-undercabinet-light';
 export const KITCHEN_CEILING_LIGHT = 'kitchen-ceiling-light';
+export const STORAGE_ROOM_ALL_LIGHTS = 'storage-room-all-lights';
 export const IKEA_ONOFF_SWITCH = 'ikea-onoff-switch';
 export const IKEA_400LM_LED_BULB = 'ikea-400lm-led-bulb';
 
@@ -68,6 +69,7 @@ export const DEVICE_NAME_TO_ID: Record<string, string> = {
     [BEDROOM_CEILING_LIGHT]: '0x00000000064c5293',
     [KITCHEN_UNDERCABINET_LIGHT]: '10011cec96',
     [KITCHEN_CEILING_LIGHT]: '10011c1eeb',
+    [STORAGE_ROOM_ALL_LIGHTS]: '10012db92b',
     [IKEA_ONOFF_SWITCH]: '0x50325ffffe6ca5da',
     [IKEA_400LM_LED_BULB]: '0x000d6ffffefc0f29',
 };

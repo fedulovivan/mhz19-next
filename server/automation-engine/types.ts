@@ -38,10 +38,30 @@ export interface IInputRuleZigbeeMessage extends IInputRuleBase {
 }
 
 export interface IOutputAction {
+    /**
+     * which output adapter to use
+     */
     type: OutputAction;
+    /**
+     * target device
+     */
     deviceId: string;
+    /**
+     * value to be sent to target:
+     * string - hardcoded value to be sent
+     * $message.* - value to sent will be taken from input message
+     */
     payloadData?: MessageFields;
+    /**
+     * allows to map one exact input value to another, applicable only when payloadData=$message.*
+     */
     translation?: Record<string, string>;
+    /**
+     * command will be executed with delay
+     * not dispaching any other command on same target, with abort all delayed commands
+     * use case - switch lights off after some some delay
+     */
+    delay?: number;
 }
 
 /**
