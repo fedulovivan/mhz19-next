@@ -1,30 +1,39 @@
 services:
     zigbee2mqtt:
         image: koenkk/zigbee2mqtt
-        devices:
-            - /dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_d42530dd743bec119dd19c957a0af07f-if00-port0:/dev/ttyACM0
-    mosquitto:
-        image: eclipse-mosquitto
+        devices: 
+            - /dev/bus/usb/002/001:/dev/ttyACM0
+            # - /dev/ttyAMA0:/dev/ttyACM0
+            # - /dev/ttyS0:/dev/ttyACM0
         volumes:
-            - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-        ports:
-            - 1883:1883
-    client:
-        build:
-            target: client
-        image: client
-        env_file: .env
-        ports:
-            - 80:$WEB_PORT
-    server:
-        build:
-            target: server
-        image: server
-        env_file: .env
-        ports:
-            - $API_PORT:$API_PORT
-        # depends_on:
-        #     - mosquitto
-        # volumes:
-        #     - ./database.bin:/app/database.bin
+            - ./zigbee2mqtt-data:/app/data
+            - /run/udev:/run/udev:ro            
+      
+# privileged: true  
+    # - /dev/tty.usbserial-140:/dev/ttyACM0
+    # - /dev/serial/by-id/usb-ITead_Sonoff_Zigbee_3.0_USB_Dongle_Plus_d42530dd743bec119dd19c957a0af07f-if00-port0:/dev/ttyACM0
+    # mosquitto:
+    #     image: eclipse-mosquitto
+    #     volumes:
+    #         - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+    #     ports:
+    #         - 1883:1883
+    # client:
+    #     build:
+    #         target: client
+    #     image: client
+    #     env_file: .env
+    #     ports:
+    #         - 80:$WEB_PORT
+    # server:
+    #     build:
+    #         target: server
+    #     image: server
+    #     env_file: .env
+    #     ports:
+    #         - $API_PORT:$API_PORT
+    #     depends_on:
+    #         - mosquitto
+    #     volumes:
+    #         - ./database.bin:/app/database.bin
 

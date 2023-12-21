@@ -29,14 +29,14 @@
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="865.56,-521.69 1301.56,-521.69"/>
 <text text-anchor="middle" x="1083.56" y="-504.39" font-family="Times,serif" font-size="14.00" fill="#000000">Xiaomi Aqara temperature, humidity and pressure sensor (WSDCGQ11LM)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="865.56,-497.19 1301.56,-497.19"/>
-<text text-anchor="middle" x="1083.56" y="-479.89" font-family="Times,serif" font-size="14.00" fill="#000000">10 minutes, 22 seconds ago</text>
+<text text-anchor="middle" x="1083.56" y="-479.89" font-family="Times,serif" font-size="14.00" fill="#000000">28 minutes, 43 seconds ago</text>
 </g>
 <!-- 0x00158d00067cb0c9&#45;&gt;0x00124b0025791f63 -->
 <g id="edge1" class="edge">
 <title>0x00158d00067cb0c9&#45;&gt;0x00124b0025791f63</title>
 <path fill="none" stroke="#994444" d="M865.75,-521.69C813.69,-521.69 760.43,-521.69 716.18,-521.69"/>
 <polygon fill="#994444" stroke="#994444" points="716.42,-518.19 706.42,-521.69 716.42,-525.19 716.42,-518.19"/>
-<text text-anchor="middle" x="780.84" y="-524.89" font-family="Times,serif" font-size="14.00">144</text>
+<text text-anchor="middle" x="780.84" y="-524.89" font-family="Times,serif" font-size="14.00">132</text>
 </g>
 <!-- 0x00158d00042446ec -->
 <g id="node3" class="node">
@@ -48,14 +48,14 @@
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="585.82,-944.98 1055.57,-944.98"/>
 <text text-anchor="middle" x="820.7" y="-927.68" font-family="Times,serif" font-size="14.00" fill="#000000">Xiaomi Aqara double key wireless wall switch (2018 model) (WXKG02LM_rev2)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="585.82,-920.48 1055.57,-920.48"/>
-<text text-anchor="middle" x="820.7" y="-903.18" font-family="Times,serif" font-size="14.00" fill="#000000">17 minutes, 3 seconds ago</text>
+<text text-anchor="middle" x="820.7" y="-903.18" font-family="Times,serif" font-size="14.00" fill="#000000">7 minutes, 8 seconds ago</text>
 </g>
 <!-- 0x00158d00042446ec&#45;&gt;0x00124b0025791f63 -->
 <g id="edge2" class="edge">
 <title>0x00158d00042446ec&#45;&gt;0x00124b0025791f63</title>
 <path fill="none" stroke="#994444" d="M796.47,-896.01C755.66,-813.51 673.78,-647.97 634.01,-567.59"/>
 <polygon fill="#994444" stroke="#994444" points="636.95,-566.63 629.38,-559.22 630.67,-569.73 636.95,-566.63"/>
-<text text-anchor="middle" x="708.49" y="-735" font-family="Times,serif" font-size="14.00">90</text>
+<text text-anchor="middle" x="708.49" y="-735" font-family="Times,serif" font-size="14.00">85</text>
 </g>
 <!-- 0x00158d0004244bda -->
 <g id="node4" class="node">
@@ -67,14 +67,14 @@
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="76.63,-886.57 546.38,-886.57"/>
 <text text-anchor="middle" x="311.51" y="-869.27" font-family="Times,serif" font-size="14.00" fill="#000000">Xiaomi Aqara double key wireless wall switch (2018 model) (WXKG02LM_rev2)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="76.63,-862.07 546.38,-862.07"/>
-<text text-anchor="middle" x="311.51" y="-844.77" font-family="Times,serif" font-size="14.00" fill="#000000">8 months, 3 weeks ago</text>
+<text text-anchor="middle" x="311.51" y="-844.77" font-family="Times,serif" font-size="14.00" fill="#000000">30 minutes, 39 seconds ago</text>
 </g>
 <!-- 0x00158d0004244bda&#45;&gt;0x00124b0025791f63 -->
 <g id="edge3" class="edge">
 <title>0x00158d0004244bda&#45;&gt;0x00124b0025791f63</title>
 <path fill="none" stroke="#994444" d="M351.63,-837.74C410,-766.69 517.54,-635.81 574.18,-566.87"/>
 <polygon fill="#994444" stroke="#994444" points="577.52,-569.33 581.16,-559.38 572.11,-564.88 577.52,-569.33"/>
-<text text-anchor="middle" x="452.78" y="-705.51" font-family="Times,serif" font-size="14.00">170</text>
+<text text-anchor="middle" x="452.78" y="-705.51" font-family="Times,serif" font-size="14.00">124</text>
 </g>
 <!-- 0x00158d0004035e3e -->
 <g id="node5" class="node">
@@ -86,14 +86,14 @@
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="0,-491.83 280,-491.83"/>
 <text text-anchor="middle" x="140" y="-474.53" font-family="Times,serif" font-size="14.00" fill="#000000">Xiaomi Aqara water leak sensor (SJCGQ11LM)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="0,-467.33 280,-467.33"/>
-<text text-anchor="middle" x="140" y="-450.03" font-family="Times,serif" font-size="14.00" fill="#000000">8 months, 3 weeks ago</text>
+<text text-anchor="middle" x="140" y="-450.03" font-family="Times,serif" font-size="14.00" fill="#000000">34 minutes, 47 seconds ago</text>
 </g>
 <!-- 0x00158d0004035e3e&#45;&gt;0x00124b0025791f63 -->
 <g id="edge4" class="edge">
 <title>0x00158d0004035e3e&#45;&gt;0x00124b0025791f63</title>
 <path fill="none" stroke="#994444" d="M279.81,-500.69C352.44,-505.29 439.7,-510.82 506.46,-515.04"/>
 <polygon fill="#994444" stroke="#994444" points="506.22,-518.6 516.42,-515.74 506.66,-511.61 506.22,-518.6"/>
-<text text-anchor="middle" x="383.01" y="-511.07" font-family="Times,serif" font-size="14.00">170</text>
+<text text-anchor="middle" x="386.39" y="-511.07" font-family="Times,serif" font-size="14.00">36</text>
 </g>
 <!-- 0x00158d00040356af -->
 <g id="node6" class="node">
@@ -101,18 +101,18 @@
 <path fill="#fff8ce" stroke="black" stroke-dasharray="5,2" d="M157.22,-131.09C157.22,-131.09 413.22,-131.09 413.22,-131.09 419.22,-131.09 425.22,-137.09 425.22,-143.09 425.22,-143.09 425.22,-217.09 425.22,-217.09 425.22,-223.09 419.22,-229.09 413.22,-229.09 413.22,-229.09 157.22,-229.09 157.22,-229.09 151.22,-229.09 145.22,-223.09 145.22,-217.09 145.22,-217.09 145.22,-143.09 145.22,-143.09 145.22,-137.09 151.22,-131.09 157.22,-131.09"/>
 <text text-anchor="middle" x="285.22" y="-211.79" font-family="Times,serif" font-size="14.00" fill="#000000">0x00158d00040356af</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="145.22,-204.59 425.22,-204.59"/>
-<text text-anchor="middle" x="285.22" y="-187.29" font-family="Times,serif" font-size="14.00" fill="#000000">0x00158d00040356af (0x99f0)</text>
+<text text-anchor="middle" x="285.22" y="-187.29" font-family="Times,serif" font-size="14.00" fill="#000000">0x00158d00040356af (0xbde3)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="145.22,-180.09 425.22,-180.09"/>
 <text text-anchor="middle" x="285.22" y="-162.79" font-family="Times,serif" font-size="14.00" fill="#000000">Xiaomi Aqara water leak sensor (SJCGQ11LM)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="145.22,-155.59 425.22,-155.59"/>
-<text text-anchor="middle" x="285.22" y="-138.29" font-family="Times,serif" font-size="14.00" fill="#000000">10 minutes, 58 seconds ago</text>
+<text text-anchor="middle" x="285.22" y="-138.29" font-family="Times,serif" font-size="14.00" fill="#000000">33 minutes, 15 seconds ago</text>
 </g>
 <!-- 0x00158d00040356af&#45;&gt;0x00124b0025791f63 -->
 <g id="edge5" class="edge">
 <title>0x00158d00040356af&#45;&gt;0x00124b0025791f63</title>
 <path fill="none" stroke="#994444" d="M331.94,-229.03C395.44,-295.55 508.06,-413.53 569.12,-477.49"/>
 <polygon fill="#994444" stroke="#994444" points="566.23,-479.57 575.66,-484.39 571.29,-474.74 566.23,-479.57"/>
-<text text-anchor="middle" x="440.4" y="-356.46" font-family="Times,serif" font-size="14.00">111</text>
+<text text-anchor="middle" x="443.78" y="-356.46" font-family="Times,serif" font-size="14.00">74</text>
 </g>
 <!-- 0x00158d000405811b -->
 <g id="node7" class="node">
@@ -120,18 +120,18 @@
 <path fill="#fff8ce" stroke="black" stroke-dasharray="5,2" d="M475.37,-0.5C475.37,-0.5 731.37,-0.5 731.37,-0.5 737.37,-0.5 743.37,-6.5 743.37,-12.5 743.37,-12.5 743.37,-86.5 743.37,-86.5 743.37,-92.5 737.37,-98.5 731.37,-98.5 731.37,-98.5 475.37,-98.5 475.37,-98.5 469.37,-98.5 463.37,-92.5 463.37,-86.5 463.37,-86.5 463.37,-12.5 463.37,-12.5 463.37,-6.5 469.37,-0.5 475.37,-0.5"/>
 <text text-anchor="middle" x="603.37" y="-81.2" font-family="Times,serif" font-size="14.00" fill="#000000">0x00158d000405811b</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="463.37,-74 743.37,-74"/>
-<text text-anchor="middle" x="603.37" y="-56.7" font-family="Times,serif" font-size="14.00" fill="#000000">0x00158d000405811b (0xc954)</text>
+<text text-anchor="middle" x="603.37" y="-56.7" font-family="Times,serif" font-size="14.00" fill="#000000">0x00158d000405811b (0x6ee7)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="463.37,-49.5 743.37,-49.5"/>
 <text text-anchor="middle" x="603.37" y="-32.2" font-family="Times,serif" font-size="14.00" fill="#000000">Xiaomi Aqara water leak sensor (SJCGQ11LM)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="463.37,-25 743.37,-25"/>
-<text text-anchor="middle" x="603.37" y="-7.7" font-family="Times,serif" font-size="14.00" fill="#000000">8 months, 3 weeks ago</text>
+<text text-anchor="middle" x="603.37" y="-7.7" font-family="Times,serif" font-size="14.00" fill="#000000">34 minutes, 21 seconds ago</text>
 </g>
 <!-- 0x00158d000405811b&#45;&gt;0x00124b0025791f63 -->
 <g id="edge6" class="edge">
 <title>0x00158d000405811b&#45;&gt;0x00124b0025791f63</title>
 <path fill="none" stroke="#994444" d="M604.19,-98.25C605.72,-189.32 609,-384.16 610.51,-474.23"/>
 <polygon fill="#994444" stroke="#994444" points="607.03,-474.26 610.69,-484.2 614.03,-474.14 607.03,-474.26"/>
-<text text-anchor="middle" x="597.23" y="-289.44" font-family="Times,serif" font-size="14.00">170</text>
+<text text-anchor="middle" x="600.6" y="-289.44" font-family="Times,serif" font-size="14.00">45</text>
 </g>
 <!-- 0x00158d0003a010a5 -->
 <g id="node8" class="node">
@@ -167,14 +167,14 @@
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="789.64,-158.79 1037.39,-158.79"/>
 <text text-anchor="middle" x="913.52" y="-141.49" font-family="Times,serif" font-size="14.00" fill="#000000">IKEA TRADFRI ON/OFF switch (E1743)</text>
 <polyline fill="none" stroke="black" stroke-dasharray="5,2" points="789.64,-134.29 1037.39,-134.29"/>
-<text text-anchor="middle" x="913.52" y="-116.99" font-family="Times,serif" font-size="14.00" fill="#000000">1 year, 3 months ago</text>
+<text text-anchor="middle" x="913.52" y="-116.99" font-family="Times,serif" font-size="14.00" fill="#000000">7 hours, 11 minutes ago</text>
 </g>
 <!-- 0x50325ffffe6ca5da&#45;&gt;0x00124b0025791f63 -->
 <g id="edge7" class="edge">
 <title>0x50325ffffe6ca5da&#45;&gt;0x00124b0025791f63</title>
 <path fill="none" stroke="#994444" d="M872.76,-207.73C813.89,-278.42 705.9,-408.1 648.87,-476.58"/>
 <polygon fill="#994444" stroke="#994444" points="645.55,-474.1 641.84,-484.02 650.93,-478.58 645.55,-474.1"/>
-<text text-anchor="middle" x="750.69" y="-345.36" font-family="Times,serif" font-size="14.00">170</text>
+<text text-anchor="middle" x="754.07" y="-345.36" font-family="Times,serif" font-size="14.00">56</text>
 </g>
 </g>
 </svg>
