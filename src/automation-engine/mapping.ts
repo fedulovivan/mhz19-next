@@ -4,6 +4,7 @@ import {
     IKEA_ONOFF_SWITCH,
     KITCHEN_CEILING_LIGHT,
     KITCHEN_UNDERCABINET_LIGHT,
+    STORAGE_ROOM_ALL_LIGHTS,
     WALL_SWITCH_BEDROOM,
     WALL_SWITCH_KITCHEN,
 } from 'src/constants';
@@ -16,7 +17,7 @@ import {
 
 const mappings: IMappings = [
 
-    // mapping 05
+    // mapping 0
     {
         onZigbeeMessage: {
             deviceId: DEVICE_NAME_TO_ID[WALL_SWITCH_BEDROOM],
@@ -37,7 +38,7 @@ const mappings: IMappings = [
         }]
     },
 
-    // mapping 04
+    // mapping 1
     {
         onZigbeeMessage: {
             deviceId: DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN],
@@ -54,7 +55,7 @@ const mappings: IMappings = [
         }]
     },
 
-    // mapping 03
+    // mapping 2
     {
         onZigbeeMessage: {
             deviceId: DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN],
@@ -71,7 +72,7 @@ const mappings: IMappings = [
         }]
     },
 
-    // mapping 02
+    // mapping 3
     {
         onZigbeeMessage: {
             deviceId: DEVICE_NAME_TO_ID[WALL_SWITCH_KITCHEN],
@@ -100,7 +101,7 @@ const mappings: IMappings = [
         }]
     },
 
-    // mapping 01
+    // mapping 4
     {
         onZigbeeMessage: {
             deviceId: DEVICE_NAME_TO_ID[IKEA_ONOFF_SWITCH],
@@ -111,13 +112,27 @@ const mappings: IMappings = [
             }]
         },
         actions: [{
-            type: OutputAction.Zigbee2MqttSetState,
-            deviceId: '0x00158d000391f252',
+            type: OutputAction.PostSonoffSwitchMessage,
+            deviceId: DEVICE_NAME_TO_ID[STORAGE_ROOM_ALL_LIGHTS],
             payloadData: "$message.action",
-        }, {
-            type: OutputAction.Zigbee2MqttSetState,
-            deviceId: '0x00158d0003a010a5',
-            payloadData: "$message.action",
+        }]
+    },
+
+    // mapping 5
+    {
+        onZigbeeMessage: {
+            deviceId: DEVICE_NAME_TO_ID[IKEA_ONOFF_SWITCH],
+            payloadConditions: [{
+                field: "$message.action",
+                function: PayloadConditionFunction.Equal,
+                arguments: ["on"],
+            }],
+        },
+        actions: [{
+            type: OutputAction.PostSonoffSwitchMessage,
+            deviceId: DEVICE_NAME_TO_ID[STORAGE_ROOM_ALL_LIGHTS],
+            payloadData: "off",
+            delay: 20 * 60 * 1000, // 20 mins
         }]
     },
 

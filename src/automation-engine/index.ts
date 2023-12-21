@@ -1,5 +1,8 @@
 /* eslint-disable no-duplicate-imports */
 
+import { OpenInFull } from '@material-ui/icons';
+import { bind, isNil } from 'lodash';
+
 import log, { withDebug } from 'src/logger';
 
 import mapping from './mapping';
@@ -66,31 +69,34 @@ class ActionsExecutor {
     private mapping: IMappings;
     private supportedOutputActions: Record<OutputAction, TOutputActionImpl>;
     private supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>;
+    private delayedActions: Record<string, Array<NodeJS.Timer>> = {};
     constructor(opts: IActionsExecutorCtrOpts) {
         this.supportedOutputActions = opts.supportedOutputActions;
         this.mapping = opts.mapping;
         this.supportedAdapters = opts.supportedAdapters;
         debug(`ActionsExecutor instance was created`);
     }
-    public handleZigbeeMessage(deviceId: string, message: IZigbeeDeviceMessage) {
-        debug(`Matching new message from deviceId=${deviceId} against ${this.mapping.length} mapping records`);
+    public handleZigbeeMessage(srcDeviceId: string, message: IZigbeeDeviceMessage) {
+        debug(`Matching new message from srcDeviceId=${srcDeviceId} against ${this.mapping.length} mapping records`);
+        // if (!this.delayedActions[deviceId]) {
+        //     debug(`Creating delayedActions for the first time for ${deviceId}`);
+        //     this.delayedActions[deviceId] = [];
+        // }
         let matchFound = false;
         this.mapping.forEach(({ onZigbeeMessage, actions }, index) => {
             if (!onZigbeeMessage) return;
-            if (deviceId !== onZigbeeMessage.deviceId) return;
-            const { payloadConditions/* , translation */ } = onZigbeeMessage;
+            if (srcDeviceId !== onZigbeeMessage.deviceId) return;
+            const { payloadConditions } = onZigbeeMessage;
             const matches = payloadConditions ? matcher(
                 message,
                 payloadConditions,
                 supportedConditionFunctions,
-                // translation,
             ) : true;
             if (!matches) return;
-            debug(`Match for record with index ${index} found, going to execute ${actions.length} actions`);
+            debug(`Mapping with index ${index} matches, going to execute ${actions.length} actions`);
             this.executeActions(
                 message,
                 actions,
-                // translation
             );
             matchFound = true;
         });
@@ -99,18 +105,41 @@ class ActionsExecutor {
     private executeActions(
         message: IZigbeeDeviceMessage,
         actions: Array<IOutputAction>,
-        // translation: IInputRuleBase["translation"],
     ) {
         actions.forEach(({
-            type, deviceId, payloadData, translation
-        }, index) => {
+            type, deviceId: dstDeviceId, payloadData, translation, delay
+        }) => {
+
+            if (!this.delayedActions[dstDeviceId]) {
+                debug(`Creating delayedActions record for the first time for dstDeviceId=${dstDeviceId}`);
+                this.delayedActions[dstDeviceId] = [];
+            } else if (this.delayedActions[dstDeviceId].length > 0) {
+                debug(`Going to abort ${this.delayedActions[dstDeviceId].length} delayed actions for dstDeviceId=${dstDeviceId}`);
+                this.delayedActions[dstDeviceId].forEach(timerId => {
+                    clearTimeout(timerId);
+                });
+                this.delayedActions[dstDeviceId] = [];
+                debug(`timers and delayed actions queue was cleared for dstDeviceId=${dstDeviceId}`);
+            }
+
             const outputActionImpl = this.supportedOutputActions[type];
-            debug(`action index ${index}`);
-            outputActionImpl(
-                deviceId,
-                payloadData ? translator(pickValue(message, payloadData), translation) : undefined,
-                this.supportedAdapters,
+            const { supportedAdapters } = this;
+            const timerId = setTimeout(
+                function() {
+                    outputActionImpl(
+                        dstDeviceId,
+                        payloadData ? translator(pickValue(message, payloadData), translation) : undefined,
+                        supportedAdapters,
+                    );
+                }, 
+                delay
             );
+                
+            if (delay) {    
+                debug(`delaying action execution for ${delay}ms`);
+                this.delayedActions[dstDeviceId].push(timerId);
+            }
+
         });
     }
 }
