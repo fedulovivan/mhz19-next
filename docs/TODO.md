@@ -8,6 +8,9 @@
 - try https://github.com/dotansimha/graphql-code-generator
 - introduce data type field in device_custom_attributes table
 - remove hardcode: yeelightDeviceSetPower from supportedAdapters works only bedroom ceiling light
+- make payloadConditions optional
+- OutputAction.Zigbee2MqttSetState supports only strings in payloadData, so we cannot take any input value as is, if its not string
+- we probably need to handle non-json messages in zigbee2MqttWildcardHandler, non non json are ignored
 
 ### DONE
 - (+) fix saving list of zigbee devices in new format
@@ -25,3 +28,8 @@
 - (+) get rid of deviceStates in client state, store this data in zigbeeDevivesMessages
 - (+) rename waterSensorRecentMessages to zigbeeDevivesMessages
 - (?) new widget for device messages history
+
+### DB
+
+SELECT *, json_extract(json, '$.water_leak') as wl from device_messages_unified WHERE device_id = '0x00158d00040356af'
+and wl = 1 ORDER by "timestamp" DESC 

@@ -4,6 +4,7 @@ import { useQuery } from '@apollo/client';
 import { css, cx } from '@emotion/css';
 import Paper from '@material-ui/core/Paper';
 
+import KeyValuePaper from 'src/components/KeyValuePaper';
 import { QUERY_OPTIONS } from 'src/constants';
 import * as queries from 'src/queries';
 
@@ -18,17 +19,16 @@ const Stats: React.FC = () => {
     if (loading) return <>Loading...</>;
     if (error) return <>{error.message}</>;
 
-    const { stats } = data;
+    const stats = { ...data.stats };
+    delete stats.__typename;
+    const data2 = Object.entries(stats);
+
+    // console.log(stats);
+    // console.log(data2);
+    // data2.map(console.log);
 
     return (
-        <Paper
-            elevation={2}
-            className={cx(css`
-                padding: 20px;
-            `, 'col-12')}
-        >
-            {JSON.stringify(stats, null, ' ')}
-        </Paper>
+        <KeyValuePaper data={data2} asCards />
     );
 };
 

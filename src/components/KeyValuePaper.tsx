@@ -83,12 +83,12 @@ const KeyValuePaper: React.FC<{
         return (
             <>
                 {items}
-                <Paper
+                {children && <Paper
                     className={cardRootStyles}
                     elevation={2}
                 >
-                    {children}
-                </Paper>
+                    { children }
+                </Paper>}
             </>
         );
     }

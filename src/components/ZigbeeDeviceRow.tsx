@@ -19,7 +19,7 @@ import moment from 'moment';
 
 import LastSeenBar from 'src/components/LastSeenBar';
 import Messages from 'src/components/Messages';
-import { LAST_SEEN_OUTDATION } from 'src/constants';
+import { HOUR, LAST_SEEN_OUTDATION } from 'src/constants';
 
 const ZigbeeDeviceRow: React.FC<{
     device: IZigbee2MqttBridgeDevice & {
@@ -70,7 +70,7 @@ const ZigbeeDeviceRow: React.FC<{
                     sortedMessages={sortedMessages}
                 /> : null}&nbsp;
                 {lastSeenMoment ? lastSeenMoment.fromNow() : 'no info'}
-                <LastSeenBar sortedMessages={sortedMessages} />
+                <LastSeenBar sortedMessages={sortedMessages} noDataGap={HOUR * 1} />
             </TableCell>
             <TableCell>{mostRecentMessage?.battery ?? '-'}</TableCell>
         </TableRow>

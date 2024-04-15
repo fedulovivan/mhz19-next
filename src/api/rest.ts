@@ -1,11 +1,9 @@
 /* eslint-disable no-plusplus */
 
-import { exec } from 'child_process';
 import Express from 'express';
 import first from 'lodash/first';
 import set from 'lodash/set';
 
-import { KITCHEN_CEILING_LIGHT, KITCHEN_UNDERCABINET_LIGHT } from 'src/constants';
 import db, {
     createOrUpdateDeviceCustomAttribute,
     fetchDeviceCustomAttributes,
@@ -15,35 +13,69 @@ import db, {
     fetchValveStatusMessages,
     fetchYeelightDeviceMessages,
     fetchYeelightDevices,
-    fetchZigbeeDevices,
     fetchZigbeeDevicesV2,
-    toMap,
 } from 'src/db';
+import * as lastDeviceState from 'src/lastDeviceState';
 import log from 'src/logger';
 import mqttClient from 'src/mqttClient';
+import { actionsExecutor } from 'src/server';
 import {
     asyncTimeout,
+    exec2,
     getAppUrl,
     getOptInt,
     mqttMessageDispatcher,
+    playAlertSigle,
     postSonoffSwitchMessage,
     sendError,
+    uptime,
 } from 'src/utils';
 
 // import yeelightDevices from 'src/yeelightDevices';
 
 const router = Express.Router();
 
-const powerOff = () => new Promise((resolve, reject) => {
-    exec(`sudo systemctl poweroff`, (error, stdout, stderr) => {
-        if (error) reject(error);
-        resolve([stdout, stderr]);
-    });
+// const powerOff = () => new Promise((resolve, reject) => {
+//     exec(`sudo systemctl poweroff`, (error, stdout, stderr) => {
+//         if (error) reject(error);
+//         resolve([stdout, stderr]);
+//     });
+// });
+
+router.get('/stats', async (req, res) => {
+    try {
+        const uptimeData = await uptime();
+        const actionsExecutorStats = actionsExecutor.getStats();
+        res.json({
+            actionsExecutor: actionsExecutorStats,
+            uptime: uptimeData,
+        });
+    } catch (e: any) {
+        sendError(res, e);
+    }
+});
+
+router.get('/play-alert', async (req, res) => {
+    try {
+        const result = await playAlertSigle();
+        res.json(result);
+    } catch (e: any) {
+        sendError(res, e);
+    }
+});
+
+router.get('/uptime', async (req, res) => {
+    try {
+        const result = await uptime();
+        res.json(result);
+    } catch (e: any) {
+        sendError(res, e);
+    }
 });
 
 router.post('/poweroff', async (req, res) => {
     try {
-        const result = await powerOff();
+        const result = await exec2(`sudo systemctl poweroff`);
         res.json(result);
     } catch (e: any) {
         sendError(res, e);
@@ -69,9 +101,24 @@ router.get('/valve-state', async (req, res) => {
 router.get('/device-messages-unified', async (req, res) => {
     try {
         const rows = await fetchDeviceMessagesUnified(
-            getOptInt(<string>req.query.historyWindowSize)
+            getOptInt(<string>req.query.historyWindowSize),
+            <string>req.query.deviceId,
         );
         res.json(rows);
+    } catch (e: any) {
+        sendError(res, e);
+    }
+});
+
+router.get('/last-device-messages/:deviceId?', async (req, res) => {
+    try {
+        const { deviceId } = req.params;
+        const rows = lastDeviceState.toJSON();
+        res.json(
+            deviceId?.length 
+                ? rows.find(row => row.deviceId === deviceId) ?? null 
+                : rows
+        );
     } catch (e: any) {
         sendError(res, e);
     }
@@ -119,7 +166,7 @@ router.get('/sonoff-devices', async (req, res) => {
 
 router.get('/device-custom-attributes', async (req, res) => {
     try {
-        const result = toMap(await fetchDeviceCustomAttributes());
+        const result = await fetchDeviceCustomAttributes();
         res.json(result);
     } catch (e: any) {
         sendError(res, e);
@@ -163,7 +210,7 @@ router.put('/sonoff-device/:deviceId/switch', async (req, res) => {
 //         if (!device) {
 //             return sendError(res, `yeelight device ${deviceId} is not registered\n${new Error().stack}`);
 //         }
-//         log.info(`calling set_power state=${state} on device ${deviceId}`);
+//         debug(`calling set_power state=${state} on device ${deviceId}`);
 //         device.sendCommand({
 //             id: commandId,
 //             method: 'set_power',

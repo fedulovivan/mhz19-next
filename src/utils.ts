@@ -1,21 +1,21 @@
 /* eslint-disable no-await-in-loop */
 
 import axios from 'axios';
+import type { ExecException } from 'child_process';
 import { exec } from 'child_process';
 import config from 'config';
 import Debug from 'debug';
 import { Response } from 'express';
+import humanizeDuration from 'humanize-duration';
+import { isNil } from 'lodash';
 import { MqttClient } from 'mqtt';
 import os from 'os';
 // @ts-ignore
 import { Device, Discovery } from 'yeelight-platform';
 
-import {
-    BEDROOM_CEILING_LIGHT,
-    DEVICE_NAME_TO_ID,
-    IKEA_400LM_LED_BULB,
-} from 'src/constants';
+import { DEVICE } from 'src/constants';
 import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
+import * as lastDeviceState from 'src/lastDeviceState';
 import log, { withDebug } from 'src/logger';
 import mqttClient from 'src/mqttClient';
 
@@ -30,6 +30,8 @@ bedroomCeilingLight.connect();
 // const debug = Debug('mhz19-dispatcher');
 const debug = withDebug('mhz19-utils');
 
+export const STARTED_AT = new Date();
+
 /**
  * AKA delayAsync
  */
@@ -40,7 +42,7 @@ export async function asyncTimeout(timeout: number) {
 }
 
 export function sendError(res: Response, e: Error | string) {
-    res.json({
+    res.status(500).json({
         error: true,
         message: e instanceof Error ? e.message : e,
     });
@@ -49,7 +51,7 @@ export function sendError(res: Response, e: Error | string) {
 export function mqttMessageDispatcher(
     mqttClient: MqttClient,
     handlersMap: Array<[
-        topicPrefixOrDeviceName: string,
+        topicPrefixOrDeviceId: DEVICE | string,
         handler: IMqttMessageDispatcherHandler,
     ]>,
     excludedTopics?: Array<string>
@@ -72,28 +74,49 @@ export function mqttMessageDispatcher(
             debug('string:', rawMessage);
         }
 
-        let deviceIdFromTopic: string;
-        if (fullTopic.startsWith('zigbee2mqtt/0x')/*  || fullTopic.startsWith('zigbee2mqtt/bridge') */) {
-            [, deviceIdFromTopic] = fullTopic.split('/');
-            insertIntoDeviceMessagesUnified(deviceIdFromTopic, timestamp, json);
+        let deviceId: DEVICE;
+        if (fullTopic.startsWith('zigbee2mqtt/0x')) {
+            deviceId = fullTopic.split('/')[1] as unknown as DEVICE;
         }
 
-        handlersMap.forEach(([topicPrefixOrDeviceName, handler]) => {
+        // const isKnownDevice
+        // const isHandlerForDeviceName = !!DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
+        // const deviceIdFromMap = DEVICE_NAME_TO_ID[topicPrefixOrDeviceId];
+        // deviceName: DEVICE[deviceIdFromTopic as keyof DEVICE],
+        // deviceName: deviceIdFromMap ? topicPrefixOrDeviceId : undefined,
 
-            // const isHandlerForDeviceName = !!DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
-            const deviceIdFromMap = DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
+        handlersMap.forEach(([topicPrefixOrDeviceId, handler]) => {
 
-            if (fullTopic.startsWith(deviceIdFromMap ? `zigbee2mqtt/${deviceIdFromMap}` : topicPrefixOrDeviceName)) {
+            const isDeviceRule = topicPrefixOrDeviceId === deviceId;
+            const isWildcardRule = fullTopic.startsWith(topicPrefixOrDeviceId as string);
+            const shouldHandle = isDeviceRule || isWildcardRule;
+
+            // isDeviceMessage,
+
+            // debug({
+            //     isDeviceRule,
+            //     shouldHandle,
+            //     isWildcardRule,
+            //     fullTopic,
+            //     topicPrefixOrDeviceId,
+            // })
+
+            if (shouldHandle) {
                 handler({
                     fullTopic,
                     json,
                     timestamp,
                     rawMessage,
-                    deviceId: deviceIdFromTopic,
-                    deviceName: deviceIdFromMap ? topicPrefixOrDeviceName : undefined,
+                    deviceId,
                 });
             }
         });
+
+        if (deviceId!) {
+            insertIntoDeviceMessagesUnified(deviceId, timestamp, json);
+            lastDeviceState.set(deviceId, json);
+        }
+
     });
 }
 
@@ -181,6 +204,25 @@ export async function postSonoffSwitchMessage(cmd: 'on' | 'off', deviceId: strin
     } catch (e) {
         log.error(e);
     }
+    // to get current state
+    // POST { "deviceid": "", "data": { } } to /zeroconf/info
+    // response
+    // { 
+    //   "seq": 2, 
+    //   "error": 0,
+    //   "data": {
+    //     "switch": "off",
+    //     "startup": "off",
+    //     "pulse": "off",
+    //     "pulseWidth": 500,
+    //     "ssid": "eWeLink",
+    //     "otaUnlock": false,
+    //     "fwVersion": "3.5.0",
+    //     "deviceid": "100000140e",
+    //     "bssid": "ec:17:2f:3d:15:e",
+    //     "signalStrength": -25
+    //   }
+    // }
 }
 
 export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'off') {
@@ -194,22 +236,41 @@ export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'of
     });
 }
 
-/** @deprecated */
-export async function postIkeaLedBulb(state: 'on' | 'off') {
-    debug(`sending state=${state} to ${IKEA_400LM_LED_BULB}...`);
-    mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
-    // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
-    // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100
-}
+/** deprecated */
+// export async function postIkeaLedBulb(state: 'on' | 'off') {
+//     debug(`sending state=${state} to ${DEIKEA_400LM_LED_BULB}...`);
+//     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
+//     // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
+//     // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100
+// }
 
-export function playAlertSigle() {
-    return new Promise((resolve, reject) => {
-        exec(`mpg123 ./siren.mp3`, (error, stdout, stderr) => {
-            if (error) reject(error);
-            resolve([stdout, stderr]);
-        });
+export const uptime = async () => {
+    const host = await exec2(`uptime -p`);
+    const now = new Date();
+    const appUptime = now.getTime() - STARTED_AT.getTime();
+    return { 
+        host: host[0].replace('up ', ''),
+        application: humanizeDuration(appUptime, { round: true, largest: 3 }),
+    };
+};
+
+export const exec2 = (cmd: string) => new Promise<[stdout: string, stderr: string]>((resolve, reject) => {
+    exec(cmd, (error: ExecException | null, stdout: string, stderr: string) => {
+        if (error) reject(error);
+        resolve([stdout.trim(), stderr.trim()])
     });
-}
+});
+
+export const playAlertSigle = () => exec2(`mpg123 ./siren.mp3`);
+
+// export function playAlertSigle() {
+//     return new Promise((resolve, reject) => {
+//         exec(`mpg123 ./siren.mp3`, (error, stdout, stderr) => {
+//             if (error) reject(error);
+//             resolve([stdout, stderr]);
+//         });
+//     });
+// }
 
 export function saveGraphvizNetworkmap(data: string, format: 'svg' | 'png' = 'svg') {
     return new Promise((resolve, reject) => {
@@ -231,17 +292,17 @@ export class Alerter {
         while (Alerter.raised && !Alerter.playing && Alerter.repeats < Alerter.maxRepeats) {
             Alerter.playing = true;
             try {
-                log.info(`Playing alert sound, repeat #${Alerter.repeats + 1}...`);
+                debug(`Playing alert sound, repeat #${Alerter.repeats + 1}...`);
                 await playAlertSigle();
-                log.info(`Succeeded`);
+                debug(`Succeeded`);
                 Alerter.playing = false;
             } catch (e) {
-                log.info(`Playing failed`);
+                debug(`Playing failed`);
                 Alerter.playing = false;
             }
             Alerter.repeats += 1;
             if (Alerter.repeats === Alerter.maxRepeats) {
-                log.info(`Max repeats reached`);
+                debug(`Max repeats reached`);
             }
             await asyncTimeout(1000);
         }

@@ -29,6 +29,7 @@ const WindowSizePicker: React.FC<{
             <Select
                 value={historyWindowSize}
                 onChange={handleHistoryWindowSizeChange}
+                style={{width: '150px'}}
             >
                 <MenuItem value={HISTORY_WINDOW_DAY}>1 day</MenuItem>
                 <MenuItem value={HISTORY_WINDOW_3DAYS}>3 days</MenuItem>

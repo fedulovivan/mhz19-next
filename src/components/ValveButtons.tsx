@@ -13,9 +13,9 @@ import LastSeenBar from 'src/components/LastSeenBar';
 import Meter from 'src/components/Meter';
 import ValveButton from 'src/components/ValveButton';
 import {
-    KITCHEN_VALVES_MANIPULATOR,
+    DEVICE,
+    MINUTE,
     QUERY_OPTIONS,
-    TOILET_VALVES_MANIPULATOR,
 } from 'src/constants';
 import * as queries from 'src/queries';
 
@@ -41,9 +41,13 @@ const rootStyles = css`
         display: flex;
         column-gap: 24px;
         align-items: center;
+        grid-column: 1/3;
     }
-    &.withError {
-        color: red;
+    &.col-6-left {
+        grid-column: 1/5;
+    }
+    &.col-6-right {
+        grid-column: 5/13;
     }
 `;
 
@@ -73,20 +77,20 @@ const ValveButtons: React.FC<{
     );
 
     // handlers
-    const handleKitchenOpen = useCallback(() => toggleValves(KITCHEN_VALVES_MANIPULATOR, 'open'), []);
-    const handleKitchenClose = useCallback(() => toggleValves(KITCHEN_VALVES_MANIPULATOR, 'close'), []);
-    const handleToiletOpen = useCallback(() => toggleValves(TOILET_VALVES_MANIPULATOR, 'open'), []);
-    const handleToiletClose = useCallback(() => toggleValves(TOILET_VALVES_MANIPULATOR, 'close'), []);
+    const handleKitchenOpen = useCallback(() => toggleValves(DEVICE.KITCHEN_VALVES_MANIPULATOR, 'open'), []);
+    const handleKitchenClose = useCallback(() => toggleValves(DEVICE.KITCHEN_VALVES_MANIPULATOR, 'close'), []);
+    const handleToiletOpen = useCallback(() => toggleValves(DEVICE.TOILET_VALVES_MANIPULATOR, 'open'), []);
+    const handleToiletClose = useCallback(() => toggleValves(DEVICE.TOILET_VALVES_MANIPULATOR, 'close'), []);
 
     // effects
     useEffect(() => () => stopPolling(), [stopPolling]);
 
     // derived
     const valveStatusMessagesKitchen = filter(
-        data?.valveStatusMessages, ({ chipid }) => chipid === KITCHEN_VALVES_MANIPULATOR
+        data?.valveStatusMessages, ({ chipid }) => String(chipid) === DEVICE.KITCHEN_VALVES_MANIPULATOR
     );
     const valveStatusMessagesToilet = filter(
-        data?.valveStatusMessages, ({ chipid }) => chipid === TOILET_VALVES_MANIPULATOR
+        data?.valveStatusMessages, ({ chipid }) => String(chipid) === DEVICE.TOILET_VALVES_MANIPULATOR
     );
     const lastStatusMessageKitchen: any = first(valveStatusMessagesKitchen);
     const lastStatusMessageToilet: any = first(valveStatusMessagesToilet);
@@ -94,7 +98,7 @@ const ValveButtons: React.FC<{
     return (
         <>
             <Paper
-                className={cx(className, rootStyles)}
+                className={cx(className, rootStyles, "col-6-left")}
             >
                 <ValveButton
                     color={red[600]}
@@ -116,6 +120,7 @@ const ValveButtons: React.FC<{
                     className="lastSeenBar"
                     sortedMessages={valveStatusMessagesKitchen}
                     label="Last seen history"
+                    noDataGap={MINUTE * 5}
                 />
                 <div className="stats">
                     Valves state: {
@@ -140,8 +145,8 @@ const ValveButtons: React.FC<{
                 </div>
             </Paper>
             <Paper
-                className={cx(className, rootStyles)}
-            >
+                className={cx(className, rootStyles, "col-6-right")}
+                >
                 <ValveButton
                     color={red[600]}
                     onClick={handleToiletClose}
@@ -162,6 +167,7 @@ const ValveButtons: React.FC<{
                     className="lastSeenBar"
                     sortedMessages={valveStatusMessagesToilet}
                     label="Last seen history"
+                    noDataGap={MINUTE * 5}
                 />
                 <div className="stats">
                     Valves state: {

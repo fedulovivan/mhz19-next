@@ -5,7 +5,7 @@ import Debug from 'debug';
 import set from 'lodash/set';
 import sqlite3, { Statement } from 'sqlite3';
 
-import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
+import { DEVICE } from 'src/constants';
 
 const debug = Debug('mhz19-db');
 
@@ -230,7 +230,7 @@ export async function deleteYeelightDevice(id: string) {
 }
 
 export async function insertIntoDeviceMessagesUnified(
-    deviceId: string,
+    deviceId: DEVICE,
     timestamp: number,
     json: IZigbeeDeviceMessage | null
 ) {
@@ -243,7 +243,7 @@ export async function insertIntoDeviceMessagesUnified(
 }
 
 export async function insertIntoYeelightDeviceMessages(
-    deviceId: string,
+    deviceId: DEVICE,
     timestamp: number,
     json: any
 ) {
@@ -267,22 +267,29 @@ export async function insertIntoValveStatusMessages(
     );
 }
 
-export function toMap(rows: Array<any>) {
-    const result = {};
-    rows.forEach(row => {
-        set(result, `${row.device_id}.${row.attribute_type}`, row.value);
-    });
-    return result;
-}
-
 export async function fetchDeviceCustomAttributes(
     params: Partial<IDeviceCustomAttribute> = {},
-) {
+    asMap = true,
+): Promise<any> {
+    function toMap(rows: Array<any>) {
+        const result = {};
+        rows.forEach(row => {
+            set(result, `${row.device_id}.${row.attribute_type}`, row.value);
+        });
+        return result;
+    }
+
     const where: Array<string> = [];
     const { deviceId, attributeType } = params;
     if (deviceId) where.push(`device_id = '${deviceId}'`);
     if (attributeType) where.push(`attribute_type = '${attributeType}'`);
-    return select(`SELECT * FROM device_custom_attributes ${where.length ? "WHERE" : ""} ${where.join(" AND ")}`);
+    const result = await select(`SELECT * FROM device_custom_attributes ${where.length ? "WHERE" : ""} ${where.join(" AND ")}`);
+    
+    if (asMap) {
+        return toMap(result);
+    }
+
+    return result;
 }
 
 export async function insertIntoDeviceCustomAttributes({
@@ -316,7 +323,7 @@ export async function createOrUpdateDeviceCustomAttribute({
     attributeType,
     value,
 }: IDeviceCustomAttribute) {
-    const existing = await fetchDeviceCustomAttributes({ deviceId, attributeType });
+    const existing: any = await fetchDeviceCustomAttributes({ deviceId, attributeType }, false);
     if (existing.length === 1) {
         return updateDeviceCustomAttributes({
             deviceId,
@@ -454,11 +461,32 @@ export async function insertIntoYeelightDevices(
 export async function fetchLastTemperatureSensorMessage() {
     const rows = await select(oneLine`
         SELECT * FROM device_messages_unified
-        WHERE device_id = '${DEVICE_NAME_TO_ID[TEMPERATURE_SENSOR]}'
+        WHERE device_id = '${DEVICE.TEMPERATURE_SENSOR}'
         ORDER BY timestamp DESC
         LIMIT 1
     `);
     return unwrapJson(rows);
+}
+
+export async function fetchLastDeviceMessages(): Promise<Record<DEVICE, IZigbeeDeviceMessage>> {
+    const rowsRaw = await select(oneLine`
+        SELECT 
+            device_id, 
+            json, 
+            max("timestamp") as max_timestamp 
+        FROM 
+            device_messages_unified 
+        WHERE 
+            json IS NOT NULL
+        GROUP BY 
+            device_id
+    `);
+    const rows = unwrapJson(rowsRaw);
+    // debug(rows);
+    return rows.reduce((memo, row) => {
+        memo[row.device_id] = row;
+        return memo;
+    }, {});
 }
 
 export async function fetchYeelightDevices() {

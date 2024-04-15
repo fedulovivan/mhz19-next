@@ -24,13 +24,7 @@ import HighchartsReact from 'highcharts-react-official';
 import brokenAxis from 'highcharts/modules/broken-axis';
 import sortBy from 'lodash/sortBy';
 
-// import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
-import {
-    DEVICE_NAME_TO_ID,
-    NO_DATA_GAP,
-    QUERY_OPTIONS,
-    TEMPERATURE_SENSOR,
-} from 'src/constants';
+import { NO_DATA_GAP, QUERY_OPTIONS } from 'src/constants';
 import * as queries from 'src/queries';
 
 brokenAxis(Highcharts);
@@ -104,7 +98,7 @@ const Chart: React.FC<{
         queries.GET_TEMPERATURE_SENSOR_MESSAGES, {
             variables: {
                 historyWindowSize,
-                deviceId: DEVICE_NAME_TO_ID[TEMPERATURE_SENSOR],
+                deviceId: /* DEVICE.TEMPERATURE_SENSOR */"0x00158d00067cb0c9",
             },
             ...QUERY_OPTIONS,
         }

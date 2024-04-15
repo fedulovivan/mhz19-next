@@ -1,39 +1,48 @@
 /* eslint-disable no-shadow */
 
+import { DEVICE } from 'src/constants';
+
 export enum OutputAction {
     PostSonoffSwitchMessage = 'PostSonoffSwitchMessage',
     YeelightDeviceSetPower = 'YeelightDeviceSetPower',
     Zigbee2MqttSetState = 'Zigbee2MqttSetState',
+    ValveSetState = 'ValveSetState',
+    TelegramBotMessage = 'TelegramBotMessage',
 }
 
 export enum PayloadConditionFunction {
     Equal = 'Equal',
     InList = 'InList',
+    Changed = 'Changed',
 }
 
 export enum OutputLayerAdapter {
     Mqtt = 'Mqtt',
     Sonoff = 'Sonoff',
     Yeelight = 'Yeelight',
+    Telegram = 'Telegram',
 }
 
-export interface IInputRuleBase {
-    deviceId: string;
+export interface IInputRuleZigbeeMessage {
+    srcDevices: Array<DEVICE>;
+    payloadConditions?: TPayloadConditions;
+    conditionOperator?: 'AND' | 'OR';
 }
 
-export type MessageFields = "$message.action" | string;
+export type MessageFields = "$message.action" | string | boolean | number;
 
 export interface IPayloadCondition {
     field: MessageFields;
     function: PayloadConditionFunction;
-    arguments?: Array<MessageFields>;
+    arguments?: Array<MessageFields>; // TODO this should not be MessageFields
+    /**
+     * target device to take last message from,
+     * when empty IInputRuleBase["deviceId"] is used
+     */
+    otherDeviceId?: DEVICE;
 }
 
 export type TPayloadConditions = Array<IPayloadCondition>;
-
-export interface IInputRuleZigbeeMessage extends IInputRuleBase {
-    payloadConditions?: TPayloadConditions;
-}
 
 export interface IOutputAction {
     /**
@@ -43,13 +52,13 @@ export interface IOutputAction {
     /**
      * target device
      */
-    deviceId: string;
+    deviceId?: DEVICE;
     /**
      * value to be sent to target:
      * string - hardcoded value to be sent
      * $message.* - value to sent will be taken from input message
      */
-    payloadData?: MessageFields;
+    payloadData?: MessageFields | ((message: IZigbeeDeviceMessage, srcDeviceId: DEVICE, dstDeviceId?: DEVICE) => string);
     /**
      * allows to map one exact input value to another, applicable only when payloadData=$message.*
      */
@@ -81,19 +90,21 @@ export interface IActionsExecutorCtrOpts {
 }
 
 export type TMatcherFunc = (
+    deviceId: DEVICE,
     message: IZigbeeDeviceMessage,
     payloadConditions: TPayloadConditions,
     supportedConditionFunctions: Record<PayloadConditionFunction, TPayloadConditionFunctionImpl>,
-    // translation: IInputRuleBase["translation"],
+    conditionOperator?: IInputRuleZigbeeMessage["conditionOperator"],
 ) => boolean;
 
 export type TOutputActionImpl = (
-    deviceId: string,
-    data: string | undefined,
+    deviceId: DEVICE,
+    data: MessageFields | undefined,
     supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>,
 ) => void;
 
 export type TPayloadConditionFunctionImpl = (
-    value: string | undefined,
-    arguments?: Array<string | undefined>,
+    value: MessageFields | undefined,
+    arguments?: Array<MessageFields | undefined>,
+    prevValue?: MessageFields | undefined,
 ) => boolean;

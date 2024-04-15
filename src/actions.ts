@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { oneLineTrim } from 'common-tags';
 
-export const toggleValves = (id: number, state: 'open' | 'close') => {
+export const toggleValves = (id: string, state: 'open' | 'close') => {
     axios.put(`/valve-state/${id}/${state}`);
 };
 

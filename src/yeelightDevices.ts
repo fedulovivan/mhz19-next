@@ -70,7 +70,7 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
             log.error(`error in deleteYeelightDevice: `, e);
         }
     });
-    // deviceClient.on('socketEnd', () => log.info('socketEnd'));
+    // deviceClient.on('socketEnd', () => debug('socketEnd'));
     // deviceClient.on('socketError', (err) => log.error('socketError: ', err));
     deviceClient.on('deviceUpdate', async (newProps: any) => {
         if (!yeelightDevices.has(deviceId)) {

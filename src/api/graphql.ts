@@ -20,7 +20,6 @@ import {
     fetchYeelightDevices,
     fetchZigbeeDevices,
     fetchZigbeeDevicesV2,
-    toMap,
 } from 'src/db';
 
 const typeDefs = readFileSync('src/api/schema.gql').toString('utf8');
@@ -32,7 +31,7 @@ interface IMyContext {
 }
 
 const rootContext = async () => {
-    const deviceCustomAttributes = toMap(await fetchDeviceCustomAttributes());
+    const deviceCustomAttributes = await fetchDeviceCustomAttributes();
     return { deviceCustomAttributes };
 };
 

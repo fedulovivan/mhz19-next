@@ -10,7 +10,6 @@ import {
     durationFormatter,
     timeFormatter,
 } from 'src/clientUtils';
-import { NO_DATA_GAP } from 'src/constants';
 
 const toPercent = (tick: number, min: number, max: number) => {
     const span = max - min;
@@ -54,10 +53,12 @@ const LastSeenBar: React.FC<{
     sortedMessages: Array<{ timestamp: number }>;
     className?: string;
     label?: string;
+    noDataGap: number;
 }> = ({
     sortedMessages,
     className,
     label,
+    noDataGap,
 }) => {
 
     if (!sortedMessages?.length) return null;
@@ -76,17 +77,20 @@ const LastSeenBar: React.FC<{
     let prevMessage: { timestamp: number };
 
     filteredMessages.forEach((message, index) => {
-        const diff = prevMessage ? prevMessage.timestamp - message.timestamp : undefined;
-        if (diff && diff > NO_DATA_GAP) {
+        const delta = prevMessage ? prevMessage.timestamp - message.timestamp : undefined;
+        if (delta && delta > noDataGap) {
             ticks.push([message.timestamp, prevMessage.timestamp]);
         }
         prevMessage = message;
     });
 
     const mostRecentMessage = filteredMessages[0];
-    if (mostRecentMessage?.timestamp + NO_DATA_GAP < NOW) {
+    if (mostRecentMessage?.timestamp + noDataGap < NOW) {
         ticks.push([mostRecentMessage.timestamp, NOW]);
     }
+
+    // debugger;
+    // return <>LastSeenBar</>;
 
     return (
         <div className={cx(rootStyles, className)}>

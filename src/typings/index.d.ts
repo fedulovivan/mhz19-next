@@ -3,6 +3,7 @@
 // import { SerializedStyles } from '@emotion/core';
 
 import * as TYPE from 'src/actionTypes';
+import { DEVICE } from 'src/constants';
 
 declare global {
 
@@ -11,8 +12,8 @@ declare global {
         json: T | null;
         timestamp: number;
         rawMessage: string;
-        deviceId: string | undefined;
-        deviceName: string | undefined;
+        deviceId: DEVICE;
+        // deviceName: string | undefined;
     }) => void;
 
     /**

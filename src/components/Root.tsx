@@ -20,13 +20,7 @@ import ValveButtons from 'src/components/ValveButtons';
 import WindowSizePicker from 'src/components/WindowSizePicker';
 import YeelightDevices from 'src/components/YeelightDevices';
 import ZigbeeDevices from 'src/components/ZigbeeDevices';
-import {
-    DEVICE_NAME_TO_ID,
-    GRAPHQL_URI,
-    HISTORY_WINDOW_7DAYS,
-    NO_DATA_GAP,
-    TEMPERATURE_SENSOR,
-} from 'src/constants';
+import { GRAPHQL_URI, HISTORY_WINDOW_7DAYS } from 'src/constants';
 import { useBooleanState } from 'src/hooks';
 
 require('normalize.css');
@@ -85,7 +79,7 @@ const Root: React.FC = () => {
                 />
 
                 <ValveButtons
-                    className="col-12"
+                    // className="col-12"
                     historyWindowSize={historyWindowSize}
                 />
 
