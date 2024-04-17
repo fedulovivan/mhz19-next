@@ -12,7 +12,10 @@
         "target": "ES2022",
         "outDir": "./dist",
         "paths": {
-            "lib*": [
+            "src/*": [
+                "./*"
+            ],
+            "lib/*": [
                 "../lib/*"
             ],
         },

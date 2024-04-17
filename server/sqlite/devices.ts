@@ -5,7 +5,7 @@
 //     Optional,
 // } from 'sequelize';
 
-// import conn from './';
+// import conn from 'src/';
 
 // export interface LocalUploadModelAttributes {
 //     // id: number;

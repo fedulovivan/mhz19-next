@@ -1,5 +1,5 @@
 import './Message';
 
-import conn from './conn';
+import conn from 'src/sqlite/conn';
 
 export default conn;

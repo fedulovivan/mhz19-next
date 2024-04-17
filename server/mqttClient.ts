@@ -2,7 +2,7 @@ import mqtt from 'mqtt';
 
 import { KITCHEN_VALVES_MANIPULATOR, TOILET_VALVES_MANIPULATOR } from 'lib/constants';
 
-import { withCategory } from './logger';
+import { withCategory } from 'src/logger';
 
 const log = withCategory('mhz19-mqtt-client');
 
@@ -37,8 +37,8 @@ mqttClient.on('connect', function(payload) {
     // requestConnectedDevices();
     // setInterval(requestConnectedDevices, 60 * 1000);
 
-    requestNetworkMap();
-    setInterval(requestNetworkMap, 60 * 60 * 1000);
+    // requestNetworkMap();
+    // setInterval(requestNetworkMap, 60 * 60 * 1000);
 
 });
 mqttClient.on('error', (...args) => log.error(...args));

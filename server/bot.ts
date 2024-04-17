@@ -3,8 +3,8 @@ import TelegramBot from 'node-telegram-bot-api';
 
 import { KITCHEN_VALVES_MANIPULATOR, TOILET_VALVES_MANIPULATOR } from 'lib/constants';
 
-import { fetchLastTemperatureSensorMessage } from './db';
-import mqttClient from './mqttClient';
+import { fetchLastTemperatureSensorMessage } from 'src/db';
+import mqttClient from 'src/mqttClient';
 
 const bot = (
     process.env.TELEGRAM_TOKEN

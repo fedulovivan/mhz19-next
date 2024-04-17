@@ -13,7 +13,7 @@ import {
     IMappings,
     OutputAction,
     PayloadConditionFunction,
-} from './types';
+} from 'src/automation-engine/types';
 
 const mappings: IMappings = [
 

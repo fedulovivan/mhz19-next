@@ -1,7 +1,7 @@
 type IMqttMessageDispatcherHandler<T = any> = (params: {
     fullTopic: string;
     json: T | null;
-    timestamp: number;
+    timestamp: Date;
     rawMessage: string;
     deviceId: string | undefined;
     deviceName: string | undefined;

@@ -14,7 +14,7 @@ import type {
     IZigbeeDeviceMessage,
 } from 'lib/typings';
 
-import { withCategory } from './logger';
+import { withCategory } from 'src/logger';
 
 const log = withCategory('mhz19-db');
 

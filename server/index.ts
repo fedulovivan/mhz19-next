@@ -1,6 +1,7 @@
-import './httpServer';
+import 'src/httpServer';
 
 import {
+    DeviceClass,
     KITCHEN_VALVES_MANIPULATOR,
     LEAKAGE_SENSOR_BATHROOM,
     LEAKAGE_SENSOR_KITCHEN,
@@ -18,24 +19,25 @@ import {
     ActionsExecutor,
     mapping,
     supportedOutputActions,
-} from './automation-engine';
-import bot, { botSendButtons } from './bot';
+} from 'src/automation-engine';
+import bot, { botSendButtons } from 'src/bot';
 import {
     createOrUpdateSonoffDevice,
     createOrUpdateZigbeeDevice,
     insertIntoValveStatusMessages,
-} from './db';
-import { withCategory } from './logger';
-import updatesChannel from './mdns';
-import mqttClient from './mqttClient';
-import mqttMessageDispatcher from './mqttMessageDispatcher';
+} from 'src/db';
+import { withCategory } from 'src/logger';
+import updatesChannel from 'src/mdns';
+import mqttClient from 'src/mqttClient';
+import mqttMessageDispatcher from 'src/mqttMessageDispatcher';
+import MessageModel from 'src/sqlite/Message';
 import {
     Alerter,
     getAppUrl,
     postSonoffSwitchMessage,
     saveGraphvizNetworkmap,
     yeelightDeviceSetPower,
-} from './utils';
+} from 'src/utils';
 
 const log = withCategory('mhz19-server');
 
@@ -108,14 +110,29 @@ const zigbee2mqttBridgeResponseNetworkmapHandler: IMqttMessageDispatcherHandler 
     log.info("network map saved");
 };
 
-const valveStateStatusHandler: IMqttMessageDispatcherHandler = (payload) => {
-    const { timestamp, json } = payload;
+const valveStateStatusHandler: IMqttMessageDispatcherHandler = async (payload) => {
+    const { timestamp, json, fullTopic } = payload;
     if (json) {
         handleLeakage(json.leakage, 'valves-manipulator-box');
+
+        // variant 1
         insertIntoValveStatusMessages(
-            timestamp,
+            timestamp.valueOf(),
             json,
         );
+
+        // variant 2
+        try {
+            await MessageModel.create({
+                device_id: json.chipid,
+                device_class_id: DeviceClass.VALVE,
+                timestamp,
+                json,
+            });
+        } catch (e) {
+            log.error(e);
+        }
+
     }
 };
 
@@ -312,4 +329,4 @@ mqttMessageDispatcher(mqttClient, [
 //     }
 // };
 
-// import yeelightDevices from './yeelightDevices';
+// import yeelightDevices from 'src/yeelightDevices';

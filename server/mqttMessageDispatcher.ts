@@ -1,11 +1,11 @@
 import { MqttClient } from 'mqtt';
 
-import { DEVICE_NAME_TO_ID } from 'lib/constants';
+import { DEVICE_NAME_TO_ID, DeviceClass } from 'lib/constants';
 import type { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'lib/typings';
 
-import { insertIntoDeviceMessagesUnified } from './db';
-import { withCategory } from './logger';
-import MessageModel from './sqlite/Message';
+import { insertIntoDeviceMessagesUnified } from 'src/db';
+import { withCategory } from 'src/logger';
+import MessageModel from 'src/sqlite/Message';
 
 const log = withCategory('mhz19-dispatcher');
 
@@ -46,6 +46,7 @@ export default function mqttMessageDispatcher(
             try {
                 await MessageModel.create({
                     device_id: deviceIdFromTopic,
+                    device_class_id: DeviceClass.ZIGBEE,
                     timestamp: now,
                     json,
                 });
@@ -61,7 +62,7 @@ export default function mqttMessageDispatcher(
                 handler({
                     fullTopic,
                     json,
-                    timestamp: now.valueOf(),
+                    timestamp: now,
                     rawMessage,
                     deviceId: deviceIdFromTopic,
                     deviceName: deviceIdFromMap ? topicPrefixOrDeviceName : undefined,

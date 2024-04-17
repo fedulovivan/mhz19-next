@@ -5,9 +5,10 @@ type Query {
     valveStatusMessages(historyWindowSize: Int, origin: String): [ValveStatusMessage]
     lastTemperatureMessage: DeviceMessageUnified
     sonoffDevices: [SonoffDevice]
-    yeelightDevices(historyWindowSize: Int): [YeelightDevice]
+    # yeelightDevices(historyWindowSize: Int): [YeelightDevice]
     stats: Stats
     # zigbeeDevice(deviceId: String): ZigbeeDevice
+    messages: [Message]
 }
 
 enum OnOff {
@@ -19,6 +20,31 @@ enum OnOff {
 #     true
 #     false
 # }
+
+type Message {
+    
+    # base
+    id: Int!
+    device_id: String!
+    device_class_id: Int!
+    timestamp: String!
+
+    # aqara double key wireless wall switch (2018 model)
+    action: String
+    battery: Int
+    linkquality: Int
+    voltage: Int
+
+    # https://github.com/fedulovivan/interstellar/tree/master/valves-manipulator
+    valve: String
+    time: Int
+    coldMeterTicks: Int
+    chipid: Int
+    origin: String
+    hotMeterTicks: Int
+    leakage: Boolean
+
+}
 
 type Stats {
     zigbee_devices: Int

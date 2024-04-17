@@ -8,7 +8,7 @@ import Express from 'express';
 import { KITCHEN_CEILING_LIGHT, KITCHEN_UNDERCABINET_LIGHT } from 'lib/constants';
 import type { IDeviceCustomAttribute, TOnOff } from 'lib/typings';
 
-import db, {
+import {
     createOrUpdateDeviceCustomAttribute,
     fetchDeviceCustomAttributes,
     fetchDeviceMessagesUnified,
@@ -20,10 +20,13 @@ import db, {
     fetchZigbeeDevices,
     fetchZigbeeDevicesV2,
     toMap,
-} from '../db';
-import { withCategory } from '../logger';
-import mqttClient from '../mqttClient';
-import conn from '../sqlite';
+} from 'src/db';
+import { withCategory } from 'src/logger';
+import mqttClient from 'src/mqttClient';
+import conn from 'src/sqlite';
+import MessageModel from 'src/sqlite/Message';
+import { unwrapJson } from 'src/utils';
+
 import {
     asyncTimeout,
     getAppUrl,
@@ -194,17 +197,27 @@ router.get('/stats', async (req, res) => {
     }
 });
 
-// TODO this should not be GET
 router.get('/sqlite/force-sync', async (req, res) => {
     try {
-        const result = await conn.sync({ force: true });
-        res.json(result);
+        await conn.sync({ force: true });
+        res.json({ done: true });
     } catch (e: any) {
         sendError(res, e);
     }
 });
 
-log.debug(`rest api started, ${router.stack.length} routes`/* , router */);
+router.get('/sqlite/messages', async (req, res) => {
+    try {
+        // WHERE json ->> '$.action' = 'single_right'
+        // WHERE json ->> '$.action' like 'single_%'
+        const result = await MessageModel.findAll();
+        res.json(result.map(unwrapJson));
+    } catch (e: any) {
+        sendError(res, e);
+    }
+});
+
+log.debug(`rest api started, ${router.stack.length} routes`);
 
 export default router;
 

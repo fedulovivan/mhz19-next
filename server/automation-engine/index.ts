@@ -2,10 +2,9 @@
 
 import type { IZigbeeDeviceMessage } from 'lib/typings';
 
-import { withCategory } from '../logger';
-import mapping from './mapping';
-import * as supportedConditionFunctions from './supportedConditionFunctions';
-import * as supportedOutputActions from './supportedOutputActions';
+import mapping from 'src/automation-engine/mapping';
+import * as supportedConditionFunctions from 'src/automation-engine/supportedConditionFunctions';
+import * as supportedOutputActions from 'src/automation-engine/supportedOutputActions';
 import {
     IActionsExecutorCtrOpts,
     IInputRuleBase,
@@ -17,7 +16,9 @@ import {
     TAdapterImpl,
     TMatcherFunc,
     TOutputActionImpl,
-} from './types';
+} from 'src/automation-engine/types';
+
+import { withCategory } from '../logger';
 
 const log = withCategory('mhz19-automation-engine');
 
@@ -149,4 +150,4 @@ export {
     supportedOutputActions
 };
 
-export * from './types';
+export * from 'src/automation-engine/types';

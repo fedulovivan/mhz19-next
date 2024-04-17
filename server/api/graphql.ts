@@ -9,7 +9,8 @@ import { ApolloServerPluginLandingPageDisabled } from 'apollo-server-core';
 import { ApolloServer } from 'apollo-server-express';
 import { readFileSync } from 'fs';
 
-import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'src/constants';
+import { DEVICE_NAME_TO_ID, TEMPERATURE_SENSOR } from 'lib/constants';
+
 import {
     fetchDeviceCustomAttributes,
     fetchDeviceMessagesUnified,
@@ -22,8 +23,10 @@ import {
     fetchZigbeeDevicesV2,
     toMap,
 } from 'src/db';
+import MessageModel from 'src/sqlite/Message';
+import { unwrapJson } from 'src/utils';
 
-const typeDefs = readFileSync('src/api/schema.gql').toString('utf8');
+const typeDefs = readFileSync('./api/schema.gql').toString('utf8');
 
 interface IMyContext {
     deviceMessagesUnified: Array<any>;
@@ -69,13 +72,17 @@ const resolvers: IResolvers<any, IMyContext> = {
         sonoffDevices: async (parent, args, context, info) => {
             return fetchSonoffDevices();
         },
-        yeelightDevices: async (parent, args, context, info) => {
-            context.yeelightDeviceMessages = await fetchYeelightDeviceMessages(
-                args.historyWindowSize
-            );
-            return fetchYeelightDevices();
-        },
+        // yeelightDevices: async (parent, args, context, info) => {
+        //     context.yeelightDeviceMessages = await fetchYeelightDeviceMessages(
+        //         args.historyWindowSize
+        //     );
+        //     return fetchYeelightDevices();
+        // },
         stats: (parent, args, context, info) => fetchStats(),
+        messages: async () => {
+            const rows = await MessageModel.findAll(/* { where: { device_id: '0x00158d0004244bda' } } */);
+            return rows.map(unwrapJson);
+        },
     },
     ZigbeeDeviceV2: {
         messages: (parent, args, context, info) => {
@@ -110,7 +117,7 @@ const server = new ApolloServer({
     plugins: [
         ApolloServerPluginLandingPageDisabled
     ],
-    context: rootContext
+    context: rootContext,
 });
 
 export default server;

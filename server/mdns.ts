@@ -4,7 +4,7 @@ import mdnsClass from 'multicast-dns';
 
 import type { ISonoffDevice, TSonoffDevicesMap } from 'lib/typings';
 
-import { withCategory } from './logger';
+import { withCategory } from 'src/logger';
 
 const updatesChannel = new EventEmitter();
 

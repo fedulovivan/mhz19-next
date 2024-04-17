@@ -7,7 +7,7 @@ services:
             # - /dev/ttyS0:/dev/ttyACM0
         volumes:
             - ./zigbee2mqtt-data:/app/data
-            - /run/udev:/run/udev:ro            
+            - /run/udev:/run/udev:ro
       
 # privileged: true  
     # - /dev/tty.usbserial-140:/dev/ttyACM0

@@ -1,13 +1,10 @@
 // import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
-import path from 'path';
-import { fileURLToPath } from 'url';
-
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
-export const ROOT = path.join(__dirname, '../..');
-
-export const APP_HOST = 'localhost';
-
+// import path from 'path';
+// import { fileURLToPath } from 'url';
+// const __filename = fileURLToPath(import.meta.url);
+// const __dirname = path.dirname(__filename);
+// export const APP_HOST = 'localhost';
+// export const ROOT = path.join(__dirname, '../..');
 // export const ROOT = '/Users/ivanf/Desktop/Projects/mhz19-next/server';
 // export const DIST_FS_PATH = `${ROOT}/dist-client`;
 // export const IMAGES_FS_PATH = `${ROOT}/images`;
@@ -82,6 +79,13 @@ export const QUERY_OPTIONS/* : QueryHookOptions */ = {
     pollInterval: 10000,
     fetchPolicy: "network-only",
 };
+
+export enum DeviceClass {
+    ZIGBEE = 1,
+    VALVE = 2,
+    WIFI = 3,
+    YEELIGHT = 4,
+}
 
 // export const COUCHDB_HOST = 'localhost';
 // export const COUCHDB_PORT = 5984;

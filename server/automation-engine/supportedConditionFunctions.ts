@@ -1,5 +1,6 @@
+import { TPayloadConditionFunctionImpl } from 'src/automation-engine/types';
+
 import { withCategory } from '../logger';
-import { TPayloadConditionFunctionImpl } from './types';
 
 const log = withCategory('mhz19-automation-engine');
 

@@ -2,20 +2,28 @@ import axios from 'axios';
 import { exec } from 'child_process';
 import { Response } from 'express';
 import os from 'os';
+import { serializeError } from 'serialize-error';
 // @ts-ignore
-import { Device, Discovery } from 'yeelight-platform';
+import { Device } from 'yeelight-platform';
 
-import {
-    BEDROOM_CEILING_LIGHT,
-    DEVICE_NAME_TO_ID,
-    IKEA_400LM_LED_BULB,
-} from 'lib/constants';
+// import {
+//     BEDROOM_CEILING_LIGHT,
+//     DEVICE_NAME_TO_ID,
+//     IKEA_400LM_LED_BULB,
+// } from 'lib/constants';
+import { fetchSonoffDevices } from 'src/db';
+import { withCategory } from 'src/logger';
+import type { IMessageModel } from 'src/sqlite/Message';
 
-import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from './db';
-import { withCategory } from './logger';
-import mqttClient from './mqttClient';
+export const unwrapJson = (model: IMessageModel) => {
+    const { dataValues: { json, ...rest } } = model;
+    return {
+        ...json,
+        ...rest,
+    }
+};
 
-// const { Device, Discovery } = require('yeelight-platform');
+// import mqttClient from 'src/mqttClient';
 
 const bedroomCeilingLight = new Device({
     host: '192.168.88.169', port: 55443
@@ -40,7 +48,7 @@ export async function asyncTimeout(timeout: number) {
 export function sendError(res: Response, e: Error | string) {
     res.json({
         error: true,
-        message: e instanceof Error ? e.message : e,
+        message: serializeError(e),
     });
 }
 
@@ -142,12 +150,12 @@ export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'of
 }
 
 /** @deprecated */
-export async function postIkeaLedBulb(state: 'on' | 'off') {
-    log.debug(`sending state=${state} to ${IKEA_400LM_LED_BULB}...`);
-    mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
-    // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
-    // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100
-}
+// export async function postIkeaLedBulb(state: 'on' | 'off') {
+//     log.debug(`sending state=${state} to ${IKEA_400LM_LED_BULB}...`);
+//     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
+//     // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
+//     // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100
+// }
 
 export function playAlertSigle() {
     return new Promise((resolve, reject) => {
