@@ -1,4 +1,3 @@
-import Debug from 'debug';
 // @ts-ignore
 import { Device, Discovery } from 'yeelight-platform';
 
@@ -8,9 +7,9 @@ import {
     insertIntoYeelightDevices,
 } from 'src/db';
 import log, { withDebug } from 'src/logger';
+import { DEVICE } from 'srcconstants';
 
-const debug = withDebug('mhz19-yeelight-devices');
-// const debug = Debug('mhz19-yeelight-devices');
+const debug = withDebug('yeelight-devices');
 
 const yeelightDevices: Map<string, Device> = new Map();
 
@@ -79,7 +78,7 @@ discoveryService.on('didDiscoverDevice', async (device: IYeelightDevice) => {
         }
         try {
             await insertIntoYeelightDeviceMessages(
-                deviceId,
+                deviceId as DEVICE,
                 Date.now(),
                 newProps
             );

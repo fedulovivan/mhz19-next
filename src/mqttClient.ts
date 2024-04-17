@@ -1,10 +1,10 @@
 import config from 'config';
-import Debug from 'debug';
 import mqtt from 'mqtt';
 
 import { DEVICE } from 'src/constants';
+import { withDebug } from 'src/logger';
 
-const debug = Debug('mhz19-mqtt-client');
+const debug = withDebug('mqtt-client');
 
 const mqttClient = mqtt.connect(`mqtt://${config.mqttBroker.host}:${config.mqttBroker.port}`, {
     username: config.mqttBroker.username,
@@ -31,9 +31,8 @@ mqttClient.on('connect', function () {
 
     // requestConnectedDevices();
     // setInterval(requestConnectedDevices, 60 * 1000);
-
-    requestNetworkMap();
-    setInterval(requestNetworkMap, 60 * 60 * 1000);
+    // requestNetworkMap();
+    // setInterval(requestNetworkMap, 60 * 60 * 1000);
 
 });
 mqttClient.on('error', (...args) => debug('error', ...args));

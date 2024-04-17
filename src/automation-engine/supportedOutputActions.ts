@@ -1,11 +1,9 @@
-// import mqttClient from 'src/mqttClient';
-
-import { DEVICE, DEVICE_NAME } from 'src/constants';
+import { DEVICE_NAME } from 'src/constants';
 import { withDebug } from 'src/logger';
 
-import { TOutputActionImpl, TPayloadConditionFunctionImpl } from './types.d';
+import type { TOutputActionImpl } from './index.d';
 
-const debug = withDebug('mhz19-automation-engine');
+const debug = withDebug('automation-engine');
 
 export const PostSonoffSwitchMessage: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
     debug(`Executing PostSonoffSwitchMessage action`);
@@ -20,13 +18,13 @@ export const YeelightDeviceSetPower: TOutputActionImpl = (dstDeviceId, data, sup
 };
 
 export const Zigbee2MqttSetState: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
-    debug(`Executing Zigbee2MqttSetState action for dstDeviceId=${dstDeviceId} (${DEVICE_NAME[dstDeviceId]})`);
+    debug(`Executing Zigbee2MqttSetState action for dstDeviceId=${dstDeviceId} (${DEVICE_NAME[dstDeviceId!]})`);
     const adapter = supportedAdapters.Mqtt();
     adapter.publish(`zigbee2mqtt/${dstDeviceId}/set/state`, data);
 };
 
 export const ValveSetState: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
-    debug(`Executing ValveSetState action for dstDeviceId=${dstDeviceId} (${DEVICE_NAME[dstDeviceId]})`);
+    debug(`Executing ValveSetState action for dstDeviceId=${dstDeviceId} (${DEVICE_NAME[dstDeviceId!]})`);
     const adapter = supportedAdapters.Mqtt();
     adapter.publish(`/VALVE/${dstDeviceId}/STATE/SET`, data);
 };

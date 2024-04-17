@@ -25,7 +25,7 @@ import {
     getAppUrl,
     getOptInt,
     mqttMessageDispatcher,
-    playAlertSigle,
+    playAlertSingle,
     postSonoffSwitchMessage,
     sendError,
     uptime,
@@ -57,7 +57,7 @@ router.get('/stats', async (req, res) => {
 
 router.get('/play-alert', async (req, res) => {
     try {
-        const result = await playAlertSigle();
+        const result = await playAlertSingle();
         res.json(result);
     } catch (e: any) {
         sendError(res, e);

@@ -2,39 +2,25 @@
 
 import { DEVICE } from 'src/constants';
 
-export enum OutputAction {
-    PostSonoffSwitchMessage = 'PostSonoffSwitchMessage',
-    YeelightDeviceSetPower = 'YeelightDeviceSetPower',
-    Zigbee2MqttSetState = 'Zigbee2MqttSetState',
-    ValveSetState = 'ValveSetState',
-    TelegramBotMessage = 'TelegramBotMessage',
-}
-
-export enum PayloadConditionFunction {
-    Equal = 'Equal',
-    InList = 'InList',
-    Changed = 'Changed',
-}
-
-export enum OutputLayerAdapter {
-    Mqtt = 'Mqtt',
-    Sonoff = 'Sonoff',
-    Yeelight = 'Yeelight',
-    Telegram = 'Telegram',
-}
+import {
+    OutputAction,
+    OutputLayerAdapter,
+    PayloadConditionFunction,
+} from './enums';
 
 export interface IInputRuleZigbeeMessage {
     srcDevices: Array<DEVICE>;
     payloadConditions?: TPayloadConditions;
     conditionOperator?: 'AND' | 'OR';
+    throttle?: number;
 }
 
-export type MessageFields = "$message.action" | string | boolean | number;
+export type TMessageFieldRuleOrValue = "$message.action" | string | boolean | number | undefined;
 
 export interface IPayloadCondition {
-    field: MessageFields;
+    field: TMessageFieldRuleOrValue;
     function: PayloadConditionFunction;
-    arguments?: Array<MessageFields>; // TODO this should not be MessageFields
+    functionArguments?: Array<any>;
     /**
      * target device to take last message from,
      * when empty IInputRuleBase["deviceId"] is used
@@ -43,6 +29,13 @@ export interface IPayloadCondition {
 }
 
 export type TPayloadConditions = Array<IPayloadCondition>;
+
+export type TPayloadDataFn = (params: {
+    srcDeviceId: DEVICE;
+    messages: Array<IZigbeeDeviceMessage>;
+    prevMessage?: IZigbeeDeviceMessage;
+    action: IOutputAction;
+}) => TMessageFieldRuleOrValue;
 
 export interface IOutputAction {
     /**
@@ -58,17 +51,21 @@ export interface IOutputAction {
      * string - hardcoded value to be sent
      * $message.* - value to sent will be taken from input message
      */
-    payloadData?: MessageFields | ((message: IZigbeeDeviceMessage, srcDeviceId: DEVICE, dstDeviceId?: DEVICE) => string);
+    payloadData?: TMessageFieldRuleOrValue | TPayloadDataFn;
     /**
      * allows to map one exact input value to another, applicable only when payloadData=$message.*
      */
     translation?: Record<string, string>;
     /**
      * command will be executed with delay
-     * not dispaching any other command on same target, with abort all delayed commands
+     * (!) note that dispaching any other command on same target, with abort all delayed commands
      * use case - switch lights off after some some delay
      */
-    delay?: number;
+    // delay?: number;
+    /**
+     * all messages receved within throttle period will be accumulated and passed to the actions in a whole
+     */
+    // throttle?: number;
 }
 
 /**
@@ -84,7 +81,7 @@ export type IMappings = Array<IMappingRecord>;
 export type TAdapterImpl = () => any;
 
 export interface IActionsExecutorCtrOpts {
-    mapping: IMappings;
+    mappings: IMappings;
     supportedOutputActions: Record<OutputAction, TOutputActionImpl>;
     supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>;
 }
@@ -95,16 +92,17 @@ export type TMatcherFunc = (
     payloadConditions: TPayloadConditions,
     supportedConditionFunctions: Record<PayloadConditionFunction, TPayloadConditionFunctionImpl>,
     conditionOperator?: IInputRuleZigbeeMessage["conditionOperator"],
+    prevMessage?: IZigbeeDeviceMessage,
 ) => boolean;
 
 export type TOutputActionImpl = (
-    deviceId: DEVICE,
-    data: MessageFields | undefined,
+    deviceId: DEVICE | undefined,
+    data: TMessageFieldRuleOrValue,
     supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>,
 ) => void;
 
-export type TPayloadConditionFunctionImpl = (
-    value: MessageFields | undefined,
-    arguments?: Array<MessageFields | undefined>,
-    prevValue?: MessageFields | undefined,
-) => boolean;
+export type TPayloadConditionFunctionImpl = (params: {
+    value: TMessageFieldRuleOrValue;
+    args?: Array<TMessageFieldRuleOrValue>;
+    prevValue?: TMessageFieldRuleOrValue;
+}) => boolean;

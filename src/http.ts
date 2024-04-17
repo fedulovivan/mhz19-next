@@ -3,7 +3,6 @@
  */
 
 import config from 'config';
-import Debug from 'debug';
 import Express from 'express';
 import http from 'http';
 
@@ -16,8 +15,9 @@ import {
     IMAGES_FS_PATH,
     IMAGES_URI,
 } from 'src/constants';
+import { withDebug } from 'src/logger';
 
-const debug = Debug('mhz19-http');
+const debug = withDebug('http');
 
 const app = Express();
 const httpServer = new http.Server(app);

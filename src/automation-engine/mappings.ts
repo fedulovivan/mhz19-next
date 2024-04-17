@@ -1,28 +1,38 @@
-import { DEVICE, DEVICE_NAME } from 'src/constants';
+import { oneLine, stripIndent } from 'common-tags';
+import {
+    isFunction,
+    isNil,
+    last,
+} from 'lodash';
+import moment from 'moment';
 
 import {
-    IMappings,
-    OutputAction,
-    PayloadConditionFunction,
-} from './types.d';
+    DEVICE,
+    DEVICE_NAME,
+    MINUTE,
+} from 'src/constants';
+
+import { OutputAction, PayloadConditionFunction } from './enums';
+import type { IMappings } from './index.d';
 
 const mappings: IMappings = [
 
-    // close both valves if leakage was detected for any of sensors and send bot message
+    // close both valves if leakage was detected for any sensor and send telegram notification
     {
         onZigbeeMessage: {
             srcDevices: [DEVICE.LEAKAGE_SENSOR_TOILET, DEVICE.LEAKAGE_SENSOR_BATHROOM, DEVICE.LEAKAGE_SENSOR_KITCHEN],
             payloadConditions: [{
                 field: "$message.water_leak",
                 function: PayloadConditionFunction.Equal,
-                arguments: [true],
+                functionArguments: [true],
             }]
         },
         actions: [{
             type: OutputAction.TelegramBotMessage,
-            payloadData: (message, srcDeviceId, dstDeviceId) => (
-                `Leakage detected for ${DEVICE_NAME[srcDeviceId]}`
-            ),
+            payloadData: ({ srcDeviceId, messages, prevMessage, action }) => {
+                if (isNil(prevMessage)) return `${DEVICE_NAME[srcDeviceId]} is online, leakage detected`;
+                return `Leakage detected for ${DEVICE_NAME[srcDeviceId]}`
+            },
         }, {
             type: OutputAction.ValveSetState,
             deviceId: DEVICE.TOILET_VALVES_MANIPULATOR,
@@ -34,14 +44,14 @@ const mappings: IMappings = [
         }]
     },
 
-    // send bot message if leakage event was ceased
+    // notify via telegram, when leakage event was ceased
     {
         onZigbeeMessage: {
             srcDevices: [DEVICE.LEAKAGE_SENSOR_TOILET, DEVICE.LEAKAGE_SENSOR_BATHROOM, DEVICE.LEAKAGE_SENSOR_KITCHEN],
             payloadConditions: [{
                 field: "$message.water_leak",
                 function: PayloadConditionFunction.Equal,
-                arguments: [false],
+                functionArguments: [false],
             }, {
                 field: "$message.water_leak",
                 function: PayloadConditionFunction.Changed,
@@ -49,83 +59,44 @@ const mappings: IMappings = [
         },
         actions: [{
             type: OutputAction.TelegramBotMessage,
-            payloadData: (message, srcDeviceId, dstDeviceId) => (
-                `Leakage ceased for ${DEVICE_NAME[srcDeviceId]}`
-            ),
+            payloadData: ({ srcDeviceId, messages, prevMessage, action }) => {
+                if (isNil(prevMessage)) return `${DEVICE_NAME[srcDeviceId]} is online, no leakage`;
+                return `Leakage ceased for ${DEVICE_NAME[srcDeviceId]}`;
+            },
         }]
     },
 
-    // Notify via telegram, when "apple collection door" was opened/closed
+    // notify via telegram, when doors were opened/closed
     {
         onZigbeeMessage: {
-            srcDevices: [DEVICE.SONOFF_DOOR_SENSOR],
+            srcDevices: [DEVICE.STORAGE_ROOM_DOOR, DEVICE.APPLE_COLLECTION_DOOR],
             payloadConditions: [{
                 field: "$message.contact",
                 function: PayloadConditionFunction.InList,
-                arguments: [true, false],
+                functionArguments: [true, false],
             }, {
                 field: "$message.contact",
                 function: PayloadConditionFunction.Changed,
             }],
+            throttle: 2 * MINUTE,
         },
         actions: [{
             type: OutputAction.TelegramBotMessage,
-            payloadData: (message, srcDeviceId, dstDeviceId) => (
-                `Apple collection door is ${(message as any).contact ? 'closed' : 'opened!'} (${DEVICE_NAME[srcDeviceId]})`
-            ),
-        }]
-    },
-    
-    // Notify via telegram, when "storage room door" was opened/closed
-    {
-        onZigbeeMessage: {
-            srcDevices: [DEVICE.LIFE_CONTROL_DOOR_SENSOR],
-            payloadConditions: [{
-                field: "$message.contact",
-                function: PayloadConditionFunction.InList,
-                arguments: [true, false],
-            }, {
-                field: "$message.contact",
-                function: PayloadConditionFunction.Changed,
-            }],
-        },
-        actions: [{
-            type: OutputAction.TelegramBotMessage,
-            payloadData: (message, srcDeviceId, dstDeviceId) => (
-                `Storage room door is ${(message as any).contact ? 'closed' : 'opened!'} (${DEVICE_NAME[srcDeviceId]})`
-            ),
-        }]
-    },
-    
-    // Notify via telegram, when "money door" was opened/closed
-    {
-        onZigbeeMessage: {
-            srcDevices: [DEVICE.LIFE_CONTROL_DOOR_SENSOR_NEW],
-            payloadConditions: [{
-                field: "$message.contact",
-                function: PayloadConditionFunction.InList,
-                arguments: [true, false],
-            }, {
-                field: "$message.contact",
-                function: PayloadConditionFunction.Changed,
-            }],
-        },
-        actions: [{
-            type: OutputAction.TelegramBotMessage,
-            payloadData: (message, srcDeviceId, dstDeviceId) => (
-                `Money door is ${(message as any).contact ? 'closed' : 'opened!'} (${DEVICE_NAME[srcDeviceId]})`
-            ),
+            payloadData: ({ srcDeviceId, messages, prevMessage, action }) => {
+                if (messages.length === 1) return `${DEVICE_NAME[srcDeviceId]} is ${(messages[0] as any).contact ? 'closed' : 'opened'}`;
+                return `${DEVICE_NAME[srcDeviceId]}:\n${messages.map(message => `${moment((message as any).timestamp).format('HH:mm:ss')} ${(message as any).contact ? 'closed' : 'opened'}`).join("\n")}`;
+            },
         }]
     },
 
-    // Toggle vent manually
+    // toggle vent manually
     {
         onZigbeeMessage: {
             srcDevices: [DEVICE.IKEA_ONOFF_SWITCH],
             payloadConditions: [{
                 field: "$message.action",
                 function: PayloadConditionFunction.InList,
-                arguments: ["on", "off"],
+                functionArguments: ["on", "off"],
             }]
         },
         actions: [{
@@ -138,21 +109,21 @@ const mappings: IMappings = [
     // on vent after door was closed and movement sensor is reporting occupancy and ceiling light is on
     {
         onZigbeeMessage: {
-            srcDevices: [DEVICE.LIFE_CONTROL_DOOR_SENSOR],
+            srcDevices: [DEVICE.STORAGE_ROOM_DOOR],
             payloadConditions: [{
                 field: "$message.contact",
                 function: PayloadConditionFunction.Equal,
-                arguments: [true],
+                functionArguments: [true],
             }, {
                 otherDeviceId: DEVICE.MOVEMENT_SENSOR,
                 field: "$message.occupancy",
                 function: PayloadConditionFunction.Equal,
-                arguments: [true],
+                functionArguments: [true],
             }, {
                 otherDeviceId: DEVICE.STORAGE_ROOM_CEILING_LIGHT,
                 field: "$message.state",
                 function: PayloadConditionFunction.Equal,
-                arguments: ["ON"],
+                functionArguments: ["ON"],
             }],
         },
         actions: [{
@@ -170,7 +141,7 @@ const mappings: IMappings = [
             payloadConditions: [{
                 field: "$message.occupancy",
                 function: PayloadConditionFunction.Equal,
-                arguments: [false],
+                functionArguments: [false],
             }],
         },
         actions: [{
@@ -187,7 +158,7 @@ const mappings: IMappings = [
             payloadConditions: [{
                 field: "$message.state",
                 function: PayloadConditionFunction.Equal,
-                arguments: ["OFF"],
+                functionArguments: ["OFF"],
             }, {
                 field: "$message.state",
                 function: PayloadConditionFunction.Changed,
@@ -209,7 +180,7 @@ const mappings: IMappings = [
             payloadConditions: [{
                 field: "$message.occupancy",
                 function: PayloadConditionFunction.InList,
-                arguments: [true, false],
+                functionArguments: [true, false],
             }],
         },
         actions: [{
@@ -230,7 +201,7 @@ const mappings: IMappings = [
             payloadConditions: [{
                 field: "$message.action",
                 function: PayloadConditionFunction.InList,
-                arguments: ["single_left", "single_right"],
+                functionArguments: ["single_left", "single_right"],
             }],
         },
         actions: [{
@@ -247,6 +218,62 @@ const mappings: IMappings = [
 ];
 
 export default mappings;
+
+// test mapping
+// {
+//     onZigbeeMessage: {
+//         srcDevices: [DEVICE.WALL_SWITCH_SPARE],
+//         throttle: 1000 * 5,
+//     },
+//     actions: [{
+//         type: OutputAction.TelegramBotMessage,
+//         payloadData: (params) => {
+//             return JSON.stringify(params, null, " ");
+//         },
+//     }]
+// },
+
+// // notify via telegram, when "money door" was opened/closed
+// {
+//     onZigbeeMessage: {
+//         srcDevices: [DEVICE.LIFE_CONTROL_DOOR_SENSOR_NEW],
+//         payloadConditions: [{
+//             field: "$message.contact",
+//             function: PayloadConditionFunction.InList,
+//             arguments: [true, false],
+//         }, {
+//             field: "$message.contact",
+//             function: PayloadConditionFunction.Changed,
+//         }],
+//     },
+//     actions: [{
+//         type: OutputAction.TelegramBotMessage,
+//         payloadData: (srcDeviceId, message, action) => (
+//             `Money door is ${(message as any).contact ? 'closed' : 'opened!'} (${DEVICE_NAME[srcDeviceId]})`
+//         ),
+//     }]
+// },
+
+// notify via telegram, when "storage room door" was opened/closed
+// {
+//     onZigbeeMessage: {
+//         srcDevices: [DEVICE.STORAGE_ROOM_DOOR],
+//         payloadConditions: [{
+//             field: "$message.contact",
+//             function: PayloadConditionFunction.InList,
+//             functionArguments: [true, false],
+//         }, {
+//             field: "$message.contact",
+//             function: PayloadConditionFunction.Changed,
+//         }],
+//     },
+//     actions: [{
+//         type: OutputAction.TelegramBotMessage,
+//         payloadData: ({ srcDeviceId, message, action }) => (
+//             `Storage room door is ${(message as any).contact ? 'closed' : 'opened!'} (${DEVICE_NAME[srcDeviceId]})`
+//         ),
+//     }]
+// },
 
 // {
 //     onZigbeeMessage: {
@@ -300,7 +327,7 @@ export default mappings;
 
 // {
 //     onZigbeeMessage: {
-//         deviceId: DEVICE.LIFE_CONTROL_DOOR_SENSOR,
+//         deviceId: DEVICE.STORAGE_ROOM_DOOR,
 //         conditionOperator: 'AND',
 //         payloadConditions: [{
 //             field: "$message.contact",

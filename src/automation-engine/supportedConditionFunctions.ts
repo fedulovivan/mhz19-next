@@ -1,19 +1,17 @@
 import log, { withDebug } from 'src/logger';
 
-import { TPayloadConditionFunctionImpl } from './types.d';
+import type { TPayloadConditionFunctionImpl } from './index.d';
 
-const debug = withDebug('mhz19-automation-engine');
+const debug = withDebug('automation-engine');
 
-export const Equal: TPayloadConditionFunctionImpl = (value, args) => {
+export const Equal: TPayloadConditionFunctionImpl = ({ value, args, prevValue }) => {
     return value === args?.[0];
 };
 
-export const InList: TPayloadConditionFunctionImpl = (value, args) => {
+export const InList: TPayloadConditionFunctionImpl = ({ value, args, prevValue }) => {
     return (args ? args.includes(value) : false);
 };
 
-export const Changed: TPayloadConditionFunctionImpl = (value, args, prevValue) => {
-    // debug('Changed: TPayloadConditionFunctionImpl');
-    // debug(value, args, prevValue);
+export const Changed: TPayloadConditionFunctionImpl = ({ value, args, prevValue }) => {
     return value !== prevValue;
 }

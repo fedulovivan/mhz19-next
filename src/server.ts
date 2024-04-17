@@ -6,12 +6,11 @@ import 'src/http';
 import { DEV } from '@apollo/client/utilities';
 import { NotInterestedOutlined } from '@material-ui/icons';
 import config from 'config';
-import Debug from 'debug';
 import { isNil, result } from 'lodash';
 
 import {
     ActionsExecutor,
-    mapping,
+    mappings,
     supportedOutputActions,
 } from 'src/automation-engine';
 import bot, { botSendButtons, sendTelegramMessageTrottled } from 'src/bot';
@@ -28,7 +27,7 @@ import {
     insertIntoValveStatusMessages,
 } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
-import log from 'src/logger';
+import log, { withDebug } from 'src/logger';
 import updatesChannel from 'src/mdns';
 import mqttClient from 'src/mqttClient';
 import {
@@ -40,7 +39,7 @@ import {
     yeelightDeviceSetPower,
 } from 'src/utils';
 
-const debug = Debug('mhz19-server');
+const debug = withDebug('server');
 
 const lastSeenTimers: Map<DEVICE, NodeJS.Timeout> = new Map();
 
@@ -53,7 +52,7 @@ let deviceCustomAttributes: any;
 const LAST_SEEN_BLACKLIST = [
     DEVICE.IKEA_ONOFF_SWITCH,
     DEVICE.LIFE_CONTROL_DOOR_SENSOR_NEW,
-    DEVICE.SONOFF_DOOR_SENSOR,
+    DEVICE.APPLE_COLLECTION_DOOR,
 ];
 
 const LAST_SEEN_WHITELIST = [
@@ -63,9 +62,9 @@ const LAST_SEEN_WHITELIST = [
     DEVICE.LEAKAGE_SENSOR_KITCHEN,
     DEVICE.LEAKAGE_SENSOR_TOILET,
     DEVICE.STORAGE_ROOM_CEILING_LIGHT,
-    DEVICE.LIFE_CONTROL_DOOR_SENSOR,
+    DEVICE.STORAGE_ROOM_DOOR,
     DEVICE.MOVEMENT_SENSOR,
-    DEVICE.SONOFF_DOOR_SENSOR,
+    DEVICE.APPLE_COLLECTION_DOOR,
 ];
 
 bot.sendMessage(config.telegram.chatId, "Application started");
@@ -102,7 +101,7 @@ async function trackLastSeenAndNotify(deviceId: DEVICE) {
 }
 
 export const actionsExecutor = new ActionsExecutor({
-    mapping,
+    mappings,
     supportedOutputActions,
     supportedAdapters: {
         Mqtt: () => mqttClient,

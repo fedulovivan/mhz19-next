@@ -4,31 +4,24 @@ import axios from 'axios';
 import type { ExecException } from 'child_process';
 import { exec } from 'child_process';
 import config from 'config';
-import Debug from 'debug';
 import { Response } from 'express';
 import humanizeDuration from 'humanize-duration';
-import { isNil } from 'lodash';
 import { MqttClient } from 'mqtt';
 import os from 'os';
 // @ts-ignore
 import { Device, Discovery } from 'yeelight-platform';
 
-import { DEVICE } from 'src/constants';
+import { DEBUG_TAG_PREFIX, DEVICE } from 'src/constants';
 import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
 import log, { withDebug } from 'src/logger';
-import mqttClient from 'src/mqttClient';
 
 const bedroomCeilingLight = new Device({
     host: '192.168.88.169', port: 55443
 });
 bedroomCeilingLight.connect();
 
-// import yeelightDevices from 'src/yeelightDevices';
-// import { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
-
-// const debug = Debug('mhz19-dispatcher');
-const debug = withDebug('mhz19-utils');
+const debug = withDebug('utils');
 
 export const STARTED_AT = new Date();
 
@@ -236,14 +229,6 @@ export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'of
     });
 }
 
-/** deprecated */
-// export async function postIkeaLedBulb(state: 'on' | 'off') {
-//     debug(`sending state=${state} to ${DEIKEA_400LM_LED_BULB}...`);
-//     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
-//     // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
-//     // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100
-// }
-
 export const uptime = async () => {
     const host = await exec2(`uptime -p`);
     const now = new Date();
@@ -261,9 +246,9 @@ export const exec2 = (cmd: string) => new Promise<[stdout: string, stderr: strin
     });
 });
 
-export const playAlertSigle = () => exec2(`mpg123 ./siren.mp3`);
+export const playAlertSingle = () => exec2(`mpg123 ./siren.mp3`);
 
-// export function playAlertSigle() {
+// export function playAlertSingle() {
 //     return new Promise((resolve, reject) => {
 //         exec(`mpg123 ./siren.mp3`, (error, stdout, stderr) => {
 //             if (error) reject(error);
@@ -293,7 +278,7 @@ export class Alerter {
             Alerter.playing = true;
             try {
                 debug(`Playing alert sound, repeat #${Alerter.repeats + 1}...`);
-                await playAlertSigle();
+                await playAlertSingle();
                 debug(`Succeeded`);
                 Alerter.playing = false;
             } catch (e) {
@@ -315,3 +300,22 @@ export class Alerter {
         Alerter.raised = false;
     }
 }
+
+export function isNil(input: any): input is undefined | null {
+    return input === undefined || input === null;
+}
+
+/**
+ * type guard borrowed at https://stackoverflow.com/a/62753258/1012298
+ */
+export function notNil<T>(input: T | undefined | null | void): input is T {
+    return !isNil(input);
+}
+
+/** deprecated */
+// export async function postIkeaLedBulb(state: 'on' | 'off') {
+//     debug(`sending state=${state} to ${DEIKEA_400LM_LED_BULB}...`);
+//     mqttClient.publish(`zigbee2mqtt/${DEVICE_NAME_TO_ID[IKEA_400LM_LED_BULB]}/set/state`, state);
+//     // https://www.zigbee2mqtt.io/guide/usage/mqtt_topics_and_messages.html#zigbee2mqtt-friendly-name-set
+//     // zigbee2mqtt/0x000d6ffffefc0f29/set/brightness 100
+// }

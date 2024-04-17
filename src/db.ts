@@ -1,13 +1,10 @@
 /* eslint-disable camelcase */
 
 import { oneLine } from 'common-tags';
-import Debug from 'debug';
 import set from 'lodash/set';
 import sqlite3, { Statement } from 'sqlite3';
 
 import { DEVICE } from 'src/constants';
-
-const debug = Debug('mhz19-db');
 
 const db = new sqlite3.Database('database.bin');
 
