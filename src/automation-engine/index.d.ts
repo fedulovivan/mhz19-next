@@ -83,7 +83,7 @@ export type TAdapterImpl = () => any;
 export interface IActionsExecutorCtrOpts {
     mappings: IMappings;
     supportedOutputActions: Record<OutputAction, TOutputActionImpl>;
-    supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>;
+    // supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>;
 }
 
 export type TMatcherFunc = (
@@ -98,8 +98,8 @@ export type TMatcherFunc = (
 export type TOutputActionImpl = (
     deviceId: DEVICE | undefined,
     data: TMessageFieldRuleOrValue,
-    supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>,
-) => void;
+    // supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>,
+) => Promise<void>;
 
 export type TPayloadConditionFunctionImpl = (params: {
     value: TMessageFieldRuleOrValue;

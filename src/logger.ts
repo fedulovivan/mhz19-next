@@ -1,21 +1,22 @@
-import Debug, { Debugger } from 'debug';
-//  @ts-ignore
-import SimpleNodeLogger from 'simple-node-logger';
+import Debug from 'debug';
+import SimpleNodeLogger, { AbstractAppender } from 'simple-node-logger';
 
 import { DEBUG_TAG_PREFIX } from 'src/constants';
 
-const log = SimpleNodeLogger.createSimpleFileLogger({
-    logFilePath: 'main.log',
-    timestampFormat:'YYYY-MM-DD HH:mm:ss.SSS',
-    level: 'DEBUG',
-});
+const logger = SimpleNodeLogger.createSimpleLogger({ level: 'debug' });
+logger.getAppenders()[0].formatEntry = function(entry) {
+    return [
+        this.formatLevel(entry.level),
+        this.formatMessage(entry.msg)
+    ];
+};
 
 export function withDebug(namespace: string) {
     const debug = Debug(`${DEBUG_TAG_PREFIX}${namespace}`);
     return (first: any, ...args: any[]): void => {
         debug(first, ...args);
-        log.debug(first, ...args);
+        logger.debug(first, ...args);
     };
 }
 
-export default log;
+export default logger;

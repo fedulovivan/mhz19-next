@@ -1,0 +1,9 @@
+services:
+    backend:
+        build: .
+        image: mhz19-next
+        env_file: .env
+        ports:
+            - 8888:8888
+        volumes:
+            - ./database.bin:/app/database.bin

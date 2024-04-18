@@ -1,18 +1,16 @@
-import config from 'config';
 import TelegramBot from 'node-telegram-bot-api';
 
 import { DEVICE } from 'src/constants';
-import { fetchLastTemperatureSensorMessage } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
 import mqttClient from 'src/mqttClient';
 import { actionsExecutor } from 'src/server';
-import { uptime } from 'src/utils';
+import { getChatId, uptime } from 'src/utils';
 
-const bot = new TelegramBot(config.telegram.token, { polling: true });
+const bot = new TelegramBot(process.env.TELEGRAM_TOKEN!, { polling: true });
 
-export const sendTelegramMessageTrottled = (message: string) => {
-    bot.sendMessage(config.telegram.chatId, message);
-}
+// export const sendTelegramMessageTrottled = (message: string) => {
+//     bot.sendMessage(getChatId(), message);
+// }
 
 export const botSendButtons = (chatId: number) => {
     bot.sendMessage(
@@ -57,7 +55,7 @@ bot.onText(/\/last-messages/, (msg) => {
     bot.sendMessage(
         msg.chat.id,
         JSON.stringify(lastDeviceState.toJSON(), null, ' '),
-    ) 
+    )
 });
 bot.onText(/\/temp/, async (msg) => {
     bot.sendMessage(

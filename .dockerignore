@@ -1,0 +1,15 @@
+front-old
+docs
+.vscode
+node_modules
+.editorconfig
+.env
+.gitignore
+database.bin
+import-sorter.json
+.DS_Store
+.dockerignore
+Dockerfile
+.git
+dist
+scripts

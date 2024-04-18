@@ -1,6 +1,6 @@
 /* eslint-disable no-plusplus */
 
-import Express from 'express';
+import Express, { Router } from 'express';
 import first from 'lodash/first';
 import set from 'lodash/set';
 
@@ -16,9 +16,10 @@ import db, {
     fetchZigbeeDevicesV2,
 } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
-import log from 'src/logger';
+import logger from 'src/logger';
 import mqttClient from 'src/mqttClient';
 import { actionsExecutor } from 'src/server';
+import type { IDeviceCustomAttribute, TOnOff } from 'src/typings';
 import {
     asyncTimeout,
     exec2,
@@ -31,9 +32,7 @@ import {
     uptime,
 } from 'src/utils';
 
-// import yeelightDevices from 'src/yeelightDevices';
-
-const router = Express.Router();
+const router: Router = Express.Router();
 
 // const powerOff = () => new Promise((resolve, reject) => {
 //     exec(`sudo systemctl poweroff`, (error, stdout, stderr) => {
@@ -115,8 +114,8 @@ router.get('/last-device-messages/:deviceId?', async (req, res) => {
         const { deviceId } = req.params;
         const rows = lastDeviceState.toJSON();
         res.json(
-            deviceId?.length 
-                ? rows.find(row => row.deviceId === deviceId) ?? null 
+            deviceId?.length
+                ? rows.find(row => row.deviceId === deviceId) ?? null
                 : rows
         );
     } catch (e: any) {

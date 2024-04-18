@@ -2,7 +2,8 @@ import { isFunction, last } from 'lodash';
 
 import { DEVICE, DEVICE_NAME } from 'src/constants';
 import * as lastDeviceState from 'src/lastDeviceState';
-import { withDebug } from 'src/logger';
+import logger, { withDebug } from 'src/logger';
+import type { IZigbeeDeviceMessage } from 'src/typings';
 import { isNil, notNil } from 'src/utils';
 
 import { OutputAction, OutputLayerAdapter } from './enums';
@@ -108,7 +109,6 @@ const matcher: TMatcherFunc = (
     } else {
         throw new Error(`Unexpected conditions`);
     }
-     
 };
 
 const payloadDataDefault: TPayloadDataFn = ({ srcDeviceId, messages, action }) => {
@@ -116,7 +116,7 @@ const payloadDataDefault: TPayloadDataFn = ({ srcDeviceId, messages, action }) =
     if (isFunction(payloadData)) throw new Error(`Unxpected conditions`);
     if (isNil(payloadData)) return;
     return translator(
-        pickValue(last(messages), payloadData), 
+        pickValue(last(messages), payloadData),
         translation,
     );
 };
@@ -128,12 +128,12 @@ export default class ActionsExecutor {
     };
     private mappings: IMappings;
     private supportedOutputActions: Record<OutputAction, TOutputActionImpl>;
-    private supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>;
+    // private supportedAdapters: Record<OutputLayerAdapter, TAdapterImpl>;
     // private delayedActions: Record<string, Array<NodeJS.Timer>> = {};
     constructor(opts: IActionsExecutorCtrOpts) {
         this.supportedOutputActions = opts.supportedOutputActions;
         this.mappings = opts.mappings;
-        this.supportedAdapters = opts.supportedAdapters;
+        // this.supportedAdapters = opts.supportedAdapters;
         debug(`ActionsExecutor instance was created`);
     }
     public getStats() {
@@ -147,8 +147,8 @@ export default class ActionsExecutor {
             if (!onZigbeeMessage) return;
             if (!onZigbeeMessage.srcDevices.includes(srcDeviceId)) return;
             const {
-                payloadConditions, 
-                conditionOperator, 
+                payloadConditions,
+                conditionOperator,
                 throttle,
             } = onZigbeeMessage;
             const matches = payloadConditions ? matcher(
@@ -166,9 +166,9 @@ export default class ActionsExecutor {
                 debug(`Action for ${srcDeviceId} has throttle=${throttle}, message will be queued...`);
                 if (!queues.has(srcDeviceId)) {
                     queues.set(
-                        srcDeviceId, 
-                        new Queue<IZigbeeDeviceMessage>({ 
-                            throttle, 
+                        srcDeviceId,
+                        new Queue<IZigbeeDeviceMessage>({
+                            throttle,
                             srcDeviceId,
                             onFlushed: items => this.executeActions(
                                 items,
@@ -199,11 +199,11 @@ export default class ActionsExecutor {
         srcDeviceId: DEVICE,
         prevMessage?: IZigbeeDeviceMessage,
     ) {
-        actions.forEach(action => {
+        actions.forEach(async action => {
 
             const {
-                type, 
-                deviceId: dstDeviceId, 
+                type,
+                deviceId: dstDeviceId,
             } = action;
 
             // if (notNil(dstDeviceId)) {
@@ -221,21 +221,25 @@ export default class ActionsExecutor {
             // }
 
             const payloadDataImpl: TPayloadDataFn = (
-                isFunction(action.payloadData) 
-                    ? action.payloadData 
+                isFunction(action.payloadData)
+                    ? action.payloadData
                     : payloadDataDefault
             );
 
             const data = payloadDataImpl({ srcDeviceId, messages, prevMessage, action });
 
             const outputActionImpl = this.supportedOutputActions[type];
-            const { supportedAdapters } = this;
+            // const { supportedAdapters } = this;
 
-            outputActionImpl(
-                dstDeviceId,
-                data,
-                supportedAdapters,
-            );
+            try {
+                await outputActionImpl(
+                    dstDeviceId,
+                    data,
+                    // supportedAdapters,
+                );
+            } catch (e) {
+                logger.error(e);
+            }
 
             // const timerId = setTimeout(
             //     function() {
@@ -247,7 +251,7 @@ export default class ActionsExecutor {
             //     },
             //     delay
             // );
-            // if (delay && notNil(dstDeviceId)) {    
+            // if (delay && notNil(dstDeviceId)) {
             //     debug(`Delaying action execution for ${delay}ms`);
             //     this.delayedActions[dstDeviceId].push(timerId);
             // }

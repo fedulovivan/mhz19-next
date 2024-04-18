@@ -1,12 +1,13 @@
 import { DEVICE, DEVICE_NAME } from 'src/constants';
+import type { IZigbeeDeviceMessage } from 'src/typings';
 
 type IData = Map<DEVICE, IRecord>;
 
-interface IRecord { 
+interface IRecord {
     name: string,
-    deviceId: DEVICE, 
-    timestamp: Date, 
-    message: IZigbeeDeviceMessage, 
+    deviceId: DEVICE,
+    timestamp: Date,
+    message: IZigbeeDeviceMessage,
 };
 
 const data: IData = new Map();
@@ -20,12 +21,12 @@ export function getOne(deviceId: DEVICE): IZigbeeDeviceMessage | undefined {
 }
 
 export function set(deviceId: DEVICE, message: IZigbeeDeviceMessage | null) {
-    if (message) data.set(deviceId, { 
-        deviceId, 
-        get name() { 
+    if (message) data.set(deviceId, {
+        deviceId,
+        get name() {
             return DEVICE_NAME[(this as IRecord).deviceId];
         },
-        timestamp: new Date(), 
-        message, 
+        timestamp: new Date(),
+        message,
     });
 }

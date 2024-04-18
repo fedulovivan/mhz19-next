@@ -3,18 +3,18 @@
 import axios from 'axios';
 import type { ExecException } from 'child_process';
 import { exec } from 'child_process';
-import config from 'config';
 import { Response } from 'express';
 import humanizeDuration from 'humanize-duration';
 import { MqttClient } from 'mqtt';
 import os from 'os';
 // @ts-ignore
-import { Device, Discovery } from 'yeelight-platform';
+import { Device } from 'yeelight-platform';
 
-import { DEBUG_TAG_PREFIX, DEVICE } from 'src/constants';
+import { DEVICE } from 'src/constants';
 import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
-import log, { withDebug } from 'src/logger';
+import logger, { withDebug } from 'src/logger';
+import type { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
 const bedroomCeilingLight = new Device({
     host: '192.168.88.169', port: 55443
@@ -26,7 +26,7 @@ const debug = withDebug('utils');
 export const STARTED_AT = new Date();
 
 /**
- * AKA delayAsync
+ * search tags: delayAsync
  */
 export async function asyncTimeout(timeout: number) {
     return new Promise((resolve) => {
@@ -133,9 +133,17 @@ export function getServerIps(): Array<string> {
     return result;
 }
 
+export function getChatId(): number {
+    return parseInt(process.env.TELEGRAM_CHATID!, 10);
+}
+
+export function getAppPort(): number {
+    return /* parseInt(process.env.APP_PORT!, 10) */8888;
+}
+
 export function getAppUrl(): string {
     const ips = getServerIps();
-    return `http://${ips[0]}:${config.app.port}`;
+    return `http://${ips[0]}:${getAppPort()}`;
 }
 
 export function mean(values: Array<number>): number {
@@ -195,13 +203,13 @@ export async function postSonoffSwitchMessage(cmd: 'on' | 'off', deviceId: strin
         debug('relay response ', result.data);
         return result.data;
     } catch (e) {
-        log.error(e);
+        logger.error(e);
     }
     // to get current state
     // POST { "deviceid": "", "data": { } } to /zeroconf/info
     // response
-    // { 
-    //   "seq": 2, 
+    // {
+    //   "seq": 2,
     //   "error": 0,
     //   "data": {
     //     "switch": "off",
@@ -233,7 +241,7 @@ export const uptime = async () => {
     const host = await exec2(`uptime -p`);
     const now = new Date();
     const appUptime = now.getTime() - STARTED_AT.getTime();
-    return { 
+    return {
         host: host[0].replace('up ', ''),
         application: humanizeDuration(appUptime, { round: true, largest: 3 }),
     };
@@ -246,7 +254,7 @@ export const exec2 = (cmd: string) => new Promise<[stdout: string, stderr: strin
     });
 });
 
-export const playAlertSingle = () => exec2(`mpg123 ./siren.mp3`);
+export const playAlertSingle = () => exec2(`mpg123 ./assets/siren.mp3`);
 
 // export function playAlertSingle() {
 //     return new Promise((resolve, reject) => {

@@ -1,4 +1,3 @@
-import config from 'config';
 import mqtt from 'mqtt';
 
 import { DEVICE } from 'src/constants';
@@ -6,9 +5,9 @@ import { withDebug } from 'src/logger';
 
 const debug = withDebug('mqtt-client');
 
-const mqttClient = mqtt.connect(`mqtt://${config.mqttBroker.host}:${config.mqttBroker.port}`, {
-    username: config.mqttBroker.username,
-    password: config.mqttBroker.password,
+const mqttClient = mqtt.connect(`mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`, {
+    username: process.env.MQTT_USERNAME,
+    password: process.env.MQTT_PASSWORD,
     reconnectPeriod: 10 * 1000,
 });
 
@@ -29,11 +28,6 @@ mqttClient.on('connect', function () {
         mqttClient.publish('zigbee2mqtt/bridge/request/networkmap', 'graphviz');
     };
 
-    // requestConnectedDevices();
-    // setInterval(requestConnectedDevices, 60 * 1000);
-    // requestNetworkMap();
-    // setInterval(requestNetworkMap, 60 * 60 * 1000);
-
 });
 mqttClient.on('error', (...args) => debug('error', ...args));
 mqttClient.on('offline', (...args: any) => debug('offline', ...args));
@@ -43,6 +37,10 @@ mqttClient.on('reconnect', (...args: any) => debug('reconnect', ...args));
 
 export default mqttClient;
 
+// requestConnectedDevices();
+// setInterval(requestConnectedDevices, 60 * 1000);
+// requestNetworkMap();
+// setInterval(requestNetworkMap, 60 * 60 * 1000);
 // extra debug
 // mqttClient.on('packetsend', (...args) => debug('packetsend', ...args));
 // mqttClient.on('packetreceive', (...args) => debug('packetreceive', ...args));

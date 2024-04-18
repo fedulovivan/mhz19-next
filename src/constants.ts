@@ -1,4 +1,4 @@
-import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
+// import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
 import path from 'path';
 
 export const APP_HOST = "localhost";
@@ -6,8 +6,6 @@ export const APP_HOST = "localhost";
 export const ROOT = path.join(__dirname, '..');
 export const DIST_FS_PATH = `${ROOT}/dist`;
 export const IMAGES_FS_PATH = `${ROOT}/images`;
-
-export const GRAPHQL_URI = "/graphql";
 export const IMAGES_URI = "/images";
 
 export const SECOND = 1000;
@@ -71,6 +69,8 @@ export enum DEVICE {
     LEAKAGE_SENSOR_TOILET = "0x00158d00040356af",
     IKEA_400LM_LED_BULB = "0x000d6ffffefc0f29",
     APPLE_COLLECTION_DOOR = "0x00124b002510b59d",
+    ALISA_POWER_PLUG = "0x00158d000391f252",
+    SPARE_POWER_PLUG = "0x00158d0003a010a5",
 }
 
 /**
@@ -97,13 +97,15 @@ export const DEVICE_NAME: Record<DEVICE, string> = {
     [DEVICE.LEAKAGE_SENSOR_TOILET]: "LEAKAGE_SENSOR_TOILET",
     [DEVICE.IKEA_400LM_LED_BULB]: "IKEA_400LM_LED_BULB",
     [DEVICE.APPLE_COLLECTION_DOOR]: "APPLE_COLLECTION_DOOR",
+    [DEVICE.ALISA_POWER_PLUG]: "ALISA_POWER_PLUG",
+    [DEVICE.SPARE_POWER_PLUG]: "SPARE_POWER_PLUG",
 }
 
 export const DEVICE_CUSTOM_ATTRIBUTE_NAME = "name";
 export const DEVICE_CUSTOM_ATTRIBUTE_IS_HIDDEN = "isHidden";
 export const DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY = "lastSeenForBotNotify";
 
-export const QUERY_OPTIONS: QueryHookOptions = {
-    pollInterval: 10000,
-    fetchPolicy: "network-only",
-};
+// export const QUERY_OPTIONS: QueryHookOptions = {
+//     pollInterval: 10000,
+//     fetchPolicy: "network-only",
+// };

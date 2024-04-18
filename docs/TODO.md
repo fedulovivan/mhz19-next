@@ -1,8 +1,8 @@
 
 ### 0 Priority
 - (+) implement throttle
+- (+) get rid of babel, switch to pure typescript
 - implement "pinger" device
-- get rid of babel, switch to pure typescript
 
 ### 1 Priority
 - finish implementation of poweroff button
@@ -38,3 +38,16 @@
 
 SELECT *, json_extract(json, '$.water_leak') as wl from device_messages_unified WHERE device_id = '0x00158d00040356af'
 and wl = 1 ORDER by "timestamp" DESC 
+
+### Old package.json scripts
+"build": "rm -rf dist/ && parcel build --no-cache index.html",
+"status": "pm2 list server-entrypoint.js",
+"start": "pm2 start server-entrypoint.js",
+"restart": "pm2 restart server-entrypoint.js",
+"stop": "pm2 stop server-entrypoint.js",
+"parcel:dev": "UV_THREADPOOL_SIZE=16 parcel watch index.html --hmr-port 44587 --no-cache",
+"server:dev": "DEBUG=\"mhz19-*\" node server-entrypoint.js",
+"dev": "concurrently --raw \"yarn parcel:dev\" \"yarn server:dev\"",
+"download-schema": "apollo service:download --endpoint=http://192.168.88.188:8888/graphql graphql-schema.json",
+"test": "DEBUG=mhz19-automation-engine mocha --recursive --extension 'js,ts,tsx' --require test/prepare.js",
+"logs": "tail -f main.log"

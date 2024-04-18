@@ -2,7 +2,8 @@ import EventEmitter from 'events';
 import isArray from 'lodash';
 import mdnsClass from 'multicast-dns';
 
-import log, { withDebug } from 'src/logger';
+import logger, { withDebug } from 'src/logger';
+import type { ISonoffDevice, TSonoffDevicesMap } from 'src/typings';
 
 const updatesChannel = new EventEmitter();
 
@@ -14,7 +15,6 @@ mdns.on('response', function (response) {
     const { answers } = response;
     let sonoffDeviceId: string | null = null;
     const sonoffDeviceData: Partial<ISonoffDevice> = {};
-    // console.log("response:answers", JSON.stringify(answers));
     answers.forEach(answer => {
         if (answer.type === 'A') {
             sonoffDeviceData.ip = answer.data;
@@ -31,7 +31,7 @@ mdns.on('response', function (response) {
                         try {
                             sonoffDeviceData.attributes = JSON.parse(bufferString.slice(6));
                         } catch (e) {
-                            log.error('failed to parse json from data1');
+                            logger.error('failed to parse json from data1');
                         }
                     }
                     if (bufferString.startsWith('id=')) {

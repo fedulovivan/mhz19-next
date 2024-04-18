@@ -1,36 +1,39 @@
-import { DEVICE_NAME } from 'src/constants';
+import bot from 'src/bot';
+import { DEVICE, DEVICE_NAME } from 'src/constants';
 import { withDebug } from 'src/logger';
+import mqttClient from 'src/mqttClient';
+import {
+    getChatId,
+    notNil,
+    postSonoffSwitchMessage,
+    yeelightDeviceSetPower,
+} from 'src/utils';
 
 import type { TOutputActionImpl } from './index.d';
 
 const debug = withDebug('automation-engine');
 
-export const PostSonoffSwitchMessage: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
+export const PostSonoffSwitchMessage: TOutputActionImpl = async (dstDeviceId, data) => {
     debug(`Executing PostSonoffSwitchMessage action`);
-    const adapter = supportedAdapters.Sonoff();
-    adapter(data, dstDeviceId);
+    return postSonoffSwitchMessage(data as any, dstDeviceId as DEVICE);
 };
 
-export const YeelightDeviceSetPower: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
+export const YeelightDeviceSetPower: TOutputActionImpl = async (dstDeviceId, data) => {
     debug(`Executing YeelightDeviceSetPower action`);
-    const adapter = supportedAdapters.Yeelight();
-    adapter(dstDeviceId, data);
+    return yeelightDeviceSetPower(dstDeviceId as DEVICE, data as any);
 };
 
-export const Zigbee2MqttSetState: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
+export const Zigbee2MqttSetState: TOutputActionImpl = async (dstDeviceId, data) => {
     debug(`Executing Zigbee2MqttSetState action for dstDeviceId=${dstDeviceId} (${DEVICE_NAME[dstDeviceId!]})`);
-    const adapter = supportedAdapters.Mqtt();
-    adapter.publish(`zigbee2mqtt/${dstDeviceId}/set/state`, data);
+    mqttClient.publish(`zigbee2mqtt/${dstDeviceId}/set/state`, data as any);
 };
 
-export const ValveSetState: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
+export const ValveSetState: TOutputActionImpl = async (dstDeviceId, data) => {
     debug(`Executing ValveSetState action for dstDeviceId=${dstDeviceId} (${DEVICE_NAME[dstDeviceId!]})`);
-    const adapter = supportedAdapters.Mqtt();
-    adapter.publish(`/VALVE/${dstDeviceId}/STATE/SET`, data);
+    mqttClient.publish(`/VALVE/${dstDeviceId}/STATE/SET`, data as any);
 };
 
-export const TelegramBotMessage: TOutputActionImpl = (dstDeviceId, data, supportedAdapters) => {
+export const TelegramBotMessage: TOutputActionImpl = async (dstDeviceId, data) => {
     debug(`Executing TelegramBotMessage action`);
-    const adapter = supportedAdapters.Telegram();
-    adapter(data);
+    bot.sendMessage(getChatId(), data as any);
 };

@@ -17,6 +17,20 @@ import type { IMappings } from './index.d';
 
 const mappings: IMappings = [
 
+    // test mapping
+    {
+        onZigbeeMessage: {
+            srcDevices: [DEVICE.WALL_SWITCH_SPARE],
+            throttle: 1000 * 5,
+        },
+        actions: [{
+            type: OutputAction.TelegramBotMessage,
+            payloadData: (params) => {
+                return JSON.stringify(params, null, " ");
+            },
+        }]
+    },
+
     // close both valves if leakage was detected for any sensor and send telegram notification
     {
         onZigbeeMessage: {
@@ -131,7 +145,7 @@ const mappings: IMappings = [
             deviceId: DEVICE.STORAGE_ROOM_VENT,
             payloadData: "on",
         }]
-    },       
+    },
 
     // off vent right after movement sensor has reported no occupancy
     // (!) note, there is no need to check door status here
@@ -150,7 +164,7 @@ const mappings: IMappings = [
             payloadData: "off",
         }]
     },
-    
+
     // off vent right after switching ceiling lights off
     {
         onZigbeeMessage: {
@@ -169,7 +183,7 @@ const mappings: IMappings = [
             deviceId: DEVICE.STORAGE_ROOM_VENT,
             payloadData: "off",
         }]
-    },       
+    },
 
     // on/off storage room ceiling light upon receiving occupancy=true/false from motion sensor
     // note that sensor will send occupancy=false after 90s if no motion will be detected
@@ -192,7 +206,7 @@ const mappings: IMappings = [
                 false: "OFF"
             }
         }]
-    },    
+    },
 
     // toggle bedroom ceiling light
     {
@@ -218,20 +232,6 @@ const mappings: IMappings = [
 ];
 
 export default mappings;
-
-// test mapping
-// {
-//     onZigbeeMessage: {
-//         srcDevices: [DEVICE.WALL_SWITCH_SPARE],
-//         throttle: 1000 * 5,
-//     },
-//     actions: [{
-//         type: OutputAction.TelegramBotMessage,
-//         payloadData: (params) => {
-//             return JSON.stringify(params, null, " ");
-//         },
-//     }]
-// },
 
 // // notify via telegram, when "money door" was opened/closed
 // {
@@ -290,12 +290,12 @@ export default mappings;
 //             JSON.stringify(message)
 //         ),
 //     }]
-// },    
+// },
 // {
 //     type: OutputAction.Zigbee2MqttSetState,
 //     deviceId: DEVICE.STORAGE_ROOM_CEILING_LIGHT,
 //     payloadData: "ON",
-// }    
+// }
 // mapping 3
 // {
 //     onZigbeeMessage: {
@@ -323,7 +323,7 @@ export default mappings;
 //             single_right: 'off',
 //         }
 //     }]
-// },  
+// },
 
 // {
 //     onZigbeeMessage: {
@@ -349,7 +349,7 @@ export default mappings;
 //             false: "OFF"
 //         }
 //     }]
-// },    
+// },
 
 // mapping 5
 // {
@@ -384,7 +384,7 @@ export default mappings;
 //         deviceId: DEVICE_NAME_TO_ID[STORAGE_ROOM_VENT],
 //         payloadData: "off",
 //     }]
-// },    
+// },
 
 // mapping 2
 // {
@@ -401,7 +401,7 @@ export default mappings;
 //         deviceId: DEVICE_NAME_TO_ID[KITCHEN_CEILING_LIGHT],
 //         payloadData: "off",
 //     }]
-// },  
+// },
 
 // mapping 7
 // switch lights off in 10 mins, if occupancy=false was not send by motion sensor
@@ -420,7 +420,7 @@ export default mappings;
 //         payloadData: "off",
 //         delay: 20 * 60 * 1000, // 10 mins
 //     }]
-// },    
+// },
 
 // {
 //     onZigbeeMessage: {

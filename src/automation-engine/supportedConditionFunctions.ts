@@ -1,4 +1,4 @@
-import log, { withDebug } from 'src/logger';
+import logger, { withDebug } from 'src/logger';
 
 import type { TPayloadConditionFunctionImpl } from './index.d';
 

@@ -1,11 +1,13 @@
 dist
 node_modules
 .cache
+.DS_Store
+.env
 *.log
 *.log.bak
 nohup.out
 config/*.json
-database.bin*
+database.bin
 .parcel-cache
 images/networkmap.svg
 src/components/SonoffDevices.tsx

@@ -1,19 +1,11 @@
-/* eslint-disable no-underscore-dangle */
-/* eslint-disable no-lonely-if */
-
-import 'src/http';
-
-import { DEV } from '@apollo/client/utilities';
-import { NotInterestedOutlined } from '@material-ui/icons';
-import config from 'config';
-import { isNil, result } from 'lodash';
+import 'src/httpServer';
 
 import {
     ActionsExecutor,
     mappings,
     supportedOutputActions,
 } from 'src/automation-engine';
-import bot, { botSendButtons, sendTelegramMessageTrottled } from 'src/bot';
+import bot, { botSendButtons } from 'src/bot';
 import {
     DEVICE,
     DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY,
@@ -27,12 +19,18 @@ import {
     insertIntoValveStatusMessages,
 } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
-import log, { withDebug } from 'src/logger';
+import { withDebug } from 'src/logger';
 import updatesChannel from 'src/mdns';
 import mqttClient from 'src/mqttClient';
+import type {
+    IMqttMessageDispatcherHandler,
+    IZigbee2MqttBridgeDevice,
+    TSonoffDevicesMap,
+} from 'src/typings';
 import {
     Alerter,
     getAppUrl,
+    getChatId,
     mqttMessageDispatcher,
     postSonoffSwitchMessage,
     saveGraphvizNetworkmap,
@@ -46,7 +44,7 @@ const lastSeenTimers: Map<DEVICE, NodeJS.Timeout> = new Map();
 let deviceCustomAttributes: any;
 
 /**
- * some zigbee devices do not bother sending periodic updates, 
+ * some zigbee devices do not bother sending periodic updates,
  * so there is no sence to monitor their last seen status
  */
 const LAST_SEEN_BLACKLIST = [
@@ -67,7 +65,7 @@ const LAST_SEEN_WHITELIST = [
     DEVICE.APPLE_COLLECTION_DOOR,
 ];
 
-bot.sendMessage(config.telegram.chatId, "Application started");
+bot.sendMessage(getChatId(), "Application started");
 
 fetchDeviceCustomAttributes().then(result => {
     // save fetched attributes
@@ -85,16 +83,16 @@ async function trackLastSeenAndNotify(deviceId: DEVICE) {
         clearTimeout(lastSeenTimers.get(deviceId)!);
     }
     const timeout = (
-        deviceCustomAttributes?.[deviceId]?.[DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY] 
+        deviceCustomAttributes?.[deviceId]?.[DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY]
         ?? LAST_SEEN_FOR_BOT_NOTIFY
     );
     lastSeenTimers.set(
-        deviceId, 
+        deviceId,
         setTimeout(
             function() {
-                bot.sendMessage(config.telegram.chatId, `Have not seen ${DEVICE_NAME[deviceId] ?? deviceId} for a while...`);
+                bot.sendMessage(getChatId(), `Have not seen ${DEVICE_NAME[deviceId] ?? deviceId} for a while...`);
                 trackLastSeenAndNotify(deviceId);
-            }, 
+            },
             timeout,
         ),
     );
@@ -103,12 +101,12 @@ async function trackLastSeenAndNotify(deviceId: DEVICE) {
 export const actionsExecutor = new ActionsExecutor({
     mappings,
     supportedOutputActions,
-    supportedAdapters: {
-        Mqtt: () => mqttClient,
-        Sonoff: () => postSonoffSwitchMessage,
-        Yeelight: () => yeelightDeviceSetPower,
-        Telegram: () => (msg: string) => sendTelegramMessageTrottled(msg),
-    }
+    // supportedAdapters: {
+    //     Mqtt: () => mqttClient,
+    //     Sonoff: () => postSonoffSwitchMessage,
+    //     Yeelight: () => yeelightDeviceSetPower,
+    //     Telegram: () => (msg: string) => sendTelegramMessageTrottled(msg),
+    // }
 });
 
 updatesChannel.on('update', (devicesMap: TSonoffDevicesMap) => {
@@ -125,16 +123,16 @@ function handleLeakage(leakage: boolean, deviceName: string): void {
         // if (!Alerter.isRaised()) {
         //     Alerter.on();
         //     const msg = `Leakage detected for "${deviceName}"! Alert on.\n${appUrl}`;
-        //     bot.sendMessage(config.telegram.chatId, msg);
-        //     botSendButtons(config.telegram.chatId);
+        //     bot.sendMessage((config as unknown as IConfig).telegram.chatId, msg);
+        //     botSendButtons((config as unknown as IConfig).telegram.chatId);
         //     debug(msg);
         // }
     }/*  else {
         if (Alerter.isRaised()) {
             Alerter.off();
             const msg = `Leakage warning ceased for "${deviceName}". Alert off.\n${appUrl}`;
-            bot.sendMessage(config.telegram.chatId, msg);
-            botSendButtons(config.telegram.chatId);
+            bot.sendMessage((config as unknown as IConfig).telegram.chatId, msg);
+            botSendButtons((config as unknown as IConfig).telegram.chatId);
             debug(msg);
         }
     } */
@@ -190,7 +188,7 @@ const zigbee2MqttWildcardHandler: IMqttMessageDispatcherHandler = ({
     deviceId,
 }) => {
     // debug('zigbee2MqttWildcardHandler');
-    // debug({ 
+    // debug({
     //     fullTopic,
     //     json,
     //     timestamp,
@@ -206,7 +204,7 @@ const zigbee2MqttWildcardHandler: IMqttMessageDispatcherHandler = ({
 const EXCLUDED_TOPICS = ['zigbee2mqtt/bridge/logging'];
 
 mqttMessageDispatcher(
-    mqttClient, 
+    mqttClient,
     [
 
         // handle status messages from valves manipulator box
@@ -228,7 +226,7 @@ mqttMessageDispatcher(
         // connect ActionsExecutor
         ['zigbee2mqtt/0x', zigbee2MqttWildcardHandler],
 
-    ], 
+    ],
     EXCLUDED_TOPICS,
 );
 
@@ -361,7 +359,7 @@ mqttMessageDispatcher(
 //     // const bedroomCeilingLight = yeelightDevices.get(bedroomCeilingLightDeviceId);
 //     // if (!bedroomCeilingLight) {
 //     //     bot.sendMessage(
-//     //         config.telegram.chatId,
+//     //         (config as unknown as IConfig).telegram.chatId,
 //     //         `yeelightDevice ${bedroomCeilingLightDeviceId} (${BEDROOM_CEILING_LIGHT}) is not registered`
 //     //     );
 //     //     return;

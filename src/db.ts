@@ -5,6 +5,14 @@ import set from 'lodash/set';
 import sqlite3, { Statement } from 'sqlite3';
 
 import { DEVICE } from 'src/constants';
+import type {
+    IDeviceCustomAttribute,
+    ISonoffDevice,
+    IYeelightDeviceMessage,
+    IZigbee2mqttBridgeConfigDevice,
+    IZigbee2MqttBridgeDevice,
+    IZigbeeDeviceMessage,
+} from 'src/typings';
 
 const db = new sqlite3.Database('database.bin');
 
@@ -195,7 +203,7 @@ function select(
 ): Promise<Array<Record<string, any>>> {
     // debug(`executing query: `, qstring, params);
     return new Promise((resolve, reject) => {
-        db.all(qstring, params, (error, rows) => {
+        db.all<any>(qstring, params, (error, rows) => {
             if (error) {
                 return reject(error);
             }
@@ -281,7 +289,7 @@ export async function fetchDeviceCustomAttributes(
     if (deviceId) where.push(`device_id = '${deviceId}'`);
     if (attributeType) where.push(`attribute_type = '${attributeType}'`);
     const result = await select(`SELECT * FROM device_custom_attributes ${where.length ? "WHERE" : ""} ${where.join(" AND ")}`);
-    
+
     if (asMap) {
         return toMap(result);
     }
@@ -467,15 +475,15 @@ export async function fetchLastTemperatureSensorMessage() {
 
 export async function fetchLastDeviceMessages(): Promise<Record<DEVICE, IZigbeeDeviceMessage>> {
     const rowsRaw = await select(oneLine`
-        SELECT 
-            device_id, 
-            json, 
-            max("timestamp") as max_timestamp 
-        FROM 
-            device_messages_unified 
-        WHERE 
+        SELECT
+            device_id,
+            json,
+            max("timestamp") as max_timestamp
+        FROM
+            device_messages_unified
+        WHERE
             json IS NOT NULL
-        GROUP BY 
+        GROUP BY
             device_id
     `);
     const rows = unwrapJson(rowsRaw);
