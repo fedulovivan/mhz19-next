@@ -15,7 +15,7 @@ export function withDebug(namespace: string) {
     const debug = Debug(`${DEBUG_TAG_PREFIX}${namespace}`);
     return (first: any, ...args: any[]): void => {
         debug(first, ...args);
-        logger.debug(first, ...args);
+        // logger.debug(first, ...args);
     };
 }
 

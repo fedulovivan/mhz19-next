@@ -6,24 +6,28 @@
 - (+) commit changes to repo and move to macmini under docker
 - (+) add sanity checks in up.sh
 - (+) fix "expected to fetch one device from db"
-- return back to "bridge" network in containers
+- tidy debug logs, now same messages are written twice - by logger and by debug module, also the "category" disabled with "mhz19-*,-mhz19-mdns" is not handled by logger, and outputted anyway
+- bring mosquitto and zigbee2mqtt back to the compose stack (remove related services, including pm2)
+- host optimization - switch to ssd, remove snap
+- return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
+- exclude homepod's ip 192.168.88.66 from sonoff_devices (accidentally treated as sonoff)
 - eliminate usage of old tables, eliminate old queries, switch to sequilize
-- try kebernetes
+- try kubernetes
 - implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
 - try golang on server side
-- OutputAction.Zigbee2MqttSetState supports only strings in payloadData, so we cannot take any input value as is, if its not string
 
 ### 1 Priority Server
+- OutputAction.Zigbee2MqttSetState supports only strings in payloadData, so we cannot take any input value as is, if its not string
 - remove hardcode: yeelightDeviceSetPower from supportedAdapters works only bedroom ceiling light
 - we probably need to handle also non-json messages in zigbee2MqttWildcardHandler, now non-json payloads (which could not be parsed with JSON.parse) are just ignored
 - introduce data type field in device_custom_attributes table (?)
 - try https://github.com/dotansimha/graphql-code-generator (?)
 
 ### 1 Priority Client
-- finish implementation of poweroff button
-- discover and fix yeelight devices reconnection problem
-- indicate on temterature message card, whether shown data is outdated
-- find solution for stucked parcel:dev builds
+- finish implementation of poweroff button (?)
+- discover and fix yeelight devices reconnection problem (?)
+- indicate on temterature message card, whether shown data is outdated (?)
+- find solution for stucked parcel:dev builds (?)
 
 ### DONE
 - (+) make payloadConditions optional
