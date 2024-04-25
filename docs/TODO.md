@@ -5,6 +5,7 @@
 - (+) fix update on ubuntu, install required docker and docker compose
 - (+) commit changes to repo and move to macmini under docker
 - eliminate usage of old tables, eliminate old queries, switch to sequilize
+- add sanity checks in up.sh
 - try kebernetes
 - implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
 - try golang on server side
@@ -45,6 +46,11 @@ other
     apt list --installed | grep -i docker
     dpkg -l | grep -i docker
     neofetch
+git
+    check for upcoming changes from remote
+        git fetch --dry-run
+    get current revision
+        git rev-parse HEAD
 zigbee2mqtt
     vim /opt/zigbee2mqtt/data/log/2024-04-03.11-50-22/log.txt
 mosquitto

@@ -1,6 +1,6 @@
 {
     "recommendations": [
-        "graphql.vscode-graphql",
+        // "graphql.vscode-graphql",
         "mike-co.import-sorter",
         "dbaeumer.vscode-eslint"
     ]

@@ -239,13 +239,22 @@ export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'of
 }
 
 export const uptime = async () => {
-    const host = await exec2(`uptime -p`);
+
+    // uptime's option "pretty" is availableonlu for ubuntu, so we ought to parse more complex string to make implementation universal
+    // macos v1 "13:21  up 1 day, 19 hrs, 4 users, load averages: 1.07 1.83 2.14"
+    // macos v2 "13:41  up 1 day, 19:20, 4 users, load averages: 1.92 1.82 1.83"
+    // ubuntu "13:20:22 up 22 days,  1:32,  2 users,  load average: 0.42, 0.29, 0.21"
+    // alpine "12:39:53 up 22 days, 51 min,  0 users,  load average: 0.37, 0.37, 0.34"
+    const [stdout] = await exec2(`uptime`);
+    const ss = stdout.split(/up/);
+    const sss = ss[1].split(/,\s+\d+ users/);
+    const host = sss[0].trim();
+
     const now = new Date();
     const appUptime = now.getTime() - STARTED_AT.getTime();
-    return {
-        host: host[0].replace('up ', ''),
-        application: humanizeDuration(appUptime, { round: true, largest: 3 }),
-    };
+    const application = humanizeDuration(appUptime, { round: true, largest: 3 });
+
+    return { host, application };
 };
 
 export const exec2 = (cmd: string) => new Promise<[stdout: string, stderr: string]>((resolve, reject) => {
