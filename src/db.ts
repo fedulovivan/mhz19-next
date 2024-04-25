@@ -19,7 +19,7 @@ const db = new sqlite3.Database('database.bin');
 let insert_into_valve_status_messages: Statement;
 let insert_into_zigbee_devices: Statement;
 let insert_into_device_messages_unified: Statement;
-let insert_into_yeelight_devices: Statement;
+// let insert_into_yeelight_devices: Statement;
 let insert_into_yeelight_device_messages: Statement;
 let insert_into_device_custom_attributes: Statement;
 let update_device_custom_attributes: Statement;
@@ -138,9 +138,9 @@ db.serialize(function() {
     insert_into_yeelight_device_messages = db.prepare(`
         INSERT INTO yeelight_device_messages VALUES(?, ?, ?)
     `);
-    insert_into_yeelight_devices = db.prepare(`
-        INSERT INTO yeelight_devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
-    `);
+    // insert_into_yeelight_devices = db.prepare(`
+    //     INSERT INTO yeelight_devices VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?)
+    // `);
     insert_into_device_custom_attributes = db.prepare(`
         INSERT OR IGNORE INTO device_custom_attributes VALUES(?, ?, ?)
     `);
@@ -439,29 +439,29 @@ export async function createOrUpdateZigbeeDevice(device: IZigbee2MqttBridgeDevic
     throw new Error(`Unexpected conditions`);
 }
 
-export async function insertIntoYeelightDevices(
-    id: string,
-    location: string,
-    model: string,
-    support: string,
-    host: string,
-    port: number,
-    power: string,
-    json: Record<string, any>,
-): Promise<void> {
-    return runStatement(
-        insert_into_yeelight_devices,
-        Date.now(),
-        id,
-        location,
-        model,
-        support,
-        host,
-        port,
-        power,
-        json ? JSON.stringify(json) : null,
-    );
-}
+// export async function insertIntoYeelightDevices(
+//     id: string,
+//     location: string,
+//     model: string,
+//     support: string,
+//     host: string,
+//     port: number,
+//     power: string,
+//     json: Record<string, any>,
+// ): Promise<void> {
+//     return runStatement(
+//         insert_into_yeelight_devices,
+//         Date.now(),
+//         id,
+//         location,
+//         model,
+//         support,
+//         host,
+//         port,
+//         power,
+//         json ? JSON.stringify(json) : null,
+//     );
+// }
 
 export async function fetchLastTemperatureSensorMessage() {
     const rows = await select(oneLine`

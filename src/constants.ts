@@ -32,6 +32,7 @@ export const IPHONE_15_PRO_IP = "192.168.88.71";
 export const IPHONE_14_IP = "192.168.88.62";
 export const PIXEL_5_IP = "192.168.88.68";
 export const REDMI_12_NOTE_IP = "192.168.88.63";
+export const BEDROOM_CEILING_LIGHT_IP = "192.168.88.169";
 
 export const HISTORY_OPTIONS = [
     { name: '1 minute', value: MINUTE },

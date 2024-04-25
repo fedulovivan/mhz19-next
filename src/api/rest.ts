@@ -34,13 +34,6 @@ import {
 
 const router: Router = Express.Router();
 
-// const powerOff = () => new Promise((resolve, reject) => {
-//     exec(`sudo systemctl poweroff`, (error, stdout, stderr) => {
-//         if (error) reject(error);
-//         resolve([stdout, stderr]);
-//     });
-// });
-
 router.get('/stats', async (req, res) => {
     try {
         const uptimeData = await uptime();

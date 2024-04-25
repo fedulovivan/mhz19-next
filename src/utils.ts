@@ -10,14 +10,15 @@ import os from 'os';
 // @ts-ignore
 import { Device } from 'yeelight-platform';
 
-import { DEVICE } from 'src/constants';
+import { BEDROOM_CEILING_LIGHT_IP, DEVICE } from 'src/constants';
 import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
 import logger, { withDebug } from 'src/logger';
 import type { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
 const bedroomCeilingLight = new Device({
-    host: '192.168.88.169', port: 55443
+    host: BEDROOM_CEILING_LIGHT_IP,
+    port: 55443,
 });
 bedroomCeilingLight.connect();
 

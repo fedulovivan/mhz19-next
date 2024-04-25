@@ -1,7 +1,7 @@
 {
     "files.exclude": {
         "**/dist": true,
-        "**/front-old": true
+        "**/front-and-old": true
     },
     "debug.javascript.codelens.npmScripts": "never",
 }

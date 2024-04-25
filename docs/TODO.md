@@ -2,19 +2,25 @@
 ### 0 Priority
 - (+) implement throttle
 - (+) get rid of babel, switch to pure typescript
-- implement "pinger" device
+- (+) fix update on ubuntu, install required docker and docker compose
+- (+) commit changes to repo and move to macmini under docker
+- eliminate usage of old tables, eliminate old queries, switch to sequilize
+- try kebernetes
+- implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
+- try golang on server side
+- OutputAction.Zigbee2MqttSetState supports only strings in payloadData, so we cannot take any input value as is, if its not string
 
-### 1 Priority
+### 1 Priority Server
+- remove hardcode: yeelightDeviceSetPower from supportedAdapters works only bedroom ceiling light
+- we probably need to handle also non-json messages in zigbee2MqttWildcardHandler, now non-json payloads (which could not be parsed with JSON.parse) are just ignored
+- introduce data type field in device_custom_attributes table (?)
+- try https://github.com/dotansimha/graphql-code-generator (?)
+
+### 1 Priority Client
 - finish implementation of poweroff button
 - discover and fix yeelight devices reconnection problem
 - indicate on temterature message card, whether shown data is outdated
-- try golang on server side (!)
 - find solution for stucked parcel:dev builds
-- try https://github.com/dotansimha/graphql-code-generator
-- introduce data type field in device_custom_attributes table
-- remove hardcode: yeelightDeviceSetPower from supportedAdapters works only bedroom ceiling light
-- OutputAction.Zigbee2MqttSetState supports only strings in payloadData, so we cannot take any input value as is, if its not string
-- we probably need to handle also non-json messages in zigbee2MqttWildcardHandler, now non-json payloads (which could not be parsed) are ignored
 
 ### DONE
 - (+) make payloadConditions optional
@@ -32,12 +38,29 @@
 - (+) move sources to src folder, move react code to dedicated folder src/components
 - (+) get rid of deviceStates in client state, store this data in zigbeeDevivesMessages
 - (+) rename waterSensorRecentMessages to zigbeeDevivesMessages
-- (?) new widget for device messages history
+
+### Shell commands
+other
+    systemctl list-unit-files | grep enabled
+    apt list --installed | grep -i docker
+    dpkg -l | grep -i docker
+    neofetch
+zigbee2mqtt
+    vim /opt/zigbee2mqtt/data/log/2024-04-03.11-50-22/log.txt
+mosquitto
+    vim /var/log/mosquitto/mosquitto.log
+    sudo systemctl restart mosquitto
+monitor
+    sudo systemctl stop monitor
+    journalctl -u monitor -f
+bluetooth and system info
+    hciconfig -a
+    hciconfig hci0 up
+    dmesg | grep Blue
 
 ### DB-related stuff
 
-SELECT *, json_extract(json, '$.water_leak') as wl from device_messages_unified WHERE device_id = '0x00158d00040356af'
-and wl = 1 ORDER by "timestamp" DESC 
+SELECT json_extract(json, '$.water_leak') as wl, * from device_messages_unified WHERE device_id in ('0x00158d000405811b','0x00158d0004035e3e','0x00158d00040356af') ORDER by "timestamp" DESC 
 
 ### Old package.json scripts
 "build": "rm -rf dist/ && parcel build --no-cache index.html",
