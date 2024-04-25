@@ -4,8 +4,10 @@
 - (+) get rid of babel, switch to pure typescript
 - (+) fix update on ubuntu, install required docker and docker compose
 - (+) commit changes to repo and move to macmini under docker
+- (+) add sanity checks in up.sh
+- (+) fix "expected to fetch one device from db"
+- return back to "bridge" network in containers
 - eliminate usage of old tables, eliminate old queries, switch to sequilize
-- add sanity checks in up.sh
 - try kebernetes
 - implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
 - try golang on server side
@@ -46,6 +48,7 @@ other
     apt list --installed | grep -i docker
     dpkg -l | grep -i docker
     neofetch
+    sudo ss -tulpn
 git
     check for upcoming changes from remote
         git fetch --dry-run

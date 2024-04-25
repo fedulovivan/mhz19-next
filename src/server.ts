@@ -20,7 +20,7 @@ import {
 } from 'src/db';
 import * as lastDeviceState from 'src/lastDeviceState';
 import { withDebug } from 'src/logger';
-import updatesChannel from 'src/mdns';
+import mdns from 'src/mdns';
 import mqttClient from 'src/mqttClient';
 import type {
     IMqttMessageDispatcherHandler,
@@ -109,7 +109,7 @@ export const actionsExecutor = new ActionsExecutor({
     // }
 });
 
-updatesChannel.on('update', (devicesMap: TSonoffDevicesMap) => {
+mdns.on('update', (devicesMap: TSonoffDevicesMap) => {
     Array.from(devicesMap.values()).forEach(device => {
         createOrUpdateSonoffDevice(device);
     });
