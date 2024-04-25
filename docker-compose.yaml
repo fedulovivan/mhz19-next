@@ -5,5 +5,7 @@ services:
         env_file: .env
         ports:
             - 8888:8888
+            - 5353:5353/tcp
+            - 5353:5353/udp
         volumes:
             - ./database.bin:/app/database.bin

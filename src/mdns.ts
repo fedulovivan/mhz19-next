@@ -5,6 +5,8 @@ import mdnsClass from 'multicast-dns';
 import logger, { withDebug } from 'src/logger';
 import type { ISonoffDevice, TSonoffDevicesMap } from 'src/typings';
 
+const debug = withDebug('mdns');
+
 const updatesChannel = new EventEmitter();
 
 const mdns = mdnsClass();
@@ -12,6 +14,7 @@ const mdns = mdnsClass();
 const devices: TSonoffDevicesMap = new Map();
 
 mdns.on('response', function (response) {
+    debug(JSON.stringify(response));
     const { answers } = response;
     let sonoffDeviceId: string | null = null;
     const sonoffDeviceData: Partial<ISonoffDevice> = {};
