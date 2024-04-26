@@ -1,12 +1,12 @@
 // import type { QueryHookOptions } from '@apollo/client/react/types/types.d';
-import path from 'path';
+// import path from 'path';
 
 export const APP_HOST = "localhost";
 
-export const ROOT = path.join(__dirname, '..');
-export const DIST_FS_PATH = `${ROOT}/dist`;
-export const IMAGES_FS_PATH = `${ROOT}/images`;
-export const IMAGES_URI = "/images";
+// export const ROOT = path.join(__dirname, '..');
+// export const DIST_FS_PATH = `${ROOT}/dist`;
+// export const IMAGES_FS_PATH = `${ROOT}/images`;
+// export const IMAGES_URI = "/images";
 
 export const SECOND = 1000;
 export const MINUTE = 60 * SECOND;
@@ -105,6 +105,12 @@ export const DEVICE_NAME: Record<DEVICE, string> = {
 export const DEVICE_CUSTOM_ATTRIBUTE_NAME = "name";
 export const DEVICE_CUSTOM_ATTRIBUTE_IS_HIDDEN = "isHidden";
 export const DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY = "lastSeenForBotNotify";
+
+export enum DeviceClass {
+    ZIGBEE = "ZIGBEE",
+    VALVE = "VALVE",
+    SONOFF = "SONOFF",
+}
 
 // export const QUERY_OPTIONS: QueryHookOptions = {
 //     pollInterval: 10000,

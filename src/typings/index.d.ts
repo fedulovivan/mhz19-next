@@ -242,7 +242,23 @@ export interface IDeviceCustomAttribute {
     value: string;
 }
 export type TOnOff = 'on' | 'off';
-export interface ISonoffDeviceAttributes {
+// export interface ISonoffDeviceAttributes {
+//     switch: TOnOff;
+//     startup: TOnOff;
+//     pulse: TOnOff;
+//     sledOnline: TOnOff;
+//     fwVersion: string;
+//     pulseWidth: number;
+//     rssi: number;
+// }
+export interface ISonoffDevice {
+    // timestamp: number;
+
+    id: string;
+    type: string;
+    ip: string;
+    port: number;
+
     switch: TOnOff;
     startup: TOnOff;
     pulse: TOnOff;
@@ -250,14 +266,9 @@ export interface ISonoffDeviceAttributes {
     fwVersion: string;
     pulseWidth: number;
     rssi: number;
-}
-export interface ISonoffDevice {
-    timestamp: number;
-    id: string;
-    ip: string;
-    port: number;
-    attributes: ISonoffDeviceAttributes;
-    rawData1?: string;
+
+    rawData: Array<string>;
+    // attributes: ISonoffDeviceAttributes;
 }
 export type ISonoffDeviceUnwrapped =
     & ISonoffDeviceAttributes

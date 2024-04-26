@@ -6,15 +6,53 @@
 - (+) commit changes to repo and move to macmini under docker
 - (+) add sanity checks in up.sh
 - (+) fix "expected to fetch one device from db"
-- tidy debug logs, now same messages are written twice - by logger and by debug module, also the "category" disabled with "mhz19-*,-mhz19-mdns" is not handled by logger, and outputted anyway
+- (+) /play-alert is missing mpg123 binary
+- (+) tidy debug logs, now same messages are written twice - by logger and by debug module
+- (+) eliminate usage of old tables, eliminate old queries, switch to sequilize
+- (+) extract some code from utils to separate modules
+- (+) exclude homepod's ip 192.168.88.66 from sonoff_devices (accidentally treated as sonoff)
+- logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax it is not handled by logger, and outputted anyway
 - bring mosquitto and zigbee2mqtt back to the compose stack (remove related services, including pm2)
-- host optimization - switch to ssd, remove snap
+- macmini host optimization - switch to ssd, remove snap
 - return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
-- exclude homepod's ip 192.168.88.66 from sonoff_devices (accidentally treated as sonoff)
-- eliminate usage of old tables, eliminate old queries, switch to sequilize
-- try kubernetes
 - implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
+- try kubernetes
 - try golang on server side
+
+### DB-related stuff
+
+SELECT json_extract(json, '$.water_leak') as wl, * from device_messages_unified WHERE device_id in ('0x00158d000405811b','0x00158d0004035e3e','0x00158d00040356af') ORDER by "timestamp" DESC 
+
+new tables:
+    devices
+    messages
+    device_custom_attributes
+
+old tables:
+    yeelight_devices
+    yeelight_device_messages
+    zigbee_devices
+    zigbee_devices_v2
+    valve_status_messages
+    device_messages_unified
+    device_custom_attributes
+    sonoff_devices
+    temperature_sensor_messages
+
+used methods:
+    createOrUpdateDeviceCustomAttribute rest
+    createOrUpdateSonoffDevice server
+    createOrUpdateZigbeeDevice server
+    fetchDeviceCustomAttributes server, rest
+    fetchDeviceMessagesUnified rest
+    fetchSonoffDevices,
+    fetchStats
+    fetchValveStatusMessages
+    fetchYeelightDeviceMessages
+    fetchYeelightDevices
+    fetchZigbeeDevicesV2
+    insertIntoDeviceMessagesUnified
+    insertIntoValveStatusMessages
 
 ### 1 Priority Server
 - OutputAction.Zigbee2MqttSetState supports only strings in payloadData, so we cannot take any input value as is, if its not string
@@ -70,10 +108,6 @@ bluetooth and system info
     hciconfig -a
     hciconfig hci0 up
     dmesg | grep Blue
-
-### DB-related stuff
-
-SELECT json_extract(json, '$.water_leak') as wl, * from device_messages_unified WHERE device_id in ('0x00158d000405811b','0x00158d0004035e3e','0x00158d00040356af') ORDER by "timestamp" DESC 
 
 ### Old package.json scripts
 "build": "rm -rf dist/ && parcel build --no-cache index.html",

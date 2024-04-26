@@ -5,19 +5,25 @@ import {
     mappings,
     supportedOutputActions,
 } from 'src/automation-engine';
-import bot, { botSendButtons } from 'src/bot';
+import bot from 'src/bot';
+// import {
+//     createOrUpdateSonoffDevice,
+//     createOrUpdateZigbeeDevice,
+//     fetchDeviceCustomAttributes,
+//     insertIntoValveStatusMessages,
+// } from 'src/db';
 import {
     DEVICE,
     DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY,
     DEVICE_NAME,
+    DeviceClass,
     LAST_SEEN_FOR_BOT_NOTIFY,
 } from 'src/constants';
-import {
-    createOrUpdateSonoffDevice,
-    createOrUpdateZigbeeDevice,
-    fetchDeviceCustomAttributes,
-    insertIntoValveStatusMessages,
-} from 'src/db';
+import Device from 'src/db/Device';
+import model from 'src/db/Device';
+import type { IDeviceCustomAttributeModel } from 'src/db/DeviceCustomAttribute';
+import DeviceCustomAttribute from 'src/db/DeviceCustomAttribute';
+import Message from 'src/db/Message';
 import * as lastDeviceState from 'src/lastDeviceState';
 import { withDebug } from 'src/logger';
 import mdns from 'src/mdns';
@@ -28,20 +34,17 @@ import type {
     TSonoffDevicesMap,
 } from 'src/typings';
 import {
-    Alerter,
-    getAppUrl,
     getChatId,
     mqttMessageDispatcher,
-    postSonoffSwitchMessage,
+    notNil,
     saveGraphvizNetworkmap,
-    yeelightDeviceSetPower,
 } from 'src/utils';
 
 const debug = withDebug('server');
 
 const lastSeenTimers: Map<DEVICE, NodeJS.Timeout> = new Map();
 
-let deviceCustomAttributes: any;
+let deviceCustomAttributes: Array<IDeviceCustomAttributeModel>;
 
 /**
  * some zigbee devices do not bother sending periodic updates,
@@ -67,7 +70,8 @@ const LAST_SEEN_WHITELIST = [
 
 bot.sendMessage(getChatId(), "Application started");
 
-fetchDeviceCustomAttributes().then(result => {
+// fetchDeviceCustomAttributes().then(result => {
+DeviceCustomAttribute.findAll().then(result => {
     // save fetched attributes
     deviceCustomAttributes = result;
     // launch timers on startup
@@ -82,10 +86,15 @@ async function trackLastSeenAndNotify(deviceId: DEVICE) {
     if (lastSeenTimers.has(deviceId)) {
         clearTimeout(lastSeenTimers.get(deviceId)!);
     }
-    const timeout = (
-        deviceCustomAttributes?.[deviceId]?.[DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY]
-        ?? LAST_SEEN_FOR_BOT_NOTIFY
-    );
+    const attr = deviceCustomAttributes.find(item => (
+        item.dataValues.device_id === deviceId
+        && item.dataValues.attribute_type === 'DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY'
+    ));
+    const timeout = notNil(attr?.dataValues?.value) ? parseInt(attr.dataValues.value, 10) : LAST_SEEN_FOR_BOT_NOTIFY;
+    // const timeout = (
+    //     deviceCustomAttributes?.[deviceId]?.[DEVICE_CUSTOM_ATTRIBUTE_LAST_SEEN_FOR_BOT_NOTIFY]
+    //     ?? LAST_SEEN_FOR_BOT_NOTIFY
+    // );
     lastSeenTimers.set(
         deviceId,
         setTimeout(
@@ -110,9 +119,24 @@ export const actionsExecutor = new ActionsExecutor({
 });
 
 mdns.on('update', (devicesMap: TSonoffDevicesMap) => {
+
+    // const models = Array.from(devicesMap.values()).map(device => {
+    //     return {
+    //         device_id: device.id,
+    //         device_class: DeviceClass.SONOFF,
+    //         json: device,
+    //     };
+    // });
+    // Device.bulkCreate(models, { updateOnDuplicate: ['device_id'] });
+
     Array.from(devicesMap.values()).forEach(device => {
-        createOrUpdateSonoffDevice(device);
+        Device.upsert({
+            device_id: device.id,
+            device_class: DeviceClass.SONOFF,
+            json: device,
+        });
     });
+
 });
 
 function handleLeakage(leakage: boolean, deviceName: string): void {
@@ -146,14 +170,28 @@ function handleLeakage(leakage: boolean, deviceName: string): void {
 // };
 
 const bridgeDevicesHandler: IMqttMessageDispatcherHandler<Array<IZigbee2MqttBridgeDevice>> = ({ json }) => {
-    // debug('bridgeDevicesHandler');
     const devices = json;
     if (devices?.length) {
+
+        // const models = devices
+        //     .filter(devices => devices.friendly_name !== 'Coordinator')
+        //     .map(device => {
+        //         return {
+        //             device_id: device.friendly_name,
+        //             device_class: DeviceClass.ZIGBEE,
+        //             json: device,
+        //         };
+        //     });
+        // Device.bulkCreate(models, { updateOnDuplicate: ['device_id'] });
+
         devices.forEach(device => {
-            createOrUpdateZigbeeDevice(device);
-            // if (device.friendly_name !== 'Coordinator') {
-            //     insertIntoZigbeeDevices(device);
-            // }
+            if (device.friendly_name !== 'Coordinator') {
+                Device.upsert({
+                    device_id: device.friendly_name,
+                    device_class: DeviceClass.ZIGBEE,
+                    json: device,
+                });
+            }
         });
     }
 };
@@ -173,10 +211,14 @@ const valveStateStatusHandler: IMqttMessageDispatcherHandler = (payload) => {
         handleLeakage(json.leakage, 'Valves manipulator box');
         lastDeviceState.set(String(json.chipid) as DEVICE, json);
         trackLastSeenAndNotify(String(json.chipid) as DEVICE);
-        insertIntoValveStatusMessages(
-            timestamp,
+        Message.create({
+            device_id: String(json.chipid),
             json,
-        );
+        });
+        // insertIntoValveStatusMessages(
+        //     timestamp,
+        //     json,
+        // );
     }
 };
 

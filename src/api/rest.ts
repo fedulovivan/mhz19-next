@@ -1,20 +1,14 @@
-/* eslint-disable no-plusplus */
-
 import Express, { Router } from 'express';
+import { at } from 'lodash-es';
 import first from 'lodash/first';
 import set from 'lodash/set';
+import type { WhereOptions } from 'sequelize';
 
-import db, {
-    createOrUpdateDeviceCustomAttribute,
-    fetchDeviceCustomAttributes,
-    fetchDeviceMessagesUnified,
-    fetchSonoffDevices,
-    fetchStats,
-    fetchValveStatusMessages,
-    fetchYeelightDeviceMessages,
-    fetchYeelightDevices,
-    fetchZigbeeDevicesV2,
-} from 'src/db';
+import conn from 'src/db/conn';
+import Device from 'src/db/Device';
+import type { DeviceCustomAttributeFields, IDeviceCustomAttributeModel } from 'src/db/DeviceCustomAttribute';
+import DeviceCustomAttribute from 'src/db/DeviceCustomAttribute';
+import Message from 'src/db/Message';
 import * as lastDeviceState from 'src/lastDeviceState';
 import logger from 'src/logger';
 import mqttClient from 'src/mqttClient';
@@ -25,7 +19,7 @@ import {
     exec2,
     getAppUrl,
     getOptInt,
-    mqttMessageDispatcher,
+    notNil,
     playAlertSingle,
     postSonoffSwitchMessage,
     sendError,
@@ -79,23 +73,15 @@ router.put('/valve-state/:id/:state', async (req, res) => {
     res.json();
 });
 
-router.get('/valve-state', async (req, res) => {
+router.get('/messages', async (req, res) => {
     try {
-        const rows = await fetchValveStatusMessages(
-            getOptInt(<string>req.query.historyWindowSize)
-        );
-        res.json(rows);
-    } catch (e: any) {
-        sendError(res, e);
-    }
-});
-
-router.get('/device-messages-unified', async (req, res) => {
-    try {
-        const rows = await fetchDeviceMessagesUnified(
-            getOptInt(<string>req.query.historyWindowSize),
-            <string>req.query.deviceId,
-        );
+        // const rows = await fetchDeviceMessagesUnified(
+        // getOptInt(<string>req.query.historyWindowSize),
+        // <string>req.query.deviceId,
+        const { deviceId } = req.query;
+        const where = {};
+        if (notNil(deviceId)) (where as any).device_id = deviceId;
+        const rows = await Message.findAll({ where });
         res.json(rows);
     } catch (e: any) {
         sendError(res, e);
@@ -116,41 +102,23 @@ router.get('/last-device-messages/:deviceId?', async (req, res) => {
     }
 });
 
-router.get('/yeelight-device-messages', async (req, res) => {
+router.get('/devices', async (req, res) => {
     try {
-        const rows = await fetchYeelightDeviceMessages(
-            getOptInt(<string>req.query.historyWindowSize),
-            <string>req.query.deviceId,
-            getOptInt(<string>req.query.commandId),
-        );
+        const where = {};
+        if (notNil(req.query.class)) (where as any).device_class = req.query.class;
+        const rows = await Device.findAll({ where });
         res.json(rows);
     } catch (e: any) {
         sendError(res, e);
     }
 });
 
-router.get('/zigbee-devices', async (req, res) => {
+router.get('/device/:deviceId', async (req, res) => {
     try {
-        const rows = await fetchZigbeeDevicesV2();
-        res.json(rows);
-    } catch (e: any) {
-        sendError(res, e);
-    }
-});
-
-router.get('/yeelight-devices', async (req, res) => {
-    try {
-        const rows = await fetchYeelightDevices();
-        res.json(rows);
-    } catch (e: any) {
-        sendError(res, e);
-    }
-});
-
-router.get('/sonoff-devices', async (req, res) => {
-    try {
-        const rows = await fetchSonoffDevices();
-        res.json(rows);
+        const row = await Device.findOne({
+            where: { device_id: req.params.deviceId }
+        });
+        res.json(row);
     } catch (e: any) {
         sendError(res, e);
     }
@@ -158,7 +126,8 @@ router.get('/sonoff-devices', async (req, res) => {
 
 router.get('/device-custom-attributes', async (req, res) => {
     try {
-        const result = await fetchDeviceCustomAttributes();
+        // const result = await fetchDeviceCustomAttributes();
+        const result = await DeviceCustomAttribute.findAll();
         res.json(result);
     } catch (e: any) {
         sendError(res, e);
@@ -169,11 +138,16 @@ router.post('/device-custom-attributes/:deviceId/:attributeType', async (req, re
     try {
         const { deviceId, attributeType } = req.params as unknown as IDeviceCustomAttribute;
         const { value } = req.body;
-        const result = await createOrUpdateDeviceCustomAttribute({
-            deviceId,
-            attributeType,
-            value,
+        const result = await DeviceCustomAttribute.upsert({
+            device_id: deviceId,
+            attribute_type: attributeType,
+            value
         });
+        // const result = await createOrUpdateDeviceCustomAttribute({
+        //     deviceId,
+        //     attributeType,
+        //     value,
+        // });
         res.json(result);
     } catch (e: any) {
         sendError(res, e);
@@ -193,6 +167,35 @@ router.put('/sonoff-device/:deviceId/switch', async (req, res) => {
         sendError(res, e);
     }
 });
+
+export default router;
+
+// router.get('/zigbee-devices', async (req, res) => {
+//     try {
+//         const rows = await fetchZigbeeDevicesV2();
+//         res.json(rows);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
+
+// router.get('/yeelight-devices', async (req, res) => {
+//     try {
+//         const rows = await fetchYeelightDevices();
+//         res.json(rows);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
+
+// router.get('/sonoff-devices', async (req, res) => {
+//     try {
+//         const rows = await fetchSonoffDevices();
+//         res.json(rows);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
 
 // router.put('/yeelight-device/:deviceId/:state', async (req, res) => {
 //     try {
@@ -220,16 +223,38 @@ router.put('/sonoff-device/:deviceId/switch', async (req, res) => {
 //     }
 // });
 
-router.get('/stats', async (req, res) => {
-    try {
-        const result = await fetchStats();
-        res.json(result);
-    } catch (e: any) {
-        sendError(res, e);
-    }
-});
+// router.get('/stats', async (req, res) => {
+//     try {
+//         const result = await fetchStats();
+//         res.json(result);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
 
-export default router;
+// router.get('/yeelight-device-messages', async (req, res) => {
+//     try {
+//         const rows = await fetchYeelightDeviceMessages(
+//             getOptInt(<string>req.query.historyWindowSize),
+//             <string>req.query.deviceId,
+//             getOptInt(<string>req.query.commandId),
+//         );
+//         res.json(rows);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
+
+// router.get('/valve-state', async (req, res) => {
+//     try {
+//         const rows = await fetchValveStatusMessages(
+//             getOptInt(<string>req.query.historyWindowSize)
+//         );
+//         res.json(rows);
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
 
 // router.get('/temperature-sensor-messages', async (req, res) => {
 //     try {
@@ -241,3 +266,24 @@ export default router;
 //         sendError(res, e);
 //     }
 // });
+
+// router.get('/sqlite/force-sync', async (req, res) => {
+//     try {
+//         const result = await conn.sync({ force: true });
+//         res.json({ done: true, result });
+//     } catch (e: any) {
+//         sendError(res, e);
+//     }
+// });
+
+// import {
+//     createOrUpdateDeviceCustomAttribute,
+//     fetchDeviceCustomAttributes,
+//     fetchDeviceMessagesUnified,
+//     fetchSonoffDevices,
+//     fetchStats,
+//     fetchValveStatusMessages,
+//     fetchYeelightDeviceMessages,
+//     fetchYeelightDevices,
+//     fetchZigbeeDevicesV2,
+// } from 'src/db';

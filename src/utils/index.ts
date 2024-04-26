@@ -8,21 +8,28 @@ import humanizeDuration from 'humanize-duration';
 import { MqttClient } from 'mqtt';
 import os from 'os';
 // @ts-ignore
-import { Device } from 'yeelight-platform';
+import { Device as YeelightDevice } from 'yeelight-platform';
 
 import { BEDROOM_CEILING_LIGHT_IP, DEVICE } from 'src/constants';
-import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
+// import { fetchSonoffDevices, insertIntoDeviceMessagesUnified } from 'src/db';
+import Device from 'src/db/Device';
+import type { IDeviceCustomAttributeModel } from 'src/db/DeviceCustomAttribute';
+import DeviceCustomAttribute from 'src/db/DeviceCustomAttribute';
+import Message from 'src/db/Message';
 import * as lastDeviceState from 'src/lastDeviceState';
 import logger, { withDebug } from 'src/logger';
 import type { IMqttMessageDispatcherHandler, IZigbeeDeviceMessage } from 'src/typings';
 
-const bedroomCeilingLight = new Device({
+import mqttMessageDispatcher from './mqttMessageDispatcher';
+import Queue from './queue';
+
+const bedroomCeilingLight = new YeelightDevice({
     host: BEDROOM_CEILING_LIGHT_IP,
     port: 55443,
 });
 bedroomCeilingLight.connect();
 
-const debug = withDebug('utils');
+const debug = withDebug('utils-main');
 
 export const STARTED_AT = new Date();
 
@@ -39,78 +46,6 @@ export function sendError(res: Response, e: Error | string) {
     res.status(500).json({
         error: true,
         message: e instanceof Error ? e.message : e,
-    });
-}
-
-export function mqttMessageDispatcher(
-    mqttClient: MqttClient,
-    handlersMap: Array<[
-        topicPrefixOrDeviceId: DEVICE | string,
-        handler: IMqttMessageDispatcherHandler,
-    ]>,
-    excludedTopics?: Array<string>
-) {
-    mqttClient.on('message', async function (fullTopic, message) {
-
-        if (excludedTopics?.length && excludedTopics.includes(fullTopic)) {
-            return;
-        }
-
-        debug('\ntopic:', fullTopic);
-        const rawMessage = message.toString();
-        let json: IZigbeeDeviceMessage | null = null;
-        const timestamp = (new Date()).valueOf();
-
-        try {
-            json = JSON.parse(rawMessage);
-            debug('json:', json);
-        } catch (e) {
-            debug('string:', rawMessage);
-        }
-
-        let deviceId: DEVICE;
-        if (fullTopic.startsWith('zigbee2mqtt/0x')) {
-            deviceId = fullTopic.split('/')[1] as unknown as DEVICE;
-        }
-
-        // const isKnownDevice
-        // const isHandlerForDeviceName = !!DEVICE_NAME_TO_ID[topicPrefixOrDeviceName];
-        // const deviceIdFromMap = DEVICE_NAME_TO_ID[topicPrefixOrDeviceId];
-        // deviceName: DEVICE[deviceIdFromTopic as keyof DEVICE],
-        // deviceName: deviceIdFromMap ? topicPrefixOrDeviceId : undefined,
-
-        handlersMap.forEach(([topicPrefixOrDeviceId, handler]) => {
-
-            const isDeviceRule = topicPrefixOrDeviceId === deviceId;
-            const isWildcardRule = fullTopic.startsWith(topicPrefixOrDeviceId as string);
-            const shouldHandle = isDeviceRule || isWildcardRule;
-
-            // isDeviceMessage,
-
-            // debug({
-            //     isDeviceRule,
-            //     shouldHandle,
-            //     isWildcardRule,
-            //     fullTopic,
-            //     topicPrefixOrDeviceId,
-            // })
-
-            if (shouldHandle) {
-                handler({
-                    fullTopic,
-                    json,
-                    timestamp,
-                    rawMessage,
-                    deviceId,
-                });
-            }
-        });
-
-        if (deviceId!) {
-            insertIntoDeviceMessagesUnified(deviceId, timestamp, json);
-            lastDeviceState.set(deviceId, json);
-        }
-
     });
 }
 
@@ -163,39 +98,13 @@ export function stdDev(values: Array<number>): number {
     return Math.sqrt(variance);
 }
 
-export class Fifo {
-    #maxLength = 3;
-    #queue: Array<number> = [];
-    #name: string;
-    toString(): string {
-        return this.#name;
-    }
-    constructor(name: string) {
-        this.#name = name;
-    }
-    push(value: number) {
-        this.#queue.push(value);
-        if (this.length() > this.#maxLength) this.#queue.shift();
-    }
-    get(): Array<number> {
-        return this.#queue;
-    }
-    length(): number {
-        return this.#queue.length;
-    }
-    reset(): void {
-        this.#queue = [];
-    }
-    full(): boolean {
-        return this.length() === this.#maxLength;
-    }
-}
-
 export async function postSonoffSwitchMessage(cmd: 'on' | 'off', deviceId: string) {
     if (!deviceId) throw new Error('id is required');
-    const devices = await fetchSonoffDevices({ id: deviceId });
+    // const devices = await fetchSonoffDevices({ id: deviceId });
+    const devices = await Device.findAll({ where: { device_id: deviceId } });
     if (devices.length !== 1) throw new Error('expected to fetch one device from db');
-    const hostPort = [devices[0].ip, devices[0].port].join(':');
+    const deviceJson = devices[0].dataValues.json;
+    const hostPort = [deviceJson?.ip, deviceJson?.port].join(':');
     const url = `http://${hostPort}/zeroconf/switch`;
     const payload = { "data": { "switch": cmd } };
     debug(`sending to sonoff relay. url="${url}" payload="${JSON.stringify(payload)}" ...`);
@@ -284,41 +193,6 @@ export function saveGraphvizNetworkmap(data: string, format: 'svg' | 'png' = 'sv
     });
 }
 
-export class Alerter {
-    static repeats = 0;
-    static maxRepeats = 15;
-    static raised: boolean;
-    static playing: boolean;
-    static async on() {
-        Alerter.repeats = 0;
-        Alerter.raised = true;
-        while (Alerter.raised && !Alerter.playing && Alerter.repeats < Alerter.maxRepeats) {
-            Alerter.playing = true;
-            try {
-                debug(`Playing alert sound, repeat #${Alerter.repeats + 1}...`);
-                await playAlertSingle();
-                debug(`Succeeded`);
-                Alerter.playing = false;
-            } catch (e) {
-                debug(`Playing failed`);
-                Alerter.playing = false;
-            }
-            Alerter.repeats += 1;
-            if (Alerter.repeats === Alerter.maxRepeats) {
-                debug(`Max repeats reached`);
-            }
-            await asyncTimeout(1000);
-        }
-    }
-    static isRaised() {
-        return this.raised;
-    }
-    static off() {
-        Alerter.repeats = 0;
-        Alerter.raised = false;
-    }
-}
-
 export function isNil(input: any): input is undefined | null {
     return input === undefined || input === null;
 }
@@ -329,6 +203,8 @@ export function isNil(input: any): input is undefined | null {
 export function notNil<T>(input: T | undefined | null | void): input is T {
     return !isNil(input);
 }
+
+export { mqttMessageDispatcher, Queue };
 
 /** deprecated */
 // export async function postIkeaLedBulb(state: 'on' | 'off') {

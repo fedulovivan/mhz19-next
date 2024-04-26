@@ -1,10 +1,14 @@
-import { isFunction, last } from 'lodash';
+import { isFunction, last } from 'lodash-es';
 
 import { DEVICE, DEVICE_NAME } from 'src/constants';
 import * as lastDeviceState from 'src/lastDeviceState';
 import logger, { withDebug } from 'src/logger';
 import type { IZigbeeDeviceMessage } from 'src/typings';
-import { isNil, notNil } from 'src/utils';
+import {
+    isNil,
+    notNil,
+    Queue,
+} from 'src/utils';
 
 import { OutputAction, OutputLayerAdapter } from './enums';
 import type {
@@ -21,42 +25,6 @@ import type {
 import * as supportedConditionFunctions from './supportedConditionFunctions';
 
 const debug = withDebug('automation-engine');
-
-interface IQueueCtrOpts<T> {
-    throttle: number;
-    srcDeviceId: DEVICE;
-    onFlushed: (items: Array<T>) => void;
-}
-
-class Queue<T> {
-    private queue: Array<T> = [];
-    private opts: IQueueCtrOpts<T>;
-    private timer: NodeJS.Timeout | undefined;
-    constructor(opts: IQueueCtrOpts<T>) {
-        this.opts = opts;
-        debug(`Queue created for srcDeviceId=${this.opts.srcDeviceId}`);
-    }
-    private flush(): Array<T> {
-        debug(`Going to flush queue with ${this.queue.length} messages for ${this.opts.srcDeviceId}`);
-        const result = [...this.queue];
-        this.queue = [];
-        this.timer = undefined;
-        return result;
-    }
-    public push(item: T): void {
-        this.queue.push({
-            ...item,
-            timestamp: Date.now(),
-        });
-        if (!this.timer) {
-            this.timer = setTimeout(
-                () => this.opts.onFlushed(this.flush()),
-                this.opts.throttle,
-            );
-        }
-        debug(`message added to queue, current length ${this.queue.length}`);
-    }
-}
 
 const queues: Map<DEVICE, Queue<IZigbeeDeviceMessage>> = new Map();
 

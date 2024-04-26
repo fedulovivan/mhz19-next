@@ -1,9 +1,4 @@
-import { oneLine, stripIndent } from 'common-tags';
-import {
-    isFunction,
-    isNil,
-    last,
-} from 'lodash';
+import { isNil } from 'lodash-es';
 import moment from 'moment';
 
 import {
