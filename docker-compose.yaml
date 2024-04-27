@@ -1,12 +1,42 @@
+x-logging: &default-logging
+    driver: json-file
+    options:
+        max-size: 50m
+        max-file: 5
+        compress: 1
+
 services:
     backend:
-        build: .
-        image: mhz19-next
-        env_file: .env
-        network_mode: host
-        # ports:
-        #     - 8888:8888
-        #     - 5353:5353/tcp
-        #     - 5353:5353/udp
+        build: "."
+        image: "mhz19-next"
+        env_file: ".env"
+        network_mode: "host"
+        devices:
+            - "/dev/snd:/dev/snd"
         volumes:
-            - ./database.bin:/app/database.bin
+            - "./database.bin:/app/database.bin"
+        depends_on:
+            - "zigbee2mqtt"
+        restart: unless-stopped
+        logging: *default-logging
+    mosquitto:
+        image: eclipse-mosquitto
+        volumes:
+            - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+            - ./mosquitto.passwd:/etc/mosquitto/passwd
+        ports:
+            - 1883:1883
+        restart: unless-stopped
+        logging: *default-logging
+    zigbee2mqtt:
+        image: koenkk/zigbee2mqtt
+        ports:
+            - 7000:7000
+        volumes:
+            - ./zigbee2mqtt-data:/app/data
+        devices:
+            - "/dev/ttyUSB0:/dev/ttyUSB0"
+        depends_on:
+            - "mosquitto"
+        restart: unless-stopped
+        logging: *default-logging

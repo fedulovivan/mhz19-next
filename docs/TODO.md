@@ -6,13 +6,17 @@
 - (+) commit changes to repo and move to macmini under docker
 - (+) add sanity checks in up.sh
 - (+) fix "expected to fetch one device from db"
-- (+) /play-alert is missing mpg123 binary
 - (+) tidy debug logs, now same messages are written twice - by logger and by debug module
 - (+) eliminate usage of old tables, eliminate old queries, switch to sequilize
 - (+) extract some code from utils to separate modules
 - (+) exclude homepod's ip 192.168.88.66 from sonoff_devices (accidentally treated as sonoff)
-- logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax it is not handled by logger, and outputted anyway
-- bring mosquitto and zigbee2mqtt back to the compose stack (remove related services, including pm2)
+- (+) /play-alert is missing mpg123 binary
+- (+) /play-alert error: Can't open default sound device!
+- (+) bring mosquitto and zigbee2mqtt back to the compose stack (remove related services, including pm2)
+- check how new stack is going online after host restart
+- ensure we do not need "persistance" for mosquitto - https://pagefault.blog/2020/02/05/how-to-set-up-persistent-storage-for-mosquitto-mqtt-broker/
+- check its ok to have anonymous volumes created by mosquitto - https://github.com/eclipse/mosquitto/issues/2147
+- logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
 - macmini host optimization - switch to ssd, remove snap
 - return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
 - implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
@@ -85,22 +89,29 @@ used methods:
 - (+) rename waterSensorRecentMessages to zigbeeDevivesMessages
 
 ### Shell commands
-other
-    systemctl list-unit-files | grep enabled
-    apt list --installed | grep -i docker
-    dpkg -l | grep -i docker
-    neofetch
-    sudo ss -tulpn
+system
+    list of services
+        systemctl list-unit-files | grep enabled
+    list of docker packages
+        apt list --installed | grep -i docker
+        dpkg -l | grep -i docker
+    listened ports
+        sudo ss -tulpn
+    general information
+        neofetch
 git
     check for upcoming changes from remote
         git fetch --dry-run
     get current revision
         git rev-parse HEAD
 zigbee2mqtt
+    sudo systemctl status zigbee2mqtt.service
+    vim /opt/zigbee2mqtt/data/configuration.yaml
     vim /opt/zigbee2mqtt/data/log/2024-04-03.11-50-22/log.txt
 mosquitto
+    sudo systemctl status mosquitto
+    vim /etc/mosquitto/conf.d/default.conf
     vim /var/log/mosquitto/mosquitto.log
-    sudo systemctl restart mosquitto
 monitor
     sudo systemctl stop monitor
     journalctl -u monitor -f

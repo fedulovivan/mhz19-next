@@ -17,6 +17,10 @@ const mappings: IMappings = [
         onZigbeeMessage: {
             srcDevices: [DEVICE.WALL_SWITCH_SPARE],
             throttle: 1000 * 5,
+            payloadConditions: [{
+                field: "$message.action",
+                function: PayloadConditionFunction.NotNil,
+            }]
         },
         actions: [{
             type: OutputAction.TelegramBotMessage,

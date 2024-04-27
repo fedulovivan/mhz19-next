@@ -10,6 +10,7 @@ export enum PayloadConditionFunction {
     Equal = 'Equal',
     InList = 'InList',
     Changed = 'Changed',
+    NotNil = 'NotNil',
 }
 
 export enum OutputLayerAdapter {

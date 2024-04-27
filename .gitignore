@@ -9,5 +9,6 @@ nohup.out
 config/*.json
 database.bin
 .parcel-cache
-images/networkmap.svg
-src/components/SonoffDevices.tsx
+zigbee2mqtt-data/state.json
+zigbee2mqtt-data/database.db
+zigbee2mqtt-data/coordinator_backup.json

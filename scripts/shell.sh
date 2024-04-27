@@ -1,3 +1,5 @@
 #!/bin/bash
 
-docker exec --interactive --tty mhz19-next-backend-1 /bin/sh
+SERVICE=${1:-backend}
+
+docker exec --interactive --tty "mhz19-next-$SERVICE-1" /bin/sh
