@@ -13,15 +13,52 @@
 - (+) /play-alert is missing mpg123 binary
 - (+) /play-alert error: Can't open default sound device!
 - (+) bring mosquitto and zigbee2mqtt back to the compose stack (remove related services, including pm2)
+- macmini hw and host optimization - switch to ssd, remove snap
 - check how new stack is going online after host restart
 - ensure we do not need "persistance" for mosquitto - https://pagefault.blog/2020/02/05/how-to-set-up-persistent-storage-for-mosquitto-mqtt-broker/
 - check its ok to have anonymous volumes created by mosquitto - https://github.com/eclipse/mosquitto/issues/2147
 - logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
-- macmini host optimization - switch to ssd, remove snap
 - return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
 - implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
 - try kubernetes
 - try golang on server side
+
+### macmini hw and host optimization
+
+installed packages and made changes
+    install docker 24
+        https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
+    enable docker registry mirror from google
+        cat /etc/docker/daemon.json
+        {"registry-mirrors":["https://mirror.gcr.io"]}
+    install portainer and dozzle
+        TODO
+    ubuntu ssh disable login screen in cli
+        https://ubuntushell.com/disable-ssh-welcome-message/
+        `sudo vim /etc/pam.d/sshd`
+        `sudo systemctl restart ssh`
+    handle power off with power button
+        TODO
+    enable auto power on
+        TODO
+        https://smackerelofopinion.blogspot.com/2011/09/mac-mini-rebooting-tweaks-setpci-s-01f0.html
+        `sudo lspci -vvvxxx | grep "LPC Bridge`
+        `sudo setpci -s 00:03.0 0xa4.b=0`
+        `sudo setpci -s 0:1f.0 0xa4.b=0`
+    to check temperature sensors data
+        `sudo apt install lm-sensors`
+    daemon to control fan speed
+        `sudo apt install mbpfan` 
+        `cat /etc/mbpfan.conf`
+    other
+        `sudo apt install speedtest-cli`
+        `sudo apt install mc`   
+        `findmnt`
+    mount lvm volume from old ubuntu disk
+        https://www.cyberciti.biz/faq/linux-mount-an-lvm-volume-partition-command
+        https://askubuntu.com/questions/358589/fstab-mount-new-lvg
+        `mkdir -p /media/foo`
+        `sudo mount /dev/ubuntu-vg/ubuntu-lv /media/foo`
 
 ### DB-related stuff
 

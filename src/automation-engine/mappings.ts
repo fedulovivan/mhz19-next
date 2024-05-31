@@ -12,21 +12,24 @@ import type { IMappings } from './index.d';
 
 const mappings: IMappings = [
 
-    // test mapping
+    // balcony ceiling light
     {
         onZigbeeMessage: {
             srcDevices: [DEVICE.WALL_SWITCH_SPARE],
-            throttle: 1000 * 5,
             payloadConditions: [{
                 field: "$message.action",
-                function: PayloadConditionFunction.NotNil,
+                function: PayloadConditionFunction.InList,
+                functionArguments: ["single_left", "single_right"],
             }]
         },
         actions: [{
-            type: OutputAction.TelegramBotMessage,
-            payloadData: (params) => {
-                return JSON.stringify(params, null, " ");
-            },
+            type: OutputAction.PostSonoffSwitchMessage,
+            deviceId: DEVICE.SONOFF_MINI_PINK_LABEL,
+            payloadData: "$message.action",
+            translation: {
+                single_left: "on",
+                single_right: "off",
+            }
         }]
     },
 
@@ -434,5 +437,23 @@ export default mappings;
 //         type: OutputAction.YeelightDeviceSetPower,
 //         deviceId: BEDROOM_CEILING_LIGHT,
 //         payloadData: "on",
+//     }]
+// },
+
+// test mapping
+// {
+//     onZigbeeMessage: {
+//         srcDevices: [DEVICE.WALL_SWITCH_SPARE],
+//         throttle: 1000 * 5,
+//         payloadConditions: [{
+//             field: "$message.action",
+//             function: PayloadConditionFunction.NotNil,
+//         }]
+//     },
+//     actions: [{
+//         type: OutputAction.TelegramBotMessage,
+//         payloadData: (params) => {
+//             return JSON.stringify(params, null, " ");
+//         },
 //     }]
 // },
