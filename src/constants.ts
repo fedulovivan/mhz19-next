@@ -28,10 +28,6 @@ export const LAST_SEEN_FOR_BOT_NOTIFY = 90 * MINUTE;
 export const DEBUG_TAG_PREFIX = "mhz19-";
 // export const DEBUG_TAG_PREFIX = "";
 
-export const IPHONE_15_PRO_IP = "192.168.88.71";
-export const IPHONE_14_IP = "192.168.88.62";
-export const PIXEL_5_IP = "192.168.88.68";
-export const REDMI_12_NOTE_IP = "192.168.88.63";
 export const BEDROOM_CEILING_LIGHT_IP = "192.168.88.169";
 
 export const HISTORY_OPTIONS = [
@@ -52,10 +48,13 @@ export const ZIGBEE_DEVICE_MODEL_LUMI_POWER_PLUG = "ZNCZ02LM";
  * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-4.html#string-enums
  */
 export enum DEVICE {
+    // valve manupulator
     KITCHEN_VALVES_MANIPULATOR = "6613075",
     TOILET_VALVES_MANIPULATOR = "18225",
+    // sonoff
     SONOFF_MINI_PINK_LABEL = "10011cec96",
     STORAGE_ROOM_VENT = "10012db92b",
+    // zigbee
     STORAGE_ROOM_DOOR = "0x00158d0000c2fa6e",
     LIFE_CONTROL_DOOR_SENSOR_NEW = "0x00158d0000bedf87",
     STORAGE_ROOM_CEILING_LIGHT = "0xe0798dfffed39ed1",
@@ -72,6 +71,14 @@ export enum DEVICE {
     APPLE_COLLECTION_DOOR = "0x00124b002510b59d",
     ALISA_POWER_PLUG = "0x00158d000391f252",
     SPARE_POWER_PLUG = "0x00158d0003a010a5",
+    // cell phones
+    ROSTELECOM_ROUTER = "192.168.0.1",
+    MIKROTIK_ROUTER = "192.168.88.1",
+    IPHONE_15_PRO_IP = "192.168.88.44",
+    IPHONE_15_PRO_AP_IP = "192.168.0.11",
+    IPHONE_14_IP = "192.168.88.62",
+    PIXEL_5_IP = "192.168.88.68",
+    REDMI_12_NOTE_IP = "192.168.88.63",
 }
 
 /**
@@ -100,6 +107,13 @@ export const DEVICE_NAME: Record<DEVICE, string> = {
     [DEVICE.APPLE_COLLECTION_DOOR]: "APPLE_COLLECTION_DOOR",
     [DEVICE.ALISA_POWER_PLUG]: "ALISA_POWER_PLUG",
     [DEVICE.SPARE_POWER_PLUG]: "SPARE_POWER_PLUG",
+    [DEVICE.ROSTELECOM_ROUTER]: "ROSTELECOM_ROUTER",
+    [DEVICE.MIKROTIK_ROUTER]: "MIKROTIK_ROUTER",
+    [DEVICE.IPHONE_15_PRO_IP]: "IPHONE_15_PRO_IP",
+    [DEVICE.IPHONE_15_PRO_AP_IP]: "IPHONE_15_PRO_AP_IP",
+    [DEVICE.IPHONE_14_IP]: "IPHONE_14_IP",
+    [DEVICE.PIXEL_5_IP]: "PIXEL_5_IP",
+    [DEVICE.REDMI_12_NOTE_IP]: "REDMI_12_NOTE_IP",
 }
 
 export const DEVICE_CUSTOM_ATTRIBUTE_NAME = "name";
@@ -111,6 +125,13 @@ export enum DeviceClass {
     VALVE = "VALVE",
     SONOFF = "SONOFF",
 }
+
+export enum DevicePingerStatus {
+    UNKNOWN = -1,
+    ONLINE = 1,
+    OFFLINE = 0,
+}
+
 
 // export const QUERY_OPTIONS: QueryHookOptions = {
 //     pollInterval: 10000,

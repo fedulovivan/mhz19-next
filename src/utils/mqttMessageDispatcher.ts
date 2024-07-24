@@ -30,7 +30,7 @@ export default function mqttMessageDispatcher(
         const timestamp = (new Date()).valueOf();
 
         let deviceId: DEVICE;
-        if (fullTopic.startsWith('zigbee2mqtt/0x')) {
+        if (fullTopic.startsWith('zigbee2mqtt/0x') || fullTopic.startsWith('device-pinger/')) {
             deviceId = fullTopic.split('/')[1] as unknown as DEVICE;
         }
 

@@ -4,6 +4,7 @@ import moment from 'moment';
 import {
     DEVICE,
     DEVICE_NAME,
+    DevicePingerStatus,
     MINUTE,
 } from 'src/constants';
 
@@ -11,6 +12,27 @@ import { OutputAction, PayloadConditionFunction } from './enums';
 import type { IMappings } from './index.d';
 
 const mappings: IMappings = [
+
+    // send phone online status via telegram
+    {
+        onZigbeeMessage: {
+            srcDevices: [DEVICE.IPHONE_15_PRO_IP, DEVICE.IPHONE_15_PRO_AP_IP, DEVICE.ROSTELECOM_ROUTER],
+            payloadConditions: [{
+                field: "$message.status",
+                function: PayloadConditionFunction.Changed,
+            }],
+            throttle: MINUTE,
+        },
+        actions: [{
+            type: OutputAction.TelegramBotMessage,
+            payloadData: ({ srcDeviceId, messages, prevMessage, action }) => {
+                if (messages.length === 1) {
+                    return `${DEVICE_NAME[srcDeviceId]} status is ${(DevicePingerStatus as any)[messages[0].status]}`
+                }
+                return `${DEVICE_NAME[srcDeviceId]}:\n${messages.map(m => `${moment((m as any).timestamp).format('HH:mm:ss')} is ${(DevicePingerStatus as any)[m.status]}`).join("\n")}`;
+            },
+        }]
+    },
 
     // balcony ceiling light
     {
@@ -82,7 +104,8 @@ const mappings: IMappings = [
         }]
     },
 
-    // notify via telegram, when doors were opened/closed
+    // notify via telegram, when guarded doors were opened/closed
+    // do not send notifications when I'm at home
     {
         onZigbeeMessage: {
             srcDevices: [DEVICE.STORAGE_ROOM_DOOR, DEVICE.APPLE_COLLECTION_DOOR],
@@ -93,6 +116,11 @@ const mappings: IMappings = [
             }, {
                 field: "$message.contact",
                 function: PayloadConditionFunction.Changed,
+            }, {
+                otherDeviceId: DEVICE.IPHONE_15_PRO_IP,
+                field: "$message.status",
+                function: PayloadConditionFunction.NotEqual,
+                functionArguments: [DevicePingerStatus.ONLINE],
             }],
             throttle: 2 * MINUTE,
         },

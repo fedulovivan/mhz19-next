@@ -8,6 +8,7 @@ export enum OutputAction {
 
 export enum PayloadConditionFunction {
     Equal = 'Equal',
+    NotEqual = 'NotEqual',
     InList = 'InList',
     Changed = 'Changed',
     NotNil = 'NotNil',

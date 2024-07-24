@@ -55,7 +55,7 @@ const LAST_SEEN_BLACKLIST = [
     DEVICE.LIFE_CONTROL_DOOR_SENSOR_NEW,
     DEVICE.APPLE_COLLECTION_DOOR,
     DEVICE.STORAGE_ROOM_DOOR,
-    DEVICE.SPARE_POWER_PLUG,    
+    DEVICE.SPARE_POWER_PLUG,
 ];
 
 const LAST_SEEN_WHITELIST = [
@@ -269,6 +269,8 @@ mqttMessageDispatcher(
 
         // connect ActionsExecutor
         ['zigbee2mqtt/0x', zigbee2MqttWildcardHandler],
+
+        ['device-pinger/', zigbee2MqttWildcardHandler],
 
     ],
     EXCLUDED_TOPICS,

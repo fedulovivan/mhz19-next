@@ -9,6 +9,10 @@ export const Equal: TPayloadConditionFunctionImpl = ({ value, args, prevValue })
     return value === args?.[0];
 };
 
+export const NotEqual: TPayloadConditionFunctionImpl = ({ value, args, prevValue }) => {
+    return value !== args?.[0];
+};
+
 export const InList: TPayloadConditionFunctionImpl = ({ value, args, prevValue }) => {
     return (args ? args.includes(value) : false);
 };

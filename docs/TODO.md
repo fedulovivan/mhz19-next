@@ -32,11 +32,13 @@ installed packages and made changes
         cat /etc/docker/daemon.json
         {"registry-mirrors":["https://mirror.gcr.io"]}
     install portainer and dozzle
-        TODO
+        copleted
     ubuntu ssh disable login screen in cli
         https://ubuntushell.com/disable-ssh-welcome-message/
         `sudo vim /etc/pam.d/sshd`
         `sudo systemctl restart ssh`
+    attach ups
+        TODO
     handle power off with power button
         TODO
     enable auto power on
@@ -59,6 +61,34 @@ installed packages and made changes
         https://askubuntu.com/questions/358589/fstab-mount-new-lvg
         `mkdir -p /media/foo`
         `sudo mount /dev/ubuntu-vg/ubuntu-lv /media/foo`
+    install wireguard server
+        completed, see ~/Desktop/Wireguard
+
+### `sudo lspci -vvvxxx | grep "LPC Bridge`
+```txt
+00:03.0 ISA bridge: NVIDIA Corporation MCP89 LPC Bridge (rev a2)
+        Subsystem: Apple Inc. MCP89 LPC Bridge
+        Control: I/O+ Mem+ BusMaster+ SpecCycle+ MemWINV- VGASnoop- ParErr- Stepping- SERR- FastB2B- DisINTx-
+        Status: Cap- 66MHz+ UDF- FastB2B+ ParErr- DEVSEL=fast >TAbort- <TAbort- <MAbort- >SERR- <PERR- INTx-
+        Latency: 0
+        Region 0: I/O ports at 2100 [size=256]
+00: de 10 80 0d 0f 00 a0 00 a2 00 01 06 00 00 80 00
+10: 01 21 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+20: 00 00 00 00 00 00 00 00 00 00 00 00 6b 10 89 cb
+30: 00 00 00 00 00 00 00 00 00 00 00 00 ff 00 00 00
+40: 6b 10 89 cb 00 00 d0 fe 00 00 00 00 00 00 00 00
+50: 00 00 00 00 00 5a 62 02 00 00 00 05 ff 0b 3c 01
+60: 00 00 00 00 00 00 00 00 00 00 00 00 18 01 01 00
+70: 50 00 ff ff 4d 04 17 00 00 04 44 60 00 00 00 00
+80: 00 00 00 ff 00 00 00 00 00 00 40 07 ff 00 00 00
+90: 00 7c 00 00 ff ff 0f 00 00 00 00 00 00 00 00 00
+a0: 03 00 00 31 00 00 01 00 00 03 1f 03 00 07 ff 07
+b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+d0: fd 00 00 00 00 00 00 00 f8 0c 00 fc 00 73 00 30
+e0: 83 74 0b 29 ac 39 af 5a 09 00 c0 5c 00 00 00 00
+f0: e8 02 00 fc fd 00 00 00 10 00 80 80 00 00 00 00
+```
 
 ### DB-related stuff
 
