@@ -16,7 +16,12 @@ const mappings: IMappings = [
     // send phone online status via telegram
     {
         onZigbeeMessage: {
-            srcDevices: [DEVICE.IPHONE_15_PRO_IP, DEVICE.IPHONE_15_PRO_AP_IP, DEVICE.ROSTELECOM_ROUTER],
+            srcDevices: [
+                DEVICE.IPHONE_15_PRO_IP,
+                DEVICE.IPHONE_15_PRO_AP_IP,
+                DEVICE.ROSTELECOM_ROUTER,
+                DEVICE.IPHONE_14_IP,
+            ],
             payloadConditions: [{
                 field: "$message.status",
                 function: PayloadConditionFunction.Changed,

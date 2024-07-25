@@ -13,6 +13,10 @@ services:
         env_file: ".env"
         restart: unless-stopped
         logging: *default-logging
+        network_mode: "host"
+        depends_on:
+            - "zigbee2mqtt"
+            - "backend"        
     backend:
         build:
             context: "."

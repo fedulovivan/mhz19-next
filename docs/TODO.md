@@ -1,6 +1,9 @@
 
 ### 0 Priority
-- remove redundant props from .env file most of them are internal for docker stack
+- Reason for 'IPHONE_15_PRO_IP: 14:40:49 is undefined'
+- Supress docker warning "pull access denied for device-pinger"
+- remove redundant props from .env file, since most of them are internal for docker stack
+- avoid adressing mosquitto via localhost, use service name
 - ensure we do not need "persistance" for mosquitto - https://pagefault.blog/2020/02/05/how-to-set-up-persistent-storage-for-mosquitto-mqtt-broker/
 - check its ok to have anonymous volumes created by mosquitto - https://github.com/eclipse/mosquitto/issues/2147
 - logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
