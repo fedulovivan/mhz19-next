@@ -6,8 +6,16 @@ x-logging: &default-logging
         compress: 1
 
 services:
+    device-pinger:
+        build:
+            context: ../device-pinger
+        image: "device-pinger"
+        env_file: ".env"
+        restart: unless-stopped
+        logging: *default-logging
     backend:
-        build: "."
+        build:
+            context: "."
         image: "mhz19-next"
         env_file: ".env"
         network_mode: "host"

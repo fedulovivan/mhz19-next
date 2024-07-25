@@ -13,4 +13,4 @@ if [ ! -f "$ENV_CONFIG_FILE" ]; then
     exit 1
 fi
 
-docker compose up --no-build --detach
+docker compose up --detach

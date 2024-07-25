@@ -1,5 +1,11 @@
 
 ### 0 Priority
+- remove redundant props from .env file most of them are internal for docker stack
+- ensure we do not need "persistance" for mosquitto - https://pagefault.blog/2020/02/05/how-to-set-up-persistent-storage-for-mosquitto-mqtt-broker/
+- check its ok to have anonymous volumes created by mosquitto - https://github.com/eclipse/mosquitto/issues/2147
+- logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
+- return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
+- try kubernetes
 - (+) implement throttle
 - (+) get rid of babel, switch to pure typescript
 - (+) fix update on ubuntu, install required docker and docker compose
@@ -13,15 +19,10 @@
 - (+) /play-alert is missing mpg123 binary
 - (+) /play-alert error: Can't open default sound device!
 - (+) bring mosquitto and zigbee2mqtt back to the compose stack (remove related services, including pm2)
-- macmini hw and host optimization - switch to ssd, remove snap
-- check how new stack is going online after host restart
-- ensure we do not need "persistance" for mosquitto - https://pagefault.blog/2020/02/05/how-to-set-up-persistent-storage-for-mosquitto-mqtt-broker/
-- check its ok to have anonymous volumes created by mosquitto - https://github.com/eclipse/mosquitto/issues/2147
-- logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
-- return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
-- implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
-- try kubernetes
-- try golang on server side
+- (+) macmini hw and host optimization - switch to ssd
+- (+) check how new stack is going online after host restart
+- (+) implement "pinger" device as alternative for https://github.com/andrewjfreyer/monitor
+- (+) try golang on server side
 
 ### macmini hw and host optimization
 
