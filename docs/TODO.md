@@ -1,6 +1,5 @@
 
 ### 0 Priority
-- Reason for 'IPHONE_15_PRO_IP: 14:40:49 is undefined'
 - Supress docker warning "pull access denied for device-pinger"
 - remove redundant props from .env file, since most of them are internal for docker stack
 - avoid adressing mosquitto via localhost, use service name
@@ -9,6 +8,7 @@
 - logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
 - return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
 - try kubernetes
+- (+) Reason for 'IPHONE_15_PRO_IP: 14:40:49 is undefined' - we record also data from */rsp topic as a device message
 - (+) implement throttle
 - (+) get rid of babel, switch to pure typescript
 - (+) fix update on ubuntu, install required docker and docker compose

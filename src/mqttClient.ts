@@ -15,7 +15,7 @@ mqttClient.on('connect', function () {
 
     mqttClient.subscribe([
         'zigbee2mqtt/#',
-        'device-pinger/#',
+        'device-pinger/+/status',
         `/VALVE/${DEVICE.KITCHEN_VALVES_MANIPULATOR}/STATE/STATUS`,
         `/VALVE/${DEVICE.TOILET_VALVES_MANIPULATOR}/STATE/STATUS`,
     ]);
