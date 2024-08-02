@@ -15,7 +15,6 @@ services:
         logging: *default-logging
         depends_on:
             - "mosquitto"
-        # network_mode: "host"
     backend:
         build:
             context: "."
@@ -24,13 +23,14 @@ services:
         # map sound devices to enable mp3 playback from containers
         devices:
             - "/dev/snd:/dev/snd"
+        ports:
+            - 8888:8888
         volumes:
             - "./database.bin:/app/database.bin"
         depends_on:
             - "mosquitto"
         restart: unless-stopped
         logging: *default-logging
-        # network_mode: "host"
     zigbee2mqtt:
         image: koenkk/zigbee2mqtt
         ports:
