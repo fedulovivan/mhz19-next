@@ -5,7 +5,7 @@ import { withDebug } from 'src/logger';
 
 const debug = withDebug('mqtt-client');
 
-const mqttClient = mqtt.connect(`mqtt://${process.env.MQTT_HOST}:${process.env.MQTT_PORT}`, {
+const mqttClient = mqtt.connect(`mqtt://${process.env.MQTT_HOST ?? "mosquitto"}:${process.env.MQTT_PORT ?? 1883}`, {
     username: process.env.MQTT_USERNAME,
     password: process.env.MQTT_PASSWORD,
     reconnectPeriod: 10 * 1000,

@@ -43,12 +43,17 @@ services:
             - "mosquitto"
         restart: unless-stopped
         logging: *default-logging
+        environment:
+            - ZIGBEE2MQTT_CONFIG_MQTT_PASSWORD=$MQTT_PASSWORD
     mosquitto:
         image: eclipse-mosquitto
         volumes:
             - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-            - ./mosquitto.passwd:/etc/mosquitto/passwd
         ports:
             - 1883:1883
         restart: unless-stopped
-        logging: *default-logging    
+        logging: *default-logging
+        command: |
+            /bin/sh -c "
+                mkdir -p /etc/mosquitto && touch /etc/mosquitto/passwd && mosquitto_passwd -b /etc/mosquitto/passwd $MQTT_USERNAME $MQTT_PASSWORD && /usr/sbin/mosquitto -c /mosquitto/config/mosquitto.conf
+            " 

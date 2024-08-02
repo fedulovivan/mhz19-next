@@ -1,10 +1,9 @@
 homeassistant: false
-permit_join: true
+permit_join: false
 mqtt:
   base_topic: zigbee2mqtt
   server: mqtt://mosquitto
   user: mosquitto
-  password: 5Ysm3jAsVP73nva
 serial:
   port: /dev/ttyUSB0
 frontend:

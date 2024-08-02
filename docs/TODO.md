@@ -1,7 +1,10 @@
 
 ### 0 Priority
 
-- in build.sh automatically generate mosquitto.passwd from .env value MQTT_PASSWORD
+- in build.sh automatically generate mosquitto.passwd from .env value MQTT_PASSWORD, remove hardcode with password from all services:
+    - (+) zigbee2mqtt-data/configuration.yaml
+    - (+) mosquitto.passwd, see https://github.com/thelebster/example-mosquitto-simple-auth-docker
+    - https://github.com/fedulovivan/interstellar/blob/master/valves-manipulator/init.lua
 - Store mappings in DB or as yaml/json file. do not use "code", primary challenge is functions used for "payloadData"
 - Suppress docker warning "pull access denied for device-pinger"
 - remove redundant props from .env file, since most of them are internal for docker stack
