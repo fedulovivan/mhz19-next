@@ -1,12 +1,15 @@
 
 ### 0 Priority
+
+- in build.sh automatically generate mosquitto.passwd from .env value MQTT_PASSWORD
+- Store mappings in DB or as yaml/json file. do not use "code", primary challenge is functions used for "payloadData"
 - Supress docker warning "pull access denied for device-pinger"
 - remove redundant props from .env file, since most of them are internal for docker stack
 - avoid adressing mosquitto via localhost, use service name
 - ensure we do not need "persistance" for mosquitto - https://pagefault.blog/2020/02/05/how-to-set-up-persistent-storage-for-mosquitto-mqtt-broker/
 - check its ok to have anonymous volumes created by mosquitto - https://github.com/eclipse/mosquitto/issues/2147
 - logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
-- return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service)
+- return back to "bridge" network in container (or try https://www.npmjs.com/package/bonjour-service), without using "host" network mqtt clients are oblidged to use docker ip instead of host ip to connect to broker
 - try kubernetes
 - (+) Reason for 'IPHONE_15_PRO_IP: 14:40:49 is undefined' - we record also data from */rsp topic as a device message
 - (+) implement throttle
@@ -20,7 +23,7 @@
 - (+) extract some code from utils to separate modules
 - (+) exclude homepod's ip 192.168.88.66 from sonoff_devices (accidentally treated as sonoff)
 - (+) /play-alert is missing mpg123 binary
-- (+) /play-alert error: Can't open default sound device!
+- (+) /play-alert error: Can't open default sound device! - fixed with mapping for /dev/snd:/dev/snd in docker-compose
 - (+) bring mosquitto and zigbee2mqtt back to the compose stack (remove related services, including pm2)
 - (+) macmini hw and host optimization - switch to ssd
 - (+) check how new stack is going online after host restart
@@ -30,6 +33,32 @@
 ### macmini hw and host optimization
 
 installed packages and made changes
+    main page (nginx)
+        TODO run nginx on 80 with home page
+        `sudo ln -s /home/ivanf/Projects/macmini-home/index.html /var/www/html/index.html`
+        info to show external IP
+            - 93.157.254.176
+            - openspeed test link
+            - cockpit link
+            - portainer link
+            - mhz19-next links
+            - zigbee2mqtt link
+    list all installed packages
+        `zcat /var/log/apt/history.log.*.gz | cat - /var/log/apt/history.log | grep -Po '^Commandline:(?= apt(-get)?)(?=.* install ) \K.*'`
+            apt install lm-sensors
+            apt install mbpfan
+            apt install mc
+            apt-get install docker-ce=5:24.0.9-1~ubuntu.20.04~focal docker-ce-cli=5:24.0.9-1~ubuntu.20.04~focal containerd.io **docker**-buildx-plugin docker-compose-plugin
+            apt install -y wireguard
+            apt install speedtest-cli
+            apt install screenfetch
+            apt install make
+            apt install glances
+            apt install sysbench
+            apt install apcupsd
+            apt-get install cockpit
+            apt install sysstat
+            apt-get install iotop
     install docker 24
         https://docs.docker.com/engine/install/ubuntu/#install-using-the-repository
     enable docker registry mirror from google
@@ -67,6 +96,10 @@ installed packages and made changes
         `sudo mount /dev/ubuntu-vg/ubuntu-lv /media/foo`
     install wireguard server
         completed, see ~/Desktop/Wireguard
+    ups-related stuff
+        TODO take data from Notes
+    cockpit (webmin simple? alternative)
+        TODO
 
 ### `sudo lspci -vvvxxx | grep "LPC Bridge`
 ```txt

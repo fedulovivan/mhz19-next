@@ -4,4 +4,7 @@
         "**/front-and-old": true
     },
     "debug.javascript.codelens.npmScripts": "never",
+    "files.associations": {
+        ".env*": "env",
+    }
 }

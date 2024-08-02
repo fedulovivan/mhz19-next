@@ -13,33 +13,24 @@ services:
         env_file: ".env"
         restart: unless-stopped
         logging: *default-logging
-        network_mode: "host"
         depends_on:
-            - "zigbee2mqtt"
-            - "backend"        
+            - "mosquitto"
+        # network_mode: "host"
     backend:
         build:
             context: "."
         image: "mhz19-next"
         env_file: ".env"
-        network_mode: "host"
+        # map sound devices to enable mp3 playback from containers
         devices:
             - "/dev/snd:/dev/snd"
         volumes:
             - "./database.bin:/app/database.bin"
         depends_on:
-            - "zigbee2mqtt"
+            - "mosquitto"
         restart: unless-stopped
         logging: *default-logging
-    mosquitto:
-        image: eclipse-mosquitto
-        volumes:
-            - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
-            - ./mosquitto.passwd:/etc/mosquitto/passwd
-        ports:
-            - 1883:1883
-        restart: unless-stopped
-        logging: *default-logging
+        # network_mode: "host"
     zigbee2mqtt:
         image: koenkk/zigbee2mqtt
         ports:
@@ -52,3 +43,12 @@ services:
             - "mosquitto"
         restart: unless-stopped
         logging: *default-logging
+    mosquitto:
+        image: eclipse-mosquitto
+        volumes:
+            - ./mosquitto.conf:/mosquitto/config/mosquitto.conf
+            - ./mosquitto.passwd:/etc/mosquitto/passwd
+        ports:
+            - 1883:1883
+        restart: unless-stopped
+        logging: *default-logging    
