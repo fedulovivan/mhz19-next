@@ -72,7 +72,8 @@ export interface IOutputAction {
  * record which defines a map of input message to executed actions
  */
 export interface IMappingRecord {
-    onZigbeeMessage?: IInputRuleZigbeeMessage;
+    // TODO onZigbeeMessage is redundant and all fieds from IInputRuleZigbeeMessage could be "hoisted" here, semantically we'd better handle ALL messages
+    onZigbeeMessage: IInputRuleZigbeeMessage;
     actions: Array<IOutputAction>;
 }
 
@@ -87,7 +88,7 @@ export interface IActionsExecutorCtrOpts {
 }
 
 export type TMatcherFunc = (
-    deviceId: DEVICE,
+    // deviceId: DEVICE,
     message: IZigbeeDeviceMessage,
     payloadConditions: TPayloadConditions,
     supportedConditionFunctions: Record<PayloadConditionFunction, TPayloadConditionFunctionImpl>,

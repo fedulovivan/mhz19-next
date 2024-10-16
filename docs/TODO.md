@@ -13,6 +13,40 @@
 - check its ok to have anonymous volumes created by mosquitto - https://github.com/eclipse/mosquitto/issues/2147
 - logger: when some "category" disabled with "mhz19-*,-mhz19-mdns" syntax this is not handled by logger, and outputted anyway
 
+
+### Current architecture
+
+mappings = { deviceId: []actions }
+actionsExecutor = ActionsExecutor(mappings)
+
+// handlers for various topics
+valveStateStatusHandler(m) {
+    handleLeakage(m)
+}
+zigbee2MqttWildcardHandler(m) {
+    actionsExecutor.handleZigbeeMessage(m)
+}
+bridgeDevicesHandler(devices) {
+    for devices Device.upsert()
+}
+
+// map topic to handler
+mqttMessageDispatcher(
+    mqttClient {
+        topic1 valveStateStatusHandler
+        topic2 zigbee2MqttWildcardHandler
+        topic3 bridgeDevicesHandler
+    }
+)
+
+// actionsExecutor pipeline
+receive message 
+    > find mapping rule (srcDevices and payloadConditions are checked, actually srcDevices is special case of payloadConditions, with one exception that conditionOperator is applied only within payloadConditions)
+        > rule with throttle? 
+            yes: queue received messages for deviceId (practically we need to use deviceId + ruleId here, since theoretically we may    form a queue from messages captured by different mapping rules, but we take and execute only actions of first mapping rule)
+                queue will be automatically flushed with all collected messages: executeActions(messages, actions)
+            no: execute immediately executeActions(message, actions)
+
 ### macmini hw and host optimization
 
 installed packages and made changes

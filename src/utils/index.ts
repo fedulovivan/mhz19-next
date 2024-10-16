@@ -149,7 +149,7 @@ export async function yeelightDeviceSetPower(deviceId: string, state: 'on' | 'of
 
 export const uptime = async () => {
 
-    // uptime's option "pretty" is availableonlu for ubuntu, so we ought to parse more complex string to make implementation universal
+    // uptime's option "pretty" is available only in ubuntu, so we ought to parse more complex string to make implementation universal
     // macos v1 "13:21  up 1 day, 19 hrs, 4 users, load averages: 1.07 1.83 2.14"
     // macos v2 "13:41  up 1 day, 19:20, 4 users, load averages: 1.92 1.82 1.83"
     // ubuntu "13:20:22 up 22 days,  1:32,  2 users,  load average: 0.42, 0.29, 0.21"

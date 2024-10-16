@@ -53,7 +53,7 @@ const translator = (
 };
 
 const matcher: TMatcherFunc = (
-    srcDeviceId,
+    // srcDeviceId,
     message,
     payloadConditions,
     supportedFunctions,
@@ -120,7 +120,7 @@ export default class ActionsExecutor {
                 throttle,
             } = onZigbeeMessage;
             const matches = payloadConditions ? matcher(
-                srcDeviceId,
+                // srcDeviceId,
                 message,
                 payloadConditions,
                 supportedConditionFunctions,
@@ -131,7 +131,7 @@ export default class ActionsExecutor {
             this.stats.matchedRules += 1;
             debug(`Picked mapping with index ${index}, going to execute ${actions.length} actions`);
             if (notNil(throttle)) {
-                debug(`Action for ${srcDeviceId} has throttle=${throttle}, message will be queued...`);
+                debug(`Mapping for ${srcDeviceId} has throttle=${throttle}, message will be queued...`);
                 if (!queues.has(srcDeviceId)) {
                     queues.set(
                         srcDeviceId,

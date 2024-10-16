@@ -54,11 +54,12 @@ export enum DEVICE {
     // sonoff
     SONOFF_MINI_PINK_LABEL = "10011cec96",
     STORAGE_ROOM_VENT = "10012db92b",
+    // yeelight
+    BEDROOM_CEILING_LIGHT = "0x00000000064c5293",
     // zigbee
     STORAGE_ROOM_DOOR = "0x00158d0000c2fa6e",
     LIFE_CONTROL_DOOR_SENSOR_NEW = "0x00158d0000bedf87",
     STORAGE_ROOM_CEILING_LIGHT = "0xe0798dfffed39ed1",
-    BEDROOM_CEILING_LIGHT = "0x00000000064c5293",
     IKEA_ONOFF_SWITCH = "0x50325ffffe6ca5da",
     MOVEMENT_SENSOR = "0x00158d000a823bb0",
     WALL_SWITCH_BEDROOM = "0x00158d00042446ec",
@@ -82,7 +83,7 @@ export enum DEVICE {
 }
 
 /**
- * (!) note that string enums do not support reverse mapping, so we have this separate map
+ * (!) note that string enums do not support reverse mapping, so we have to use a separate map
  * more:
  * https://www.typescriptlang.org/docs/handbook/release-notes/typescript-2-4.html#string-enums
  */

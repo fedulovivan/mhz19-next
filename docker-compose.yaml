@@ -20,7 +20,7 @@ services:
             context: "."
         image: "mhz19-next"
         env_file: ".env"
-        # map sound devices to enable mp3 playback from containers
+        # map sound devices to enable mp3 playback (exec of mpg123) in containers
         devices:
             - "/dev/snd:/dev/snd"
         ports:
