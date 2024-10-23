@@ -17,22 +17,22 @@ services:
             - "mosquitto"
         ports:
             - 2112:2112
-    backend:
-        build:
-            context: "."
-        image: "mhz19-next"
-        env_file: ".env"
-        # map sound devices to enable mp3 playback (exec of mpg123) in containers
-        devices:
-            - "/dev/snd:/dev/snd"
-        ports:
-            - 8888:8888
-        volumes:
-            - "./database.bin:/app/database.bin"
-        depends_on:
-            - "mosquitto"
-        restart: unless-stopped
-        logging: *default-logging
+    # backend:
+    #     build:
+    #         context: "."
+    #     image: "mhz19-next"
+    #     env_file: ".env"
+    #     # map sound devices to enable mp3 playback (exec of mpg123) in containers
+    #     devices:
+    #         - "/dev/snd:/dev/snd"
+    #     ports:
+    #         - 8888:8888
+    #     volumes:
+    #         - "./database.bin:/app/database.bin"
+    #     depends_on:
+    #         - "mosquitto"
+    #     restart: unless-stopped
+    #     logging: *default-logging
     zigbee2mqtt:
         image: koenkk/zigbee2mqtt
         ports:
